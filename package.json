@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "tsc -b && vite build",
-    "preview": "vite preview --host 0.0.0.0"
+    "preview": "npm run build && wrangler dev",
+    "deploy": "npm run build && wrangler deploy"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.0.4",
@@ -18,7 +19,9 @@
     "vite-plugin-pwa": "^1.0.3"
   },
   "devDependencies": {
+    "@cloudflare/vite-plugin": "^1.40.1",
     "@types/react": "^19.2.17",
-    "@types/react-dom": "^19.2.3"
+    "@types/react-dom": "^19.2.3",
+    "wrangler": "^4.99.0"
   }
 }
