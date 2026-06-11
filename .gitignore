@@ -1,0 +1,7 @@
+node_modules/
+dist/
+*.local
+.claude/
+CLAUDE.md
+.claude/settings.local.json
+skills-lock.json
