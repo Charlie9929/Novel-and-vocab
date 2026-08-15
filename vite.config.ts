@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: "autoUpdate",
+      registerType: "prompt",
       includeAssets: ["pwa-192.svg", "pwa-512.svg"],
       manifest: {
         name: "沉浸式小说背单词",

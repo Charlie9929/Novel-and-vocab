@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { decodeNovelBytes, isPdfFile, isSupportedNovelFile, isTxtFile } from "../../src/core/fileReader";
+import {
+  createPdfPageProgressReporter,
+  decodeNovelBytes,
+  isPdfFile,
+  isSupportedNovelFile,
+  isTxtFile,
+  type NovelReadProgress,
+} from "../../src/core/fileReader";
 
 describe("novel decoding", () => {
   it("decodes UTF-8 with BOM", () => {
@@ -21,5 +28,21 @@ describe("novel decoding", () => {
     expect(isSupportedNovelFile(txt)).toBe(true);
     expect(isSupportedNovelFile(pdf)).toBe(true);
     expect(isSupportedNovelFile(image)).toBe(false);
+  });
+
+  it("throttles progress updates for very large PDFs", () => {
+    const updates: NovelReadProgress[] = [];
+    const report = createPdfPageProgressReporter(10_529, (progress) => updates.push(progress));
+
+    for (let pageNumber = 1; pageNumber <= 10_529; pageNumber += 1) report(pageNumber);
+
+    expect(updates.length).toBeLessThanOrEqual(59);
+    expect(updates.at(-1)).toEqual({
+      phase: "extracting",
+      percent: 95,
+      currentPage: 10_529,
+      totalPages: 10_529,
+    });
+    expect(updates.every((progress, index) => index === 0 || progress.percent >= updates[index - 1].percent)).toBe(true);
   });
 });

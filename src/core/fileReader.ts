@@ -14,6 +14,20 @@ export interface NovelReadProgress {
 
 export type NovelReadProgressHandler = (progress: NovelReadProgress) => void;
 
+export function createPdfPageProgressReporter(
+  totalPages: number,
+  onProgress?: NovelReadProgressHandler,
+): (pageNumber: number) => void {
+  let lastPercent = -1;
+
+  return (pageNumber: number) => {
+    const percent = 38 + Math.round((pageNumber / totalPages) * 57);
+    if (percent === lastPercent && pageNumber < totalPages) return;
+    lastPercent = percent;
+    onProgress?.({ phase: "extracting", percent, currentPage: pageNumber, totalPages });
+  };
+}
+
 export function isTxtFile(file: File): boolean {
   return hasExtension(file, TEXT_EXTENSIONS);
 }
@@ -78,40 +92,46 @@ export async function readPdfFile(file: File, onProgress?: NovelReadProgressHand
     throw new Error("请选择 .pdf 小说文件。");
   }
 
+  onProgress?.({ phase: "parsing", percent: 2 });
   const [{ GlobalWorkerOptions, getDocument }, workerModule] = await Promise.all([
     import("pdfjs-dist/legacy/build/pdf.mjs"),
     import("pdfjs-dist/legacy/build/pdf.worker.min.mjs?url"),
   ]);
   GlobalWorkerOptions.workerSrc = workerModule.default;
 
-  const bytes = new Uint8Array(await readFileAsArrayBuffer(file, onProgress));
-  onProgress?.({ phase: "parsing", percent: 28 });
-  const loadingTask = getDocument({ data: bytes });
+  const objectUrl = URL.createObjectURL(file);
+  onProgress?.({ phase: "parsing", percent: 5 });
+  const loadingTask = getDocument({
+    url: objectUrl,
+    disableAutoFetch: true,
+    disableStream: true,
+    disableFontFace: true,
+    isOffscreenCanvasSupported: false,
+    isImageDecoderSupported: false,
+  });
   loadingTask.onProgress = ({ loaded, total }: { loaded: number; total: number }) => {
     const ratio = total > 0 ? loaded / total : 0.5;
-    onProgress?.({ phase: "parsing", percent: 28 + Math.round(Math.min(1, ratio) * 10) });
+    onProgress?.({ phase: "parsing", percent: 5 + Math.round(Math.min(1, ratio) * 33) });
   };
   let document: Awaited<typeof loadingTask.promise> | undefined;
 
   try {
     document = await loadingTask.promise;
     onProgress?.({ phase: "extracting", percent: 38, currentPage: 0, totalPages: document.numPages });
-    const pages: string[] = [];
+    const textChunks: string[] = [];
+    const reportPageProgress = createPdfPageProgressReporter(document.numPages, onProgress);
 
     for (let pageNumber = 1; pageNumber <= document.numPages; pageNumber += 1) {
       const page = await document.getPage(pageNumber);
       const content = await page.getTextContent();
-      pages.push(extractPageText(content.items));
+      const pageText = extractPageText(content.items);
+      if (pageText) textChunks.push(pageText);
       page.cleanup();
-      onProgress?.({
-        phase: "extracting",
-        percent: 38 + Math.round((pageNumber / document.numPages) * 57),
-        currentPage: pageNumber,
-        totalPages: document.numPages,
-      });
+      reportPageProgress(pageNumber);
+      if (pageNumber % 25 === 0) await yieldToBrowser();
     }
 
-    const text = pages.filter((page) => page.trim()).join("\n\n");
+    const text = textChunks.join("\n\n");
     if (!text.trim()) {
       throw new Error("这个 PDF 没有可提取的文字，可能是扫描版图片 PDF。请先 OCR 或转换为可复制文字的 PDF。");
     }
@@ -122,7 +142,7 @@ export async function readPdfFile(file: File, onProgress?: NovelReadProgressHand
       fileSize: file.size,
       lastModified: file.lastModified,
       fingerprint: createFileFingerprint(file, text),
-      text: normalizeNovelText(text),
+      text: text.trim(),
     };
     onProgress?.({ phase: "finishing", percent: 100, currentPage: document.numPages, totalPages: document.numPages });
     return novel;
@@ -132,32 +152,20 @@ export async function readPdfFile(file: File, onProgress?: NovelReadProgressHand
     }
     throw new Error("PDF 读取失败，请确认文件没有损坏，并尝试使用可复制文字的 PDF。", { cause: error });
   } finally {
-    if (document) {
-      await document.destroy();
-    } else {
-      await loadingTask.destroy();
+    try {
+      if (document) {
+        await document.destroy();
+      } else {
+        await loadingTask.destroy();
+      }
+    } finally {
+      URL.revokeObjectURL(objectUrl);
     }
   }
 }
 
-function readFileAsArrayBuffer(file: File, onProgress?: NovelReadProgressHandler): Promise<ArrayBuffer> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onprogress = (event) => {
-      if (event.lengthComputable) {
-        onProgress?.({ phase: "reading", percent: Math.round((event.loaded / event.total) * 25) });
-      }
-    };
-    reader.onerror = () => reject(new Error("本地文件读取失败，请重新选择文件。"));
-    reader.onload = () => {
-      if (reader.result instanceof ArrayBuffer) {
-        resolve(reader.result);
-      } else {
-        reject(new Error("本地文件读取失败，请重新选择文件。"));
-      }
-    };
-    reader.readAsArrayBuffer(file);
-  });
+function yieldToBrowser(): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, 0));
 }
 
 function extractPageText(items: Array<unknown>): string {
