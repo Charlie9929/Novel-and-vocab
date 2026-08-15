@@ -1,0 +1,74 @@
+[
+  {
+    "source": "请您选择接入类型。",
+    "targetChinese": "选择",
+    "expectedEnglish": "choose",
+    "note": "真实小说短句，动词语境"
+  },
+  {
+    "source": "他走进了游戏的世界中。",
+    "targetChinese": "走进",
+    "expectedEnglish": "enter",
+    "note": "由真实小说短句改写，常见动作"
+  },
+  {
+    "source": "他置身在一个相像的环境里。",
+    "targetChinese": "环境",
+    "expectedEnglish": "environment",
+    "note": "由真实小说短句缩写"
+  },
+  {
+    "source": "她发现了游戏中的问题。",
+    "targetChinese": "发现",
+    "expectedEnglish": "discover",
+    "note": "动词语境应优先使用 discover"
+  },
+  {
+    "source": "她发现了游戏中的问题。",
+    "targetChinese": "游戏",
+    "expectedEnglish": "game",
+    "note": "游戏不能反向替换为 player"
+  },
+  {
+    "source": "她发现了游戏中的问题。",
+    "targetChinese": "问题",
+    "expectedEnglish": "problem",
+    "note": "一般问题语境优先使用 problem"
+  },
+  {
+    "source": "她的生活终于平静下来。",
+    "targetChinese": "生活",
+    "expectedEnglish": "life",
+    "note": "名词生活不使用 living 作为主候选"
+  },
+  {
+    "source": "这代表着一个新的开始。",
+    "targetChinese": "代表",
+    "expectedEnglish": "represent",
+    "note": "代表着是动词语境"
+  },
+  {
+    "source": "许多人已经回来了。",
+    "targetChinese": "许多",
+    "expectedEnglish": "many",
+    "note": "许多不能误替换为 hundred"
+  },
+  {
+    "source": "他终于明白了这个问题。",
+    "targetChinese": "明白",
+    "expectedEnglish": "understand",
+    "note": "明白在动词语境使用 understand"
+  },
+  {
+    "source": "封不觉：请选择确认选项。",
+    "targetChinese": "封不觉",
+    "expectedEnglish": null,
+    "note": "说话人姓名应受保护"
+  },
+  {
+    "source": "他读完了《惊悚乐园》。",
+    "targetChinese": "惊悚乐园",
+    "expectedEnglish": null,
+    "note": "书名应受保护"
+  }
+]

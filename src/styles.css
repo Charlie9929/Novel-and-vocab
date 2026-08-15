@@ -446,6 +446,39 @@ button {
   gap: 10px;
 }
 
+.candidate-block {
+  margin: 18px 0;
+}
+
+.candidate-block > p {
+  margin: 4px 0 10px;
+}
+
+.candidate-list {
+  display: grid;
+  gap: 8px;
+}
+
+.candidate-list button {
+  display: grid;
+  gap: 3px;
+  border: 1px solid #d8d0c3;
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: #fffdf8;
+  text-align: left;
+}
+
+.candidate-list button.active {
+  border-color: #14615c;
+  background: #f0faf8;
+}
+
+.candidate-list span {
+  color: #6a665e;
+  font-size: 13px;
+}
+
 .panel-view {
   flex: 1;
   min-height: 0;

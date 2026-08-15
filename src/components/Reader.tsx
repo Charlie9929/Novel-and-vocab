@@ -34,11 +34,21 @@ export function Reader({
   onNextChapter,
 }: ReaderProps) {
   const articleRef = useRef<HTMLElement | null>(null);
+  const completedChapterRef = useRef<string | null>(null);
   const paragraphs = useMemo(() => groupTokensIntoParagraphs(tokens), [tokens]);
   const densityClass = densityClassName(densityLevel);
 
   useEffect(() => {
-    articleRef.current?.scrollTo({ top: 0 });
+    const article = articleRef.current;
+    if (!article) return;
+    const frame = requestAnimationFrame(() => {
+      const maxScroll = article.scrollHeight - article.clientHeight;
+      article.scrollTo({ top: maxScroll * (progressPercent / 100) });
+    });
+    completedChapterRef.current = progressPercent >= 96 ? chapter.id : null;
+    return () => cancelAnimationFrame(frame);
+    // Restore once when a chapter is opened; live progress updates must not fight scrolling.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chapter.id]);
 
   function handleScroll() {
@@ -47,7 +57,10 @@ export function Reader({
     const maxScroll = article.scrollHeight - article.clientHeight;
     const percent = maxScroll <= 0 ? 100 : Math.min(100, Math.round((article.scrollTop / maxScroll) * 100));
     onProgressChange(percent);
-    if (percent >= 96) onCompleteChapter();
+    if (percent >= 96 && completedChapterRef.current !== chapter.id) {
+      completedChapterRef.current = chapter.id;
+      onCompleteChapter();
+    }
   }
 
   return (

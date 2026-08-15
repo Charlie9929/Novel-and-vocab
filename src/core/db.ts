@@ -1,6 +1,7 @@
 import Dexie, { type Table } from "dexie";
 import { createInitialSm2State, type Sm2State } from "./sm2";
 import type { QuizQuestion, ReplacementToken } from "./types";
+import { correctionKey, normalizeContext, type ContextCorrection } from "./corrections";
 
 export interface ReadingProgressRecord {
   fileFingerprint: string;
@@ -69,6 +70,7 @@ class ImmersiveVocabDb extends Dexie {
   quizHistory!: Table<QuizHistoryRecord, number>;
   settings!: Table<SettingsRecord, number>;
   fileHandles!: Table<FileHandleRecord, string>;
+  contextCorrections!: Table<ContextCorrection, string>;
 
   constructor() {
     super("immersiveVocabReader");
@@ -95,6 +97,16 @@ class ImmersiveVocabDb extends Dexie {
       quizHistory: "++id, fileFingerprint, chapterIndex, createdAt",
       settings: "++id, &key",
       fileHandles: "fileFingerprint, savedAt",
+    });
+    this.version(4).stores({
+      readingProgress: "fileFingerprint, updatedAt",
+      vocabulary: "++id, &key, word, originalChinese, fileFingerprint, createdAt, sm2.dueAt",
+      replacementRecords: "++id, &key, fileFingerprint, chapterIndex, word, originalChinese",
+      blacklist: "++id, &term, createdAt",
+      quizHistory: "++id, fileFingerprint, chapterIndex, createdAt",
+      settings: "++id, &key",
+      fileHandles: "fileFingerprint, savedAt",
+      contextCorrections: "key, zh, updatedAt",
     });
   }
 }
@@ -165,6 +177,9 @@ export async function clearLocalLearningData(): Promise<void> {
     db.replacementRecords.clear(),
     db.blacklist.clear(),
     db.quizHistory.clear(),
+    db.settings.clear(),
+    db.fileHandles.clear(),
+    db.contextCorrections.clear(),
   ]);
 }
 
@@ -188,4 +203,20 @@ export async function getFileHandle(fingerprint: string): Promise<FileSystemFile
 
 export async function getAllShelfEntries(): Promise<Array<ReadingProgressRecord>> {
   return db.readingProgress.orderBy("updatedAt").reverse().toArray();
+}
+
+export async function getContextCorrections(): Promise<Map<string, string>> {
+  const records = await db.contextCorrections.toArray();
+  return new Map(records.map((item) => [item.key, item.selectedEnglish]));
+}
+
+export async function saveContextCorrection(zh: string, sentence: string, selectedEnglish: string): Promise<void> {
+  const key = correctionKey(zh, sentence);
+  await db.contextCorrections.put({
+    key,
+    zh,
+    contextFingerprint: normalizeContext(sentence, zh),
+    selectedEnglish,
+    updatedAt: Date.now(),
+  });
 }

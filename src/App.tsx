@@ -16,6 +16,7 @@ import {
   getAllShelfEntries,
   getBlacklistTerms,
   getFileHandle,
+  getContextCorrections,
   getReadingProgress,
   getSetting,
   putSetting,
@@ -24,6 +25,7 @@ import {
   saveQuizHistory,
   saveReadingProgress,
   saveReplacementRecords,
+  saveContextCorrection,
   type VocabRecord,
 } from "./core/db";
 import { DEFAULT_DENSITY, DENSITY_VALUES, type DensityLevel } from "./core/density";
@@ -47,6 +49,7 @@ export default function App() {
   const [densityLevel, setDensityLevel] = useState<DensityLevel>(DEFAULT_DENSITY);
   const [isReviewing, setIsReviewing] = useState(false);
   const [shelf, setShelf] = useState<ShelfEntry[]>([]);
+  const [corrections, setCorrections] = useState<Map<string, string>>(new Map());
 
   const chapters = useMemo(() => (novel ? splitChapters(novel.text) : []), [novel]);
   const currentChapter = chapters[chapterIndex] ?? chapters[0];
@@ -54,8 +57,8 @@ export default function App() {
   const densityValue = DENSITY_VALUES[densityLevel];
   const replacedChapter = useMemo(() => {
     if (!currentChapter) return null;
-    return replaceChapterTerms(currentChapter, typedCet4Entries, new Set(blacklist), densityValue);
-  }, [blacklist, currentChapter, densityValue]);
+    return replaceChapterTerms(currentChapter, typedCet4Entries, new Set(blacklist), densityValue, corrections);
+  }, [blacklist, corrections, currentChapter, densityValue]);
 
   const reviewDueCount = useMemo(
     () => vocab.filter((w) => w.sm2.dueAt <= Date.now()).length,
@@ -72,14 +75,16 @@ export default function App() {
   }, [novel, replacedChapter]);
 
   async function refreshLocalState() {
-    const [blacklistTerms, words, savedDensity, shelfEntries] = await Promise.all([
+    const [blacklistTerms, words, savedDensity, shelfEntries, savedCorrections] = await Promise.all([
       getBlacklistTerms(),
       db.vocabulary.orderBy("createdAt").reverse().toArray(),
       getSetting("replacementDensity"),
       getAllShelfEntries(),
+      getContextCorrections(),
     ]);
     setBlacklist(blacklistTerms);
     setVocab(words);
+    setCorrections(savedCorrections);
     if (savedDensity === "low" || savedDensity === "medium" || savedDensity === "high") {
       setDensityLevel(savedDensity);
     }
@@ -152,6 +157,12 @@ export default function App() {
   async function handleBlacklist(replacement: ReplacementToken) {
     await addBlacklistTerm(replacement.zh);
     await addBlacklistTerm(replacement.en);
+    await refreshLocalState();
+    setSelectedWord(null);
+  }
+
+  async function handleCorrectWord(replacement: ReplacementToken, selectedEnglish: string) {
+    await saveContextCorrection(replacement.zh, replacement.sentence, selectedEnglish);
     await refreshLocalState();
     setSelectedWord(null);
   }
@@ -273,6 +284,7 @@ export default function App() {
         onClose={() => setSelectedWord(null)}
         onSave={(replacement) => void handleSaveWord(replacement)}
         onBlacklist={(replacement) => void handleBlacklist(replacement)}
+        onCorrect={(replacement, selectedEnglish) => void handleCorrectWord(replacement, selectedEnglish)}
       />
       {quizQuestions ? (
         <QuizPanel

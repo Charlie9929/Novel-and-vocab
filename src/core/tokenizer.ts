@@ -1,4 +1,5 @@
 import type { Cet4Entry, Chapter, MatchedTerm, SentenceSpan } from "./types";
+import { correctionKey, selectCandidate } from "./corrections";
 
 const CHAPTER_HEADING = /(^|\n)(第[零一二三四五六七八九十百千万\d]+[章节回卷部篇][^\n]{0,40})/g;
 const SENTENCE_END = /[。！？!?；;…]+/g;
@@ -50,11 +51,12 @@ function trySegmentChinese(text: string): SegmentSpan[] | null {
 }
 
 /** Build a Map<ChineseWord, Cet4Entry> for O(1) lookup. */
-function buildDictMap(entries: Cet4Entry[]): Map<string, Cet4Entry> {
-  const map = new Map<string, Cet4Entry>();
+function buildDictMap(entries: Cet4Entry[]): Map<string, Cet4Entry[]> {
+  const map = new Map<string, Cet4Entry[]>();
   for (const e of entries) {
-    if (map.has(e.zh)) continue;
-    map.set(e.zh, e);
+    const values = map.get(e.zh) ?? [];
+    if (!values.some((item) => item.en === e.en)) values.push(e);
+    map.set(e.zh, values);
   }
   return map;
 }
@@ -73,15 +75,15 @@ export function splitChapters(text: string): Chapter[] {
   }
 
   return matches.map((match, index) => {
-    const titleStart = (match.index ?? 0) + match[1].length;
+    const headingStart = (match.index ?? 0) + match[1].length;
+    const heading = match[2].trim();
+    const contentStart = headingStart + match[2].length;
     const nextStart = index + 1 < matches.length ? matches[index + 1].index ?? text.length : text.length;
-    const chunk = text.slice(titleStart, nextStart).trim();
-    const firstLineBreak = chunk.indexOf("\n");
-    const title = firstLineBreak >= 0 ? chunk.slice(0, firstLineBreak).trim() : chunk.slice(0, 30).trim();
+    const chunk = text.slice(contentStart, nextStart).trim();
 
     return {
       id: `chapter-${index}`,
-      title: title || `第 ${index + 1} 章`,
+      title: heading || `第 ${index + 1} 章`,
       index,
       text: chunk,
     };
@@ -112,6 +114,7 @@ export function findTerms(
   entries: Cet4Entry[],
   blacklist: Set<string>,
   extraProtectedTerms: string[] = [],
+  corrections: ReadonlyMap<string, string> = new Map(),
 ): MatchedTerm[] {
   const dict = buildDictMap(entries.filter((e) => !blacklist.has(e.zh) && !blacklist.has(e.en)));
   const sentences = splitSentences(text);
@@ -120,27 +123,28 @@ export function findTerms(
   // ---- path A: browser-native word segmentation ----
   const segments = trySegmentChinese(text);
   if (segments) {
-    return findTermsViaSegments(text, dict, segments, sentences, protectedRanges);
+    return findTermsViaSegments(text, dict, segments, sentences, protectedRanges, corrections);
   }
 
   // ---- path B: character-scan fallback ----
-  return findTermsViaScan(text, dict, sentences, protectedRanges);
+  return findTermsViaScan(text, dict, sentences, protectedRanges, corrections);
 }
 
 // ---- path A implementation ----
 
 function findTermsViaSegments(
   text: string,
-  dict: Map<string, Cet4Entry>,
+  dict: Map<string, Cet4Entry[]>,
   segments: SegmentSpan[],
   sentences: SentenceSpan[],
   protectedRanges: ProtectedRange[],
+  corrections: ReadonlyMap<string, string>,
 ): MatchedTerm[] {
-  const candidates: MatchedTerm[] = [];
+  const matches: MatchedTerm[] = [];
 
   for (const seg of segments) {
-    const entry = dict.get(seg.segment);
-    if (!entry) continue;
+    const entries = dict.get(seg.segment);
+    if (!entries) continue;
 
     const start = seg.index;
     const end = seg.index + seg.segment.length;
@@ -150,7 +154,10 @@ function findTermsViaSegments(
     const rightChar = text[end] ?? "";
     const confidence = boundaryConfidence(leftChar, rightChar);
 
-    candidates.push({
+    const sentence = findSentenceForRange(sentences, start, end);
+    const selected = selectCandidate(entries, sentence, corrections.get(correctionKey(seg.segment, sentence)));
+    const entry = selected.entry;
+    matches.push({
       id: `${entry.zh}-${entry.en}-${start}`,
       zh: entry.zh,
       en: entry.en,
@@ -159,21 +166,24 @@ function findTermsViaSegments(
       phonetic: entry.phonetic,
       start,
       end,
-      sentence: findSentenceForRange(sentences, start, end),
+      sentence,
       boundaryConfidence: confidence,
+      candidates: entries,
+      selectionReason: selected.reason,
     });
   }
 
-  return resolveOverlaps(candidates, text.length);
+  return resolveOverlaps(matches, text.length);
 }
 
 // ---- path B implementation ----
 
 function findTermsViaScan(
   text: string,
-  dict: Map<string, Cet4Entry>,
+  dict: Map<string, Cet4Entry[]>,
   sentences: SentenceSpan[],
   protectedRanges: ProtectedRange[],
+  corrections: ReadonlyMap<string, string>,
 ): MatchedTerm[] {
   const candidates: MatchedTerm[] = [];
   const maxLen = maxKeyLength(dict);
@@ -186,14 +196,17 @@ function findTermsViaScan(
     for (let len = maxLen; len >= 2; len--) {
       if (i + len > text.length) continue;
       const candidate = text.slice(i, i + len);
-      const entry = dict.get(candidate);
-      if (!entry) continue;
+      const entries = dict.get(candidate);
+      if (!entries) continue;
       if (isInsideProtected(protectedRanges, i, i + len)) continue;
 
       const leftChar = text[i - 1] ?? "";
       const rightChar = text[i + len] ?? "";
       const confidence = boundaryConfidence(leftChar, rightChar);
 
+      const sentence = findSentenceForRange(sentences, i, i + len);
+      const selected = selectCandidate(entries, sentence, corrections.get(correctionKey(candidate, sentence)));
+      const entry = selected.entry;
       candidates.push({
         id: `${entry.zh}-${entry.en}-${i}`,
         zh: entry.zh,
@@ -203,8 +216,10 @@ function findTermsViaScan(
         phonetic: entry.phonetic,
         start: i,
         end: i + len,
-        sentence: findSentenceForRange(sentences, i, i + len),
+        sentence,
         boundaryConfidence: confidence,
+        candidates: entries,
+        selectionReason: selected.reason,
       });
 
       break; // longest match at this position wins
@@ -246,10 +261,11 @@ function buildProtectedRanges(text: string, extraProtectedTerms: string[]): Prot
   const ranges: ProtectedRange[] = [];
   const speakerPattern = /(?:^|\n|[“"。！？!?；;，,、\s])([一-鿿]{2,4})(?=[:：])/g;
   const namedPersonPattern = /([一-鿿]{2,4})(?=(小姐|先生|女士|夫人|老师|同学|医生|队长|经理|大人|殿下|哥|姐|叔|姨))/g;
+  const actionNamePattern = /(?:^|[。！？!?；;，,、\s])([一-鿿]{2,4})(?=(说|道|问|答|笑|喊|叫|骂|怒|叹|想|看|听|走|来|去))/g;
   const titledWorkPattern = /[《「『“"]([一-鿿A-Za-z0-9，。！？、\s]{2,30})[》」』”"]/g;
   const questionLabelPattern = /问题\s*[零一二三四五六七八九十\d]+(?=[:：])/g;
 
-  for (const pattern of [speakerPattern, namedPersonPattern]) {
+  for (const pattern of [speakerPattern, namedPersonPattern, actionNamePattern]) {
     for (const match of text.matchAll(pattern)) {
       const name = match[1];
       const start = (match.index ?? 0) + match[0].lastIndexOf(name);
@@ -305,7 +321,7 @@ function findSentenceForRange(sentences: SentenceSpan[], start: number, end: num
   return sentence?.text ?? "";
 }
 
-function maxKeyLength(dict: Map<string, Cet4Entry>): number {
+function maxKeyLength(dict: Map<string, Cet4Entry[]>): number {
   let max = 0;
   for (const key of dict.keys()) {
     if (key.length > max) max = key.length;

@@ -1,4 +1,4 @@
-export type PartOfSpeech = "noun" | "verb" | "adjective";
+export type PartOfSpeech = "noun" | "verb" | "adjective" | "adverb";
 
 export interface Cet4Entry {
   zh: string;
@@ -6,6 +6,8 @@ export interface Cet4Entry {
   meaning: string;
   partOfSpeech: PartOfSpeech;
   phonetic?: string;
+  priority?: number;
+  contextHints?: string[];
 }
 
 export interface LocalNovel {
@@ -41,6 +43,8 @@ export interface MatchedTerm {
   sentence: string;
   /** 0 = both sides at hard boundaries (best), 1 = one side, 2 = floating in Chinese text (worst) */
   boundaryConfidence: number;
+  candidates: Cet4Entry[];
+  selectionReason: "correction" | "context" | "priority";
 }
 
 export interface ReplacementToken extends MatchedTerm {

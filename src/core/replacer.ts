@@ -10,8 +10,14 @@ interface ParagraphSpan {
   chineseCharCount: number;
 }
 
-export function replaceChapterTerms(chapter: Chapter, entries: Cet4Entry[], blacklist: Set<string>, density = 0.35): ReplacedChapter {
-  const eligible = findTerms(chapter.text, entries, blacklist, [chapter.title]);
+export function replaceChapterTerms(
+  chapter: Chapter,
+  entries: Cet4Entry[],
+  blacklist: Set<string>,
+  density = 0.35,
+  corrections: ReadonlyMap<string, string> = new Map(),
+): ReplacedChapter {
+  const eligible = findTerms(chapter.text, entries, blacklist, [chapter.title], corrections);
   const selected = selectStableReplacements(chapter, eligible, density);
   const selectedByStart = new Map(selected.map((item) => [item.start, item]));
   const tokens: RenderToken[] = [];

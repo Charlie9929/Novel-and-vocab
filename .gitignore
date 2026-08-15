@@ -1,7 +1,9 @@
 node_modules/
 dist/
+coverage/
 *.local
 .claude/
 CLAUDE.md
 .claude/settings.local.json
 skills-lock.json
+tests/private-input/
