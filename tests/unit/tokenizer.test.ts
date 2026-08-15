@@ -56,4 +56,15 @@ describe("tokenizer", () => {
     expect(chapters.map((item) => item.title)).toEqual(["第一章 花果山", "第二章 远行"]);
     expect(chapters[0].text).toBe("正文。");
   });
+
+  it("finds replacements in mobile-style Chinese prose", () => {
+    const matches = findTerms(
+      "美猴王终于来到了山上，学到了许多本领，还给它起了个名字。",
+      dictionary,
+      new Set(),
+    );
+    expect(matches.length).toBeGreaterThan(0);
+    expect(matches.some((item) => item.zh === "终于")).toBe(true);
+    expect(matches.every((item) => item.phonetic)).toBe(true);
+  });
 });

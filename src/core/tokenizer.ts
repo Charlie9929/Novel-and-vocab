@@ -123,7 +123,11 @@ export function findTerms(
   // ---- path A: browser-native word segmentation ----
   const segments = trySegmentChinese(text);
   if (segments) {
-    return findTermsViaSegments(text, dict, segments, sentences, protectedRanges, corrections);
+    const segmentedMatches = findTermsViaSegments(text, dict, segments, sentences, protectedRanges, corrections);
+    // Some mobile browsers expose Intl.Segmenter but return coarse or empty
+    // Chinese segments. Keep the browser path when it works, but recover from
+    // that partial implementation instead of showing a chapter with zero replacements.
+    if (segmentedMatches.length > 0 || text.length === 0) return segmentedMatches;
   }
 
   // ---- path B: character-scan fallback ----
