@@ -1,5 +1,7 @@
 export type PartOfSpeech = "noun" | "verb" | "adjective" | "adverb";
 
+export type TranslationFeedbackReason = "meaning" | "partOfSpeech" | "segmentation" | "context";
+
 export interface Cet4Entry {
   zh: string;
   en: string;

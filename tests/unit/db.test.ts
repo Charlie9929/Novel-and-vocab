@@ -3,9 +3,9 @@ import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import {
   db,
   clearLocalLearningData,
-  getContextCorrections,
-  saveContextCorrection,
-  saveTranslationFeedback,
+      getContextCorrections,
+      saveContextCorrection,
+      saveTranslationFeedback,
 } from "../../src/core/db";
 
 describe("local database v5", () => {
@@ -41,13 +41,15 @@ describe("local database v5", () => {
       kind: "replacement",
       chapterId: "chapter-1",
       chapterIndex: 0,
-    });
+    }, "meaning", "game");
 
     const feedback = await db.translationFeedback.toArray();
     expect(feedback).toHaveLength(1);
     expect(feedback[0].originalChinese).toBe("游戏");
     expect(feedback[0].englishWord).toBe("player");
     expect(feedback[0].sourceSentence).toBe("这个游戏很有趣。");
+    expect(feedback[0].reason).toBe("meaning");
+    expect(feedback[0].userSuggestion).toBe("game");
   });
 
   it("clears settings, file handles, and corrections", async () => {

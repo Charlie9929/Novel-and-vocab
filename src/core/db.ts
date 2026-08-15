@@ -1,6 +1,6 @@
 import Dexie, { type Table } from "dexie";
 import { createInitialSm2State, type Sm2State } from "./sm2";
-import type { QuizQuestion, ReplacementToken } from "./types";
+import type { QuizQuestion, ReplacementToken, TranslationFeedbackReason } from "./types";
 import { correctionKey, normalizeContext, type ContextCorrection } from "./corrections";
 
 export interface ReadingProgressRecord {
@@ -48,8 +48,13 @@ export interface TranslationFeedbackRecord {
   meaning: string;
   partOfSpeech: string;
   sourceSentence: string;
+  reason: TranslationFeedbackReason;
+  userSuggestion?: string;
   createdAt: number;
-  status: "pending";
+  status: "pending" | "submitted";
+  aiDecision?: "accept" | "reject" | "review";
+  aiSuggestion?: string;
+  aiExplanation?: string;
 }
 
 export interface QuizHistoryRecord {
@@ -178,17 +183,37 @@ export async function addBlacklistTerm(term: string): Promise<void> {
   await db.blacklist.put({ term, createdAt: Date.now() });
 }
 
-export async function saveTranslationFeedback(replacement: ReplacementToken): Promise<void> {
+export async function saveTranslationFeedback(
+  replacement: ReplacementToken,
+  reason: TranslationFeedbackReason,
+  userSuggestion = "",
+): Promise<string> {
   const context = normalizeContext(replacement.sentence, replacement.zh);
+  const key = `${replacement.zh}:${replacement.en}:${context}`;
   await db.translationFeedback.put({
-    key: `${replacement.zh}:${replacement.en}:${context}`,
+    key,
     originalChinese: replacement.zh,
     englishWord: replacement.en,
     meaning: replacement.meaning,
     partOfSpeech: replacement.partOfSpeech,
     sourceSentence: replacement.sentence,
+    reason,
+    userSuggestion: userSuggestion.trim().slice(0, 120),
     createdAt: Date.now(),
     status: "pending",
+  });
+  return key;
+}
+
+export async function markTranslationFeedbackSubmitted(
+  key: string,
+  review: { decision: "accept" | "reject" | "review"; suggestedEnglish: string; explanation: string },
+): Promise<void> {
+  await db.translationFeedback.update(key, {
+    status: "submitted",
+    aiDecision: review.decision,
+    aiSuggestion: review.suggestedEnglish,
+    aiExplanation: review.explanation,
   });
 }
 
