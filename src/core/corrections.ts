@@ -30,10 +30,10 @@ export function selectCandidate(
   if (corrected) return { entry: corrected, reason: "correction" };
 
   const contextMatches = candidates.filter((item) => item.contextHints?.some((hint) => sentence.includes(hint)));
-  // Candidate order is intentional: the dictionary's first entry is the
-  // conservative primary translation. Never let alphabetical order turn a
-  // related word such as "player" into the answer for "游戏".
-  const entry = (contextMatches.length > 0 ? contextMatches : candidates)[0];
+  // Priority is an explicit curation signal for data whose source ordering is
+  // noisy. The first entry remains the stable fallback when priorities tie.
+  const pool = contextMatches.length > 0 ? contextMatches : candidates;
+  const entry = [...pool].sort((left, right) => (right.priority ?? 0) - (left.priority ?? 0))[0];
   return { entry, reason: contextMatches.length > 0 ? "context" : "priority" };
 }
 

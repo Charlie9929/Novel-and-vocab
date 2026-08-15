@@ -67,4 +67,64 @@ describe("tokenizer", () => {
     expect(matches.some((item) => item.zh === "终于")).toBe(true);
     expect(matches.every((item) => item.phonetic)).toBe(true);
   });
+
+  it("keeps compound nouns intact and selects the grammatical word form", () => {
+    const matches = findTerms(
+      "他按住太阳穴，身体本能后仰，从陌生变得熟悉，这是与祭祀相关的文字。",
+      dictionary,
+      new Set(),
+    );
+
+    expect(matches.some((item) => item.zh === "太阳")).toBe(false);
+    expect(matches.find((item) => item.zh === "本能")?.en).toBe("instinctively");
+    expect(matches.find((item) => item.zh === "陌生")?.en).toBe("strange");
+    expect(matches.find((item) => item.zh === "相关")?.en).toBe("relevant");
+
+    const weakSentence = findTerms("他很是虚弱，险些跌倒。", dictionary, new Set());
+    expect(weakSentence.find((item) => item.zh === "虚弱")?.en).toBe("weak");
+
+    const writtenSentence = findTerms("墙上是用古文字书写的内容。", dictionary, new Set());
+    expect(writtenSentence.find((item) => item.zh === "书写")?.en).toBe("written");
+  });
+
+  it("does not split a compound person noun", () => {
+    const matches = findTerms("门外站着一个陌生人。", dictionary, new Set());
+
+    expect(matches.find((item) => item.zh === "陌生人")?.en).toBe("stranger");
+    expect(matches.some((item) => item.zh === "陌生")).toBe(false);
+  });
+
+  it("does not surface phrase-only or corrupted dictionary entries", () => {
+    const matches = findTerms("空中飘来一阵风，无论何时都要留神。", dictionary, new Set());
+
+    expect(matches.some((item) => item.zh === "空中")).toBe(false);
+    expect(matches.some((item) => item.zh === "一阵")).toBe(false);
+    expect(matches.some((item) => item.zh === "无论")).toBe(false);
+    expect(matches.find((item) => item.zh === "留神")?.en).toBe("heed");
+  });
+
+  it("uses curated primary candidates in web-novel UI language", () => {
+    const matches = findTerms(
+      "系统显示时间，装备和训练都已恢复。考虑使用搜索功能，离开队伍后再继续行动。",
+      dictionary,
+      new Set(),
+    );
+    const expected = new Map([
+      ["显示", "display"],
+      ["时间", "time"],
+      ["装备", "equipment"],
+      ["训练", "training"],
+      ["恢复", "restore"],
+      ["考虑", "consider"],
+      ["使用", "use"],
+      ["搜索", "search"],
+      ["离开", "leave"],
+      ["队伍", "team"],
+      ["行动", "action"],
+    ]);
+
+    for (const [zh, en] of expected) {
+      expect(matches.find((item) => item.zh === zh)?.en, zh).toBe(en);
+    }
+  });
 });

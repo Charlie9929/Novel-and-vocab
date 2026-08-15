@@ -60,7 +60,7 @@
     "zh": "完全",
     "en": "perfectly",
     "meaning": "很，完全",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈpɝfəktli/"
   },
   {
@@ -81,7 +81,7 @@
     "zh": "完全",
     "en": "wholly",
     "meaning": "完全地，全部",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈhoʊli/"
   },
   {
@@ -257,14 +257,14 @@
     "zh": "因此",
     "en": "accordingly",
     "meaning": "因此，所以；照着",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/əˈkɔrdɪŋli/"
   },
   {
     "zh": "因此",
     "en": "consequently",
     "meaning": "因此/而,所以",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈkɑnsəkwəntli/"
   },
   {
@@ -426,7 +426,8 @@
     "en": "action",
     "meaning": "行动；作用；功能",
     "partOfSpeech": "noun",
-    "phonetic": "/ˈækʃən/"
+    "phonetic": "/ˈækʃən/",
+    "priority": 20
   },
   {
     "zh": "行为",
@@ -474,21 +475,21 @@
     "zh": "实际",
     "en": "actually",
     "meaning": "实际上；竟然",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈæˌktʃuəli/"
   },
   {
     "zh": "实际",
     "en": "practically",
     "meaning": "实际上；几乎",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈpræktəkli/"
   },
   {
     "zh": "实际",
     "en": "virtually",
     "meaning": "实际上，事实上",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈvɝtʃuəli/"
   },
   {
@@ -811,7 +812,8 @@
     "en": "later",
     "meaning": "后来；过一会儿",
     "partOfSpeech": "adjective",
-    "phonetic": "/ˈleɪtɚ/"
+    "phonetic": "/ˈleɪtɚ/",
+    "priority": 20
   },
   {
     "zh": "年龄",
@@ -978,7 +980,7 @@
     "zh": "单独",
     "en": "solely",
     "meaning": "单独地，唯一地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈsoʊəli/"
   },
   {
@@ -1055,7 +1057,7 @@
     "zh": "高度",
     "en": "highly",
     "meaning": "高度地，很，非常",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈhaɪli/"
   },
   {
@@ -1517,7 +1519,7 @@
     "zh": "近似",
     "en": "approximately",
     "meaning": "近似地，大约",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/əˈprɑksəmətli/"
   },
   {
@@ -1763,7 +1765,8 @@
     "en": "task",
     "meaning": "任务，工作，作业",
     "partOfSpeech": "noun",
-    "phonetic": "/ˈtæsk/"
+    "phonetic": "/ˈtæsk/",
+    "priority": 20
   },
   {
     "zh": "任务",
@@ -2190,7 +2193,8 @@
     "en": "leave",
     "meaning": "离开",
     "partOfSpeech": "verb",
-    "phonetic": "/ˈliv/"
+    "phonetic": "/ˈliv/",
+    "priority": 20
   },
   {
     "zh": "离开",
@@ -2203,7 +2207,7 @@
     "zh": "令人",
     "en": "awfully",
     "meaning": "令人畏惧的；很",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈɑfli/"
   },
   {
@@ -2245,7 +2249,7 @@
     "zh": "严重",
     "en": "badly",
     "meaning": "坏，差；严重地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈbædli/"
   },
   {
@@ -2483,7 +2487,7 @@
     "zh": "基本",
     "en": "basically",
     "meaning": "基本上",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈbeɪsɪkli/"
   },
   {
@@ -2994,7 +2998,7 @@
     "zh": "苦苦",
     "en": "bitterly",
     "meaning": "苦苦地；悲痛地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈbɪtɚli/"
   },
   {
@@ -4527,7 +4531,7 @@
     "zh": "必定",
     "en": "certainly",
     "meaning": "一定，必定；当然",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈsɝtənli/"
   },
   {
@@ -4541,7 +4545,7 @@
     "zh": "必然",
     "en": "necessarily",
     "meaning": "必然，必定",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˌnɛsəˈsɛrəli/"
   },
   {
@@ -4927,14 +4931,18 @@
     "meaning": "选择，挑选；情愿",
     "partOfSpeech": "verb",
     "phonetic": "/ˈtʃuz/",
-    "priority": 5,
+    "priority": 20,
     "contextHints": [
       "请选择",
       "选择接入",
       "选择登陆",
       "选择了",
       "选择正确",
-      "选择答案"
+      "选择答案",
+      "选择我们",
+      "选择项目",
+      "选择进入",
+      "选择加入"
     ]
   },
   {
@@ -5253,7 +5261,7 @@
     "zh": "紧密",
     "en": "closely",
     "meaning": "紧密地，接近地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈkloʊsli/"
   },
   {
@@ -5582,7 +5590,7 @@
     "zh": "普通",
     "en": "commonly",
     "meaning": "普通地，一般地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈkɑmənli/"
   },
   {
@@ -5741,10 +5749,10 @@
   },
   {
     "zh": "十分",
-    "en": "completely",
-    "meaning": "十分，完全地",
-    "partOfSpeech": "adjective",
-    "phonetic": "/kəˈmplitli/"
+    "en": "very",
+    "meaning": "十分；非常",
+    "partOfSpeech": "adverb",
+    "phonetic": "/ˈvɛri/"
   },
   {
     "zh": "使复",
@@ -6133,10 +6141,11 @@
   },
   {
     "zh": "考虑",
-    "en": "consideration",
-    "meaning": "考虑，思考；体贴",
-    "partOfSpeech": "noun",
-    "phonetic": "/kəˌnsɪdɚˈeɪʃən/"
+    "en": "consider",
+    "meaning": "考虑；思考",
+    "partOfSpeech": "verb",
+    "phonetic": "/kənˈsɪdɚ/",
+    "priority": 20
   },
   {
     "zh": "章程",
@@ -6192,7 +6201,8 @@
     "en": "consumption",
     "meaning": "消耗量；消耗",
     "partOfSpeech": "noun",
-    "phonetic": "/kəˈnsʌmpʃən/"
+    "phonetic": "/kəˈnsʌmpʃən/",
+    "priority": 20
   },
   {
     "zh": "使接",
@@ -6289,7 +6299,7 @@
     "zh": "相反",
     "en": "conversely",
     "meaning": "相反地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈkɑnvɚsli/"
   },
   {
@@ -7402,7 +7412,7 @@
     "zh": "明确",
     "en": "definitely",
     "meaning": "一定地，明确地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈdɛfənətli/"
   },
   {
@@ -7514,10 +7524,11 @@
   },
   {
     "zh": "说明",
-    "en": "demonstrate",
-    "meaning": "说明;论证;表露",
+    "en": "explain",
+    "meaning": "说明；解释",
     "partOfSpeech": "verb",
-    "phonetic": "/ˈdɛməˌnstreɪt/"
+    "phonetic": "/ɪkˈspleɪn/",
+    "priority": 20
   },
   {
     "zh": "说明",
@@ -7871,10 +7882,21 @@
   },
   {
     "zh": "不同",
+    "en": "different",
+    "meaning": "不同的；有差异的",
+    "partOfSpeech": "adjective",
+    "phonetic": "/ˈdɪfərənt/"
+  },
+  {
+    "zh": "不同",
     "en": "differ",
-    "meaning": "不同，相异",
+    "meaning": "不同；相异",
     "partOfSpeech": "verb",
-    "phonetic": "/ˈdɪfɚ/"
+    "phonetic": "/ˈdɪfɚ/",
+    "contextHints": [
+      "不同于",
+      "彼此不同"
+    ]
   },
   {
     "zh": "差别",
@@ -7943,7 +7965,7 @@
     "zh": "直接",
     "en": "directly",
     "meaning": "直接地；立即",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/dɚˈɛktli/"
   },
   {
@@ -8042,7 +8064,8 @@
     "en": "training",
     "meaning": "训练，锻炼，培养",
     "partOfSpeech": "noun",
-    "phonetic": "/ˈtreɪnɪŋ/"
+    "phonetic": "/ˈtreɪnɪŋ/",
+    "priority": 20
   },
   {
     "zh": "揭开",
@@ -8769,7 +8792,7 @@
     "zh": "容易",
     "en": "easily",
     "meaning": "容易地；舒适的",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈizəli/"
   },
   {
@@ -8825,7 +8848,7 @@
     "zh": "重复",
     "en": "repeatedly",
     "meaning": "重复地；一再",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/rɪˈpitɪdli/"
   },
   {
@@ -9301,7 +9324,7 @@
     "zh": "足够",
     "en": "sufficiently",
     "meaning": "足够地，充分地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/səˈfɪʃəntli/"
   },
   {
@@ -9408,7 +9431,8 @@
     "en": "equipment",
     "meaning": "装备，设备，配备",
     "partOfSpeech": "noun",
-    "phonetic": "/ɪˈkwɪpmənt/"
+    "phonetic": "/ɪˈkwɪpmənt/",
+    "priority": 20
   },
   {
     "zh": "时代",
@@ -9442,14 +9466,14 @@
     "zh": "格外",
     "en": "especially",
     "meaning": "特别，尤其，格外",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/əˈspɛʃli/"
   },
   {
     "zh": "格外",
     "en": "particularly",
     "meaning": "特别,尤其,格外",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˌpɑˈrtɪkjəlɚli/"
   },
   {
@@ -9561,7 +9585,7 @@
     "zh": "终于",
     "en": "eventually",
     "meaning": "终于；最后",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ɪˈvɛntʃəwəli/"
   },
   {
@@ -9617,7 +9641,7 @@
     "zh": "确切",
     "en": "exactly",
     "meaning": "确切地；恰恰正是",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ɪˈɡzæktli/"
   },
   {
@@ -9666,14 +9690,14 @@
     "zh": "极端",
     "en": "exceedingly",
     "meaning": "极端地，非常",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ɪˈksidɪŋli/"
   },
   {
     "zh": "极端",
     "en": "extremely",
     "meaning": "极端，极其，非常",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ɛˈkstrimli/"
   },
   {
@@ -9729,7 +9753,7 @@
     "zh": "专门",
     "en": "exclusively",
     "meaning": "专门地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ɪˈksklusɪvli/"
   },
   {
@@ -9743,7 +9767,7 @@
     "zh": "专门",
     "en": "specially",
     "meaning": "专门地，特别地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈspɛʃəli/"
   },
   {
@@ -9832,10 +9856,10 @@
   },
   {
     "zh": "显示",
-    "en": "exhibit",
-    "meaning": "显示；陈列，展览",
+    "en": "display",
+    "meaning": "显示；展示；显露",
     "partOfSpeech": "verb",
-    "phonetic": "/ɪˈɡzɪbɪt/"
+    "phonetic": "/dɪˈspleɪ/"
   },
   {
     "zh": "展览",
@@ -10170,7 +10194,7 @@
     "zh": "相当",
     "en": "fairly",
     "meaning": "相当；公平地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈfɛrli/"
   },
   {
@@ -10322,10 +10346,10 @@
   },
   {
     "zh": "样子",
-    "en": "fashion",
-    "meaning": "样子，方式；风尚",
+    "en": "appearance",
+    "meaning": "样子；外表；出现",
     "partOfSpeech": "noun",
-    "phonetic": "/ˈfæʃən/"
+    "phonetic": "/əˈpɪrəns/"
   },
   {
     "zh": "扎牢",
@@ -11136,7 +11160,7 @@
     "zh": "幸运",
     "en": "fortunately",
     "meaning": "幸运地，幸亏",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈfɔrtʃənətli/"
   },
   {
@@ -11213,7 +11237,7 @@
     "zh": "自由",
     "en": "freely",
     "meaning": "自由地；直率地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈfrili/"
   },
   {
@@ -11248,7 +11272,7 @@
     "zh": "时常",
     "en": "frequently",
     "meaning": "时常，常常",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈfrikwəntli/"
   },
   {
@@ -11619,7 +11643,7 @@
     "zh": "一般",
     "en": "generally",
     "meaning": "一般地；通常地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈdʒɛnɚəli/"
   },
   {
@@ -11682,7 +11706,7 @@
     "zh": "有礼",
     "en": "gently",
     "meaning": "有礼貌地；柔和地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈdʒɛntli/"
   },
   {
@@ -12011,7 +12035,7 @@
     "zh": "逐渐",
     "en": "gradually",
     "meaning": "逐渐地，逐步地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈɡrædʒuəli/"
   },
   {
@@ -12172,7 +12196,7 @@
     "zh": "大大",
     "en": "greatly",
     "meaning": "大大地，非常",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈɡreɪtli/"
   },
   {
@@ -12228,7 +12252,7 @@
     "zh": "悲痛",
     "en": "sadly",
     "meaning": "悲痛地，悲哀地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈsædli/"
   },
   {
@@ -12536,7 +12560,7 @@
     "zh": "简直",
     "en": "hardly",
     "meaning": "几乎不，简直不",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈhɑrdli/"
   },
   {
@@ -12816,7 +12840,7 @@
     "zh": "重重",
     "en": "heavily",
     "meaning": "重重地；大量地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈhɛvəli/"
   },
   {
@@ -13299,14 +13323,14 @@
     "zh": "立即",
     "en": "immediately",
     "meaning": "立即；直接地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ɪˈmidiətli/"
   },
   {
     "zh": "立即",
     "en": "instantly",
     "meaning": "立即，即刻",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈɪnstəntli/"
   },
   {
@@ -13439,7 +13463,7 @@
     "zh": "日益",
     "en": "increasingly",
     "meaning": "日益，越来越多地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ɪˈnkrisɪŋli/"
   },
   {
@@ -13453,14 +13477,14 @@
     "zh": "真正",
     "en": "really",
     "meaning": "真正地；实在",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈrɪli/"
   },
   {
     "zh": "真正",
     "en": "truly",
     "meaning": "真正地；忠实地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈtruli/"
   },
   {
@@ -13742,6 +13766,33 @@
     "meaning": "本能；直觉；生性",
     "partOfSpeech": "noun",
     "phonetic": "/ˈɪnstɪŋkt/"
+  },
+  {
+    "zh": "本能",
+    "en": "instinctively",
+    "meaning": "本能地；凭本能地",
+    "partOfSpeech": "adverb",
+    "phonetic": "/ɪnˈstɪŋktɪvli/",
+    "contextHints": [
+      "本能后",
+      "本能地",
+      "本能伸",
+      "本能转",
+      "本能躲",
+      "本能退"
+    ]
+  },
+  {
+    "zh": "本能",
+    "en": "instinctive",
+    "meaning": "本能的；凭直觉的",
+    "partOfSpeech": "adjective",
+    "phonetic": "/ɪnˈstɪŋktɪv/",
+    "contextHints": [
+      "本能反应",
+      "本能动作",
+      "本能选择"
+    ]
   },
   {
     "zh": "研究",
@@ -14636,7 +14687,7 @@
     "zh": "大部",
     "en": "largely",
     "meaning": "大部分；大量地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈlɑrdʒli/"
   },
   {
@@ -14650,14 +14701,14 @@
     "zh": "最近",
     "en": "lately",
     "meaning": "最近，不久前",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈleɪtli/"
   },
   {
     "zh": "最近",
     "en": "recently",
     "meaning": "最近，新近",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈrisəntli/"
   },
   {
@@ -15119,7 +15170,7 @@
     "zh": "轻轻",
     "en": "lightly",
     "meaning": "轻轻地，轻松地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈlaɪtli/"
   },
   {
@@ -15236,10 +15287,10 @@
   },
   {
     "zh": "留神",
-    "en": "listen",
-    "meaning": "听，留神听；听从",
+    "en": "heed",
+    "meaning": "留神；注意；听从",
     "partOfSpeech": "verb",
-    "phonetic": "/ˈlɪsən/"
+    "phonetic": "/hid/"
   },
   {
     "zh": "听者",
@@ -15567,21 +15618,21 @@
     "zh": "主要",
     "en": "mainly",
     "meaning": "主要地，大体上",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈmeɪnli/"
   },
   {
     "zh": "主要",
     "en": "mostly",
     "meaning": "主要的，大部分",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈmoʊstli/"
   },
   {
     "zh": "主要",
     "en": "primarily",
     "meaning": "首先；主要地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/praɪˈmɛrəli/"
   },
   {
@@ -15948,7 +15999,7 @@
     "zh": "机械",
     "en": "mechanically",
     "meaning": "机械地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/məˈkænɪkli/"
   },
   {
@@ -16088,14 +16139,14 @@
     "zh": "仅仅",
     "en": "merely",
     "meaning": "仅仅，只不过",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈmɪrli/"
   },
   {
     "zh": "仅仅",
     "en": "scarcely",
     "meaning": "仅仅；几乎不",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈskɛrsli/"
   },
   {
@@ -16648,7 +16699,7 @@
     "zh": "也就",
     "en": "namely",
     "meaning": "即，也就是",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈneɪmli/"
   },
   {
@@ -16676,7 +16727,7 @@
     "zh": "自然",
     "en": "naturally",
     "meaning": "自然地；天然地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈnætʃɚəli/"
   },
   {
@@ -16725,7 +16776,7 @@
     "zh": "密切",
     "en": "nearly",
     "meaning": "差不多；密切地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈnɪrli/"
   },
   {
@@ -16851,7 +16902,7 @@
     "zh": "新近",
     "en": "newly",
     "meaning": "新近，最近",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈnuli/"
   },
   {
@@ -16914,14 +16965,14 @@
     "zh": "通常",
     "en": "normally",
     "meaning": "通常，正常地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈnɔrməli/"
   },
   {
     "zh": "通常",
     "en": "usually",
     "meaning": "通常",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈjuʒəwəli/"
   },
   {
@@ -17103,7 +17154,7 @@
     "zh": "明显",
     "en": "obviously",
     "meaning": "明显地，显然地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈɑbviəsli/"
   },
   {
@@ -17117,7 +17168,7 @@
     "zh": "偶然",
     "en": "occasionally",
     "meaning": "偶然;非经常地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/əˈkeɪʒənəli/"
   },
   {
@@ -17691,14 +17742,14 @@
     "zh": "部分",
     "en": "partially",
     "meaning": "部分地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈpɑrʃəli/"
   },
   {
     "zh": "部分",
     "en": "partly",
     "meaning": "部分地，不完全地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈpɑrtli/"
   },
   {
@@ -17992,7 +18043,7 @@
     "zh": "永久",
     "en": "permanently",
     "meaning": "永久/持久地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈpɝmənəntli/"
   },
   {
@@ -18914,10 +18965,21 @@
   },
   {
     "zh": "预备",
+    "en": "prepare",
+    "meaning": "准备；预备",
+    "partOfSpeech": "verb",
+    "phonetic": "/prɪˈpɛr/"
+  },
+  {
+    "zh": "预备",
     "en": "preparation",
-    "meaning": "准/预备；制备",
+    "meaning": "准备；预备工作",
     "partOfSpeech": "noun",
-    "phonetic": "/ˌprɛpɚˈeɪʃən/"
+    "phonetic": "/ˌprɛpɚˈeɪʃən/",
+    "contextHints": [
+      "预备工作",
+      "预备阶段"
+    ]
   },
   {
     "zh": "准备",
@@ -18944,7 +19006,7 @@
     "zh": "目前",
     "en": "presently",
     "meaning": "一会儿；目前",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈprɛzəntli/"
   },
   {
@@ -19021,7 +19083,7 @@
     "zh": "先前",
     "en": "previously",
     "meaning": "先前，预先",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈpriviəsli/"
   },
   {
@@ -19159,10 +19221,10 @@
   },
   {
     "zh": "队伍",
-    "en": "procession",
-    "meaning": "队伍，行列",
+    "en": "team",
+    "meaning": "队伍；团队",
     "partOfSpeech": "noun",
-    "phonetic": "/prəˈsɛʃən/"
+    "phonetic": "/tim/"
   },
   {
     "zh": "生产",
@@ -19294,7 +19356,7 @@
     "zh": "适当",
     "en": "properly",
     "meaning": "适当地；彻底地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈprɑpɚli/"
   },
   {
@@ -19504,7 +19566,7 @@
     "zh": "纯粹",
     "en": "purely",
     "meaning": "纯粹地，完全地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈpjʊrli/"
   },
   {
@@ -19602,7 +19664,7 @@
     "zh": "季度",
     "en": "quarterly",
     "meaning": "季度地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈkwɔrtɚli/"
   },
   {
@@ -19637,14 +19699,14 @@
     "zh": "迅速",
     "en": "quickly",
     "meaning": "快，迅速",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈkwɪkli/"
   },
   {
     "zh": "迅速",
     "en": "rapidly",
     "meaning": "迅速地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈræpədli/"
   },
   {
@@ -19810,10 +19872,10 @@
   },
   {
     "zh": "搜索",
-    "en": "rake",
-    "meaning": "耙；搜索",
+    "en": "search",
+    "meaning": "搜索；查找",
     "partOfSpeech": "verb",
-    "phonetic": "/ˈreɪk/"
+    "phonetic": "/sɝtʃ/"
   },
   {
     "zh": "横行",
@@ -19833,7 +19895,7 @@
     "zh": "很少",
     "en": "rarely",
     "meaning": "很少，难得",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈrɛrli/"
   },
   {
@@ -19896,7 +19958,7 @@
     "zh": "乐意",
     "en": "readily",
     "meaning": "乐意地；无困难地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈrɛdəli/"
   },
   {
@@ -20142,7 +20204,8 @@
     "en": "restore",
     "meaning": "恢复；归还；修补",
     "partOfSpeech": "verb",
-    "phonetic": "/rɪˈstɔr/"
+    "phonetic": "/rɪˈstɔr/",
+    "priority": 20
   },
   {
     "zh": "恢复",
@@ -20225,7 +20288,7 @@
     "zh": "有规",
     "en": "regularly",
     "meaning": "有规律地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈrɛɡjəlɚli/"
   },
   {
@@ -20295,15 +20358,15 @@
     "zh": "相对",
     "en": "relatively",
     "meaning": "相对地，比较地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈrɛlətɪvli/"
   },
   {
     "zh": "相关",
-    "en": "relativity",
-    "meaning": "相关性；相对性",
-    "partOfSpeech": "noun",
-    "phonetic": "/ˌrɛləˈtɪvəti/"
+    "en": "relevant",
+    "meaning": "相关的；切题的",
+    "partOfSpeech": "adjective",
+    "phonetic": "/ˈrɛləvənt/"
   },
   {
     "zh": "使松",
@@ -20498,7 +20561,7 @@
     "zh": "类似",
     "en": "similarly",
     "meaning": "类似地，相似地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈsɪməlɚli/"
   },
   {
@@ -20603,7 +20666,7 @@
     "zh": "各自",
     "en": "respectively",
     "meaning": "各自/分别地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/rɪˈspɛktɪvli/"
   },
   {
@@ -21072,7 +21135,7 @@
     "zh": "粗糙",
     "en": "roughly",
     "meaning": "粗糙地，粗略地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈrʌfli/"
   },
   {
@@ -21170,7 +21233,7 @@
     "zh": "安全",
     "en": "safely",
     "meaning": "安全地；可靠地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈseɪfli/"
   },
   {
@@ -21423,7 +21486,8 @@
     "en": "time",
     "meaning": "时间；时机；次，回",
     "partOfSpeech": "noun",
-    "phonetic": "/ˈtaɪm/"
+    "phonetic": "/ˈtaɪm/",
+    "priority": 20
   },
   {
     "zh": "时间",
@@ -21723,7 +21787,7 @@
     "zh": "分离",
     "en": "separately",
     "meaning": "分离地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈsɛpɚətli/"
   },
   {
@@ -21758,7 +21822,7 @@
     "zh": "严肃",
     "en": "seriously",
     "meaning": "严肃地，认真地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈsɪriəsli/"
   },
   {
@@ -21793,7 +21857,7 @@
     "zh": "严厉",
     "en": "severely",
     "meaning": "严厉地，严格地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/səˈvɪrli/"
   },
   {
@@ -21905,7 +21969,7 @@
     "zh": "锐利",
     "en": "sharply",
     "meaning": "锐利地，敏锐地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈʃɑrpli/"
   },
   {
@@ -22094,7 +22158,7 @@
     "zh": "简短",
     "en": "shortly",
     "meaning": "立刻；简短地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈʃɔrtli/"
   },
   {
@@ -22241,7 +22305,7 @@
     "zh": "简单",
     "en": "simply",
     "meaning": "简单地；朴素地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈsɪmpli/"
   },
   {
@@ -22451,7 +22515,7 @@
     "zh": "稍微",
     "en": "slightly",
     "meaning": "稍微，有点",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈslaɪtli/"
   },
   {
@@ -22486,7 +22550,7 @@
     "zh": "慢慢",
     "en": "slowly",
     "meaning": "慢慢地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈsloʊli/"
   },
   {
@@ -22528,7 +22592,7 @@
     "zh": "光滑",
     "en": "smoothly",
     "meaning": "光滑地；平稳地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈsmuðli/"
   },
   {
@@ -22605,7 +22669,7 @@
     "zh": "柔软",
     "en": "softly",
     "meaning": "柔软地；温柔地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈsɔftli/"
   },
   {
@@ -23116,7 +23180,7 @@
     "zh": "稳定",
     "en": "steadily",
     "meaning": "稳定地，不变地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈstɛdəli/"
   },
   {
@@ -23506,8 +23570,15 @@
   },
   {
     "zh": "陌生",
+    "en": "strange",
+    "meaning": "陌生的；不熟悉的",
+    "partOfSpeech": "adjective",
+    "phonetic": "/streɪndʒ/"
+  },
+  {
+    "zh": "陌生人",
     "en": "stranger",
-    "meaning": "陌生人；新来者",
+    "meaning": "陌生人；不认识的人",
     "partOfSpeech": "noun",
     "phonetic": "/ˈstreɪndʒɚ/"
   },
@@ -23571,7 +23642,7 @@
     "zh": "严格",
     "en": "strictly",
     "meaning": "严格地，严谨地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈstrɪktli/"
   },
   {
@@ -23613,7 +23684,7 @@
     "zh": "强壮",
     "en": "strongly",
     "meaning": "强壮地，强烈地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈstrɔŋli/"
   },
   {
@@ -23718,7 +23789,7 @@
     "zh": "成功",
     "en": "successfully",
     "meaning": "成功地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/səˈksɛsfəli/"
   },
   {
@@ -23732,7 +23803,7 @@
     "zh": "突然",
     "en": "suddenly",
     "meaning": "突然地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈsʌdənli/"
   },
   {
@@ -23907,7 +23978,7 @@
     "zh": "惊人",
     "en": "surprisingly",
     "meaning": "惊人地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/sɚˈpraɪzɪŋli/"
   },
   {
@@ -24605,10 +24676,22 @@
   },
   {
     "zh": "如此",
-    "en": "thus",
-    "meaning": "如此，这样；因而",
+    "en": "such",
+    "meaning": "这样的；如此的",
     "partOfSpeech": "adjective",
-    "phonetic": "/ˈðʌs/"
+    "phonetic": "/sʌtʃ/"
+  },
+  {
+    "zh": "如此",
+    "en": "thus",
+    "meaning": "如此；因而",
+    "partOfSpeech": "adverb",
+    "phonetic": "/ˈðʌs/",
+    "contextHints": [
+      "因此如此",
+      "如此一来",
+      "正因如此"
+    ]
   },
   {
     "zh": "滴答",
@@ -25349,7 +25432,7 @@
     "zh": "最终",
     "en": "ultimately",
     "meaning": "最终，最后",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈʌltəmətli/"
   },
   {
@@ -25405,14 +25488,14 @@
     "zh": "无容",
     "en": "undoubtedly",
     "meaning": "无容置疑，肯定地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/əˈndaʊtɪdli/"
   },
   {
     "zh": "不幸",
     "en": "unfortunately",
     "meaning": "不幸地",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/əˈnfɔrtʃənətli/"
   },
   {
@@ -25487,10 +25570,11 @@
   },
   {
     "zh": "使用",
-    "en": "usage",
-    "meaning": "使用，对待；惯用法",
-    "partOfSpeech": "noun",
-    "phonetic": "/ˈjusədʒ/"
+    "en": "use",
+    "meaning": "使用；利用",
+    "partOfSpeech": "verb",
+    "phonetic": "/ˈjuz/",
+    "priority": 20
   },
   {
     "zh": "用户",
@@ -26005,10 +26089,21 @@
   },
   {
     "zh": "虚弱",
+    "en": "weak",
+    "meaning": "虚弱的；软弱的",
+    "partOfSpeech": "adjective",
+    "phonetic": "/wik/"
+  },
+  {
+    "zh": "虚弱",
     "en": "weakness",
-    "meaning": "虚弱，软弱；弱点",
+    "meaning": "虚弱；弱点",
     "partOfSpeech": "noun",
-    "phonetic": "/ˈwiknəs/"
+    "phonetic": "/ˈwiknəs/",
+    "contextHints": [
+      "弱点",
+      "弱项"
+    ]
   },
   {
     "zh": "武器",
@@ -26145,10 +26240,10 @@
   },
   {
     "zh": "究竟",
-    "en": "wherever",
-    "meaning": "究竟在哪里",
-    "partOfSpeech": "adjective",
-    "phonetic": "/wɛˈrɛvɚ/"
+    "en": "exactly",
+    "meaning": "究竟；到底；确切地",
+    "partOfSpeech": "adverb",
+    "phonetic": "/ɪɡˈzæktli/"
   },
   {
     "zh": "的时",
@@ -26238,7 +26333,7 @@
     "zh": "广泛",
     "en": "widely",
     "meaning": "广，广泛",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈwaɪdli/"
   },
   {
@@ -26499,6 +26594,18 @@
     "meaning": "书写，写；著作",
     "partOfSpeech": "noun",
     "phonetic": "/ˈraɪtɪŋ/"
+  },
+  {
+    "zh": "书写",
+    "en": "written",
+    "meaning": "写成的；书面的",
+    "partOfSpeech": "adjective",
+    "phonetic": "/ˈrɪtən/",
+    "contextHints": [
+      "书写的",
+      "书写成",
+      "书写于"
+    ]
   },
   {
     "zh": "不对",

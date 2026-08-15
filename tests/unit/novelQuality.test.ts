@@ -7,6 +7,7 @@ import type { Cet4Entry } from "../../src/core/types";
 
 const dictionary = cet4Entries as Cet4Entry[];
 const novelDirectory = path.resolve(process.cwd(), "tests/private-input/public-domain");
+const adjectiveLyExceptions = new Set(["early", "likely", "monthly", "weekly", "yearly"]);
 
 function listNovelFiles(): string[] {
   if (!fs.existsSync(novelDirectory)) return [];
@@ -22,8 +23,11 @@ function countChinese(text: string): number {
 
 describe("real novel quality gate", () => {
   it("keeps every dictionary entry displayable with an IPA value", () => {
-    expect(dictionary).toHaveLength(3792);
+    expect(dictionary).toHaveLength(3800);
     expect(dictionary.every((entry) => entry.phonetic?.startsWith("/") && entry.phonetic.endsWith("/"))).toBe(true);
+    expect(dictionary
+      .filter((entry) => entry.partOfSpeech === "adjective" && entry.en.endsWith("ly") && !adjectiveLyExceptions.has(entry.en))
+      .every((entry) => entry.partOfSpeech === "adverb")).toBe(true);
   });
 
   it("audits the downloaded public-domain novels", () => {

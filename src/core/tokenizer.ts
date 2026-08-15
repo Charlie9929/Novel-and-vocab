@@ -9,9 +9,33 @@ const SENTENCE_END = /[。！？!?；;…]+/g;
 const HARD_BOUNDARY_RE = /[\s\n，。！？；：、、""''（）《》【】\-—…,\.!\?;:\(\)\[\]{}"']/;
 
 const FUNCTION_WORD = new Set(
-  "的地得了着过是在把被给对向从由和与或而但且这那哪每某不没很更最也又还都我你他她它们一二两三四五六七八九十上下左右前后里外中来到会能要可说想看让用个些种样点大小多少"
+  "的地得了着过是在把被给对向从由和与或而但且这那哪每某不没很更最也又还都我你他她它们一二两三四五六七八九十上下左右前后里外中来到会能要可说想看让用个些种样点大小多少已将正曾刚"
     .split(""),
 );
+
+// A few single-character measure/noun words are legitimate neighbors, such
+// as 许多人. They should not be mistaken for the second half of a compound.
+const SAFE_SINGLE_CHARACTER_NEIGHBOR = new Set("人个件条本名位家次种年日月天时".split(""));
+
+// These source entries came from phrases that cannot be safely reduced to a
+// standalone English word. Leaving them untouched is better than teaching a
+// misleading translation such as 空中 -> stewardess.
+const BLOCKED_TERMS = new Set(["空中", "一阵", "无论", "一般", "一夜", "过去", "旁边"]);
+
+// These compounds are common in novels but are not themselves a useful
+// single-word learning target. Keep a valid dictionary prefix from leaking
+// into the compound, e.g. 太阳穴 -> sun穴.
+const PROTECTED_COMPOUNDS = [
+  "太阳穴",
+  "太阳能",
+  "太阳系",
+  "太阳镜",
+  "太阳光",
+  "太阳风",
+  "太阳神",
+  "陌生人",
+  "相关性",
+];
 
 /** Character that sits next to a word and acts like a natural boundary. */
 function isBoundaryChar(ch: string): boolean {
@@ -116,7 +140,7 @@ export function findTerms(
   extraProtectedTerms: string[] = [],
   corrections: ReadonlyMap<string, string> = new Map(),
 ): MatchedTerm[] {
-  const dict = buildDictMap(entries.filter((e) => !blacklist.has(e.zh) && !blacklist.has(e.en)));
+  const dict = buildDictMap(entries.filter((e) => !BLOCKED_TERMS.has(e.zh) && !blacklist.has(e.zh) && !blacklist.has(e.en)));
   const sentences = splitSentences(text);
   const protectedRanges = buildProtectedRanges(text, extraProtectedTerms);
 
@@ -131,7 +155,7 @@ export function findTerms(
   }
 
   // ---- path B: character-scan fallback ----
-  return findTermsViaScan(text, dict, sentences, protectedRanges, corrections);
+  return findTermsViaScan(text, dict, sentences, protectedRanges, corrections, segments);
 }
 
 // ---- path A implementation ----
@@ -153,6 +177,7 @@ function findTermsViaSegments(
     const start = seg.index;
     const end = seg.index + seg.segment.length;
     if (isInsideProtected(protectedRanges, start, end)) continue;
+    if (isProtectedCompound(text, start, end) || hasUnsafeSingleCharacterNeighbor(segments, seg)) continue;
 
     const leftChar = text[start - 1] ?? "";
     const rightChar = text[end] ?? "";
@@ -188,6 +213,7 @@ function findTermsViaScan(
   sentences: SentenceSpan[],
   protectedRanges: ProtectedRange[],
   corrections: ReadonlyMap<string, string>,
+  segments: SegmentSpan[] | null,
 ): MatchedTerm[] {
   const candidates: MatchedTerm[] = [];
   const maxLen = maxKeyLength(dict);
@@ -203,6 +229,8 @@ function findTermsViaScan(
       const entries = dict.get(candidate);
       if (!entries) continue;
       if (isInsideProtected(protectedRanges, i, i + len)) continue;
+      if (isProtectedCompound(text, i, i + len)) continue;
+      if (isContainedByLongerSegment(segments, i, i + len)) continue;
 
       const leftChar = text[i - 1] ?? "";
       const rightChar = text[i + len] ?? "";
@@ -297,6 +325,45 @@ function buildProtectedRanges(text: string, extraProtectedTerms: string[]): Prot
   }
 
   return ranges;
+}
+
+function hasUnsafeSingleCharacterNeighbor(segments: SegmentSpan[], current: SegmentSpan): boolean {
+  const currentIndex = segments.findIndex((segment) => segment.index === current.index);
+  if (currentIndex < 0) return false;
+
+  const previous = segments[currentIndex - 1];
+  const next = segments[currentIndex + 1];
+  return [previous, next].some((neighbor) => {
+    if (!neighbor || !isCJKChar(neighbor.segment) || [...neighbor.segment].length !== 1) return false;
+    return !FUNCTION_WORD.has(neighbor.segment) && !SAFE_SINGLE_CHARACTER_NEIGHBOR.has(neighbor.segment);
+  });
+}
+
+function isContainedByLongerSegment(segments: SegmentSpan[] | null, start: number, end: number): boolean {
+  if (!segments || segments.length === 0) return false;
+
+  return segments.some((segment) => {
+    const segmentEnd = segment.index + segment.segment.length;
+    const segmentLength = [...segment.segment].length;
+    return segmentLength <= 8 && segment.index <= start && segmentEnd >= end
+      && (segment.index < start || segmentEnd > end);
+  });
+}
+
+function isProtectedCompound(text: string, start: number, end: number): boolean {
+  return PROTECTED_COMPOUNDS.some((compound) => {
+    let cursor = 0;
+    while (cursor < text.length) {
+      const compoundStart = text.indexOf(compound, cursor);
+      if (compoundStart < 0) return false;
+      const compoundEnd = compoundStart + compound.length;
+      if (start < compoundEnd && end > compoundStart && !(start === compoundStart && end === compoundEnd)) {
+        return true;
+      }
+      cursor = compoundEnd;
+    }
+    return false;
+  });
 }
 
 function markAllOccurrences(text: string, term: string, ranges: ProtectedRange[], knownStart?: number): void {
