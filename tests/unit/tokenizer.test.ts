@@ -238,6 +238,7 @@ describe("tokenizer", () => {
 
   it("keeps common novel phrases on accurate forms", () => {
     const cases = [
+      ["纸张粗糙而泛黄。", "粗糙", "rough", "adjective"],
       ["简直是字面意义上的吓了一跳。", "简直", "simply", "adverb"],
       ["他向前倾身。", "向前", "forward", "adverb"],
       ["感谢大家支持。", "感谢", "thank", "verb"],
@@ -246,13 +247,149 @@ describe("tokenizer", () => {
       ["为了保护孩子，领导已经安排好了。", "保护", "protect", "verb"],
       ["为了保护孩子，领导已经安排好了。", "领导", "leader", "noun"],
       ["他们的关系很好。", "关系", "relationship", "noun"],
-      ["机器发出声音。", "发出", "emit", "verb"],
+      ["机器发出声音。", "发出", "make", "verb"],
     ] as const;
 
     for (const [source, zh, en, partOfSpeech] of cases) {
       const match = findTerms(source, dictionary, new Set()).find((item) => item.zh === zh);
       expect(match?.en, `${zh} should use ${en}`).toBe(en);
       expect(match?.partOfSpeech, `${zh} should be ${partOfSpeech}`).toBe(partOfSpeech);
+    }
+  });
+
+  it("skips a dictionary word when its sentence meaning is a quantity estimate", () => {
+    const quantity = findTerms("桌边有一叠书册，大概七八本的样子。", dictionary, new Set());
+    expect(quantity.some((item) => item.zh === "样子")).toBe(false);
+
+    const appearance = findTerms("他现在的样子很狼狈。", dictionary, new Set());
+    expect(appearance.find((item) => item.zh === "样子")?.en).toBe("appearance");
+  });
+
+  it("switches common novel words only when a matching context supports that sense", () => {
+    const cases = [
+      ["紧急情况很复杂。", "情况", "situation", "noun"],
+      ["还需要更多信息。", "信息", "information", "noun"],
+      ["基地完全沦陷了。", "完全", "completely", "adverb"],
+      ["他瞬间扑倒在地。", "瞬间", "instantly", "adverb"],
+      ["就在这一瞬间，他醒了。", "瞬间", "instant", "noun"],
+      ["让棉花自然风干。", "自然", "natural", "adjective"],
+      ["事情自然会解决。", "自然", "naturally", "adverb"],
+      ["这是基本常识。", "基本", "basic", "adjective"],
+      ["计划基本完成。", "基本", "basically", "adverb"],
+      ["他的呼吸很急促。", "呼吸", "breath", "noun"],
+      ["他已经无法呼吸。", "呼吸", "breathe", "verb"],
+      ["他拒绝回答并证明自己。", "拒绝", "refuse", "verb"],
+      ["他拒绝回答并证明自己。", "证明", "prove", "verb"],
+      ["他能想象当时的场景。", "想象", "imagine", "verb"],
+      ["腿部肌肉突然绷紧。", "肌肉", "muscle", "noun"],
+      ["另外一幅画挂在墙上。", "另外", "another", "adjective"],
+      ["另外还需要一辆车。", "另外", "additionally", "adverb"],
+      ["离他最近的汽车停下了。", "最近", "nearest", "adjective"],
+      ["我最近很忙。", "最近", "recently", "adverb"],
+      ["组织已经作了安排。", "安排", "arrangement", "noun"],
+      ["请安排一辆车。", "安排", "arrange", "verb"],
+      ["他活动了一下肩膀。", "活动", "move", "verb"],
+      ["这次活动已经结束。", "活动", "activity", "noun"],
+      ["他保持同样的姿势。", "同样", "same", "adjective"],
+      ["他同样感到紧张。", "同样", "similarly", "adverb"],
+      ["调查正在进行中。", "进行", "proceed", "verb"],
+      ["他们进行调查。", "进行", "conduct", "verb"],
+      ["他的表现很好。", "表现", "performance", "noun"],
+      ["他表现出明显的不满。", "表现出", "show", "verb"],
+      ["他终于反应过来。", "反应过来", "react", "verb"],
+      ["他的第一反应是后退。", "反应", "reaction", "noun"],
+      ["这说明问题仍然存在。", "说明", "indicate", "verb"],
+      ["请说明具体原因。", "说明", "explain", "verb"],
+      ["按目前速度还要两天。", "目前", "current", "adjective"],
+      ["目前机器运行正常。", "目前", "currently", "adverb"],
+      ["实际环境更加复杂。", "实际", "actual", "adjective"],
+      ["实际上并非如此。", "实际上", "actually", "adverb"],
+      ["他注意到门开了。", "注意到", "notice", "verb"],
+      ["这件事构成威胁。", "威胁", "threat", "noun"],
+      ["他曾经被威胁。", "威胁", "threaten", "verb"],
+      ["我以前见过他。", "以前", "previously", "adverb"],
+      ["这里材料很少。", "很少", "few", "adjective"],
+      ["他很少说话。", "很少", "rarely", "adverb"],
+      ["皮肤暴露在空气中。", "暴露", "exposed", "adjective"],
+      ["他忽然发现门开了。", "发现", "notice", "verb"],
+      ["他这才发现自己错了。", "发现", "realize", "verb"],
+      ["这是行动开始的信号。", "开始", "beginning", "noun"],
+      ["她开始整理书桌。", "开始", "begin", "verb"],
+      ["脸上的红晕很明显。", "明显", "obvious", "adjective"],
+      ["他的声音明显变低了。", "明显", "obviously", "adverb"],
+      ["他正在看一本小说。", "小说", "novel", "noun"],
+      ["人群迅速散开。", "人群", "crowd", "noun"],
+      ["这里有类似的痕迹。", "类似", "similar", "adjective"],
+      ["大楼内部响起警报。", "内部", "inside", "adverb"],
+      ["内部情况非常复杂。", "内部", "internal", "adjective"],
+      ["警方正在调查此事。", "调查", "investigate", "verb"],
+      ["他们接受例行调查。", "调查", "investigation", "noun"],
+      ["请马上报告情况。", "报告", "report", "verb"],
+      ["他提交了一份报告。", "报告", "report", "noun"],
+      ["工程师设计了系统。", "设计", "design", "verb"],
+      ["这个设计很巧妙。", "设计", "design", "noun"],
+      ["他成功与队友会合。", "成功", "successfully", "adverb"],
+      ["他终于取得成功。", "成功", "success", "noun"],
+      ["我喜欢这本书。", "喜欢", "like", "verb"],
+      ["主要原因已经查明。", "主要", "main", "adjective"],
+      ["主要是因为下雨。", "主要", "mainly", "adverb"],
+      ["杯子正在自由下坠。", "自由", "freely", "adverb"],
+      ["他终于获得了自由。", "自由", "freedom", "noun"],
+      ["机器发出声音。", "发出", "make", "verb"],
+      ["伤员发出呻吟。", "发出", "let out", "verb"],
+      ["丧尸机械捶打铁门。", "机械", "mechanically", "adverb"],
+      ["这是机械设备。", "机械", "mechanical", "adjective"],
+      ["我们已经没有希望。", "希望", "hope", "noun"],
+      ["我希望你能回来。", "希望", "hope", "verb"],
+      ["他试图攻击对手。", "攻击", "attack", "verb"],
+      ["他们遭到了攻击。", "攻击", "attack", "noun"],
+      ["我们计划明天出发。", "计划", "plan", "verb"],
+      ["这是原定计划。", "计划", "plan", "noun"],
+      ["他经历过很多困难。", "经历", "undergo", "verb"],
+      ["他不愿提起自己的经历。", "经历", "experience", "noun"],
+      ["这里没有危险。", "危险", "danger", "noun"],
+      ["这里非常危险。", "危险", "dangerous", "adjective"],
+      ["他怀疑这件事。", "怀疑", "doubt", "verb"],
+      ["这种怀疑没有依据。", "怀疑", "doubt", "noun"],
+      ["他不能随便杀人。", "杀人", "kill", "verb"],
+      ["会议已经结束。", "结束", "end", "verb"],
+      ["他赶紧关上门。", "赶紧", "quickly", "adverb"],
+      ["几名男子走了出来。", "男子", "man", "noun"],
+      ["噪音会影响休息。", "影响", "affect", "verb"],
+      ["这件事造成了很大影响。", "影响", "influence", "noun"],
+      ["他后来离开了城市。", "后来", "later", "adverb"],
+      ["他正好经过这里。", "正好", "just", "adverb"],
+      ["大家回去休息。", "休息", "rest", "verb"],
+      ["他需要短暂休息。", "休息", "rest", "noun"],
+      ["因此我们决定离开。", "因此", "therefore", "adverb"],
+      ["车辆安全抵达基地。", "安全", "safely", "adverb"],
+      ["这里是安全区域。", "安全", "safe", "adjective"],
+      ["他小心翼翼地打开门。", "小心翼翼", "carefully", "adverb"],
+      ["看样子马上要下雨。", "看样子", "apparently", "adverb"],
+      ["铁门发出了被反复拍打的撞击声。", "发出", "make", "verb"],
+      ["丧尸麻木地拍打车窗，发出嘭嘭的闷响。", "发出", "make", "verb"],
+      ["他机械道：请继续。", "机械", "mechanically", "adverb"],
+      ["这件事会很麻烦。", "麻烦", "troublesome", "adjective"],
+      ["他遇到了麻烦。", "麻烦", "trouble", "noun"],
+      ["他没有进行任何反抗。", "反抗", "resistance", "noun"],
+      ["他毫不反抗。", "反抗", "resist", "verb"],
+    ] as const;
+
+    for (const [source, zh, en, partOfSpeech] of cases) {
+      const match = findTerms(source, dictionary, new Set()).find((item) => item.zh === zh);
+      expect(match?.en, `${source} / ${zh}`).toBe(en);
+      expect(match?.partOfSpeech, `${source} / ${zh}`).toBe(partOfSpeech);
+    }
+  });
+
+  it("blocks high-risk fragments instead of forcing an awkward translation", () => {
+    const matches = findTerms(
+      "他没有出声，沿着走向去打招呼，坐进驾驶座后觉得很有意思，却又有意无意地回头。",
+      dictionary,
+      new Set(),
+    );
+    for (const term of ["出声", "走向", "招呼", "驾驶", "有意", "精神", "专业"]) {
+      expect(matches.some((item) => item.zh === term), term).toBe(false);
     }
   });
 
@@ -267,5 +404,18 @@ describe("tokenizer", () => {
     expect(matches.some((item) => item.zh === "研究")).toBe(false);
     expect(matches.some((item) => item.zh === "办公")).toBe(false);
     expect(matches.some((item) => item.zh === "感谢")).toBe(false);
+  });
+
+  it("does not create words across unrelated native segments", () => {
+    const matches = findTerms("他莫名其妙地点点头，说不得到了东北还要靠别人，午饭后来这里集合。", dictionary, new Set());
+    expect(matches.some((item) => item.zh === "地点")).toBe(false);
+    expect(matches.some((item) => item.zh === "得到")).toBe(false);
+    expect(matches.some((item) => item.zh === "后来")).toBe(false);
+  });
+
+  it("protects longer compounds that would distort a valid prefix", () => {
+    const matches = findTerms("小说里的杀人狂站在显示屏旁。", dictionary, new Set());
+    expect(matches.some((item) => item.zh === "杀人")).toBe(false);
+    expect(matches.some((item) => item.zh === "显示")).toBe(false);
   });
 });

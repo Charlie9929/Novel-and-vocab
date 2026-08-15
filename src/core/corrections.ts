@@ -31,9 +31,15 @@ export function selectCandidate(
   if (corrected) return { entry: corrected, reason: "correction" };
 
   const contextMatches = candidates.filter((item) => item.contextHints?.some((hint) => localContext.includes(hint)));
-  // Priority is an explicit curation signal for data whose source ordering is
-  // noisy. The first entry remains the stable fallback when priorities tie.
-  const pool = contextMatches.length > 0 ? contextMatches : candidates;
+  // A context-specific candidate must never become the fallback merely because
+  // it has a higher curation priority. Without a matching hint, only generic
+  // candidates participate in selection.
+  const genericCandidates = candidates.filter((item) => !item.contextHints?.length);
+  const pool = contextMatches.length > 0
+    ? contextMatches
+    : genericCandidates.length > 0
+      ? genericCandidates
+      : candidates;
   const entry = [...pool].sort((left, right) => (right.priority ?? 0) - (left.priority ?? 0))[0];
   return { entry, reason: contextMatches.length > 0 ? "context" : "priority" };
 }

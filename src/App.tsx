@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import cet4Entries from "./data/cet4-map.json";
 import { BottomNav, type AppTab } from "./components/BottomNav";
-import { FeedbackDialog } from "./components/FeedbackDialog";
 import { FilePicker, type ShelfEntry } from "./components/FilePicker";
 import { QuizPanel } from "./components/QuizPanel";
 import { Reader } from "./components/Reader";
@@ -26,12 +25,9 @@ import {
   saveQuizHistory,
   saveReadingProgress,
   saveReplacementRecords,
-  saveTranslationFeedback,
-  markTranslationFeedbackSubmitted,
   type VocabRecord,
 } from "./core/db";
 import { DEFAULT_DENSITY, DENSITY_VALUES, type DensityLevel } from "./core/density";
-import { submitTranslationFeedback } from "./core/feedback";
 import type { NovelReadProgressHandler } from "./core/fileReader";
 import { pickNovelViaFsa } from "./core/fsa";
 import { createQuizQuestions, replaceChapterTerms } from "./core/replacer";
@@ -42,7 +38,6 @@ import type {
   LocalNovel,
   QuizQuestion,
   ReplacementToken,
-  TranslationFeedbackReason,
 } from "./core/types";
 
 const typedCet4Entries = cet4Entries as Cet4Entry[];
@@ -53,7 +48,6 @@ export default function App() {
   const [chapterIndex, setChapterIndex] = useState(0);
   const [progressPercent, setProgressPercent] = useState(0);
   const [selectedWord, setSelectedWord] = useState<ReplacementToken | null>(null);
-  const [feedbackWord, setFeedbackWord] = useState<ReplacementToken | null>(null);
   const [blacklist, setBlacklist] = useState<string[]>([]);
   const [vocab, setVocab] = useState<VocabRecord[]>([]);
   const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[] | null>(null);
@@ -168,32 +162,6 @@ export default function App() {
     await addBlacklistTerm(replacement.en);
     await refreshLocalState();
     setSelectedWord(null);
-  }
-
-  function handleOpenFeedback(replacement: ReplacementToken) {
-    setSelectedWord(null);
-    setFeedbackWord(replacement);
-  }
-
-  async function handleTranslationFeedback(
-    replacement: ReplacementToken,
-    reason: TranslationFeedbackReason,
-    userSuggestion: string,
-  ): Promise<boolean> {
-    let key: string;
-    try {
-      key = await saveTranslationFeedback(replacement, reason, userSuggestion);
-    } catch {
-      return false;
-    }
-
-    try {
-      const review = await submitTranslationFeedback({ replacement, reason, userSuggestion });
-      await markTranslationFeedbackSubmitted(key, review);
-      return true;
-    } catch {
-      return false;
-    }
   }
 
   async function handleRemoveBlacklist(term: string) {
@@ -312,13 +280,7 @@ export default function App() {
         replacement={selectedWord}
         onClose={() => setSelectedWord(null)}
         onSave={(replacement) => void handleSaveWord(replacement)}
-        onFeedback={handleOpenFeedback}
         onBlacklist={(replacement) => void handleBlacklist(replacement)}
-      />
-      <FeedbackDialog
-        replacement={feedbackWord}
-        onClose={() => setFeedbackWord(null)}
-        onSubmit={handleTranslationFeedback}
       />
       {quizQuestions ? (
         <QuizPanel

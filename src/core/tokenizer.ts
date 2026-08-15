@@ -1,5 +1,6 @@
 import type { Cet4Entry, Chapter, MatchedTerm, SentenceSpan } from "./types";
 import { correctionKey, selectCandidate } from "./corrections";
+import { applyCuratedEntryOverrides } from "../data/curated-overrides";
 
 const CHAPTER_HEADING = /(^|\n)(第[零一二三四五六七八九十百千万\d]+[章节回卷部篇][^\n]{0,40})/g;
 const SENTENCE_END = /[。！？!?；;…]+/g;
@@ -9,13 +10,14 @@ const SENTENCE_END = /[。！？!?；;…]+/g;
 const HARD_BOUNDARY_RE = /[\s\n，。！？；：、、""''（）《》【】\-—…,\.!\?;:\(\)\[\]{}"']/;
 
 const FUNCTION_WORD = new Set(
-  "的地得了着过是在把被给对向从由和与或而但且这那哪每某不没很更最也又还都我你他她它们一二两三四五六七八九十上下左右前后里外中来到会能要可说想看让用个些种样点大小多少已将正曾刚"
+  "的地得了着过是在把被给对向从由和与或而但且这那哪每某不没很更最也又还都我你他她它们一二两三四五六七八九十几上下左右前后里外中来到会能要可说想看让用个些种样点大小多少已将正曾刚"
     .split(""),
 );
 
 // A few single-character measure/noun words are legitimate neighbors, such
 // as 许多人. They should not be mistaken for the second half of a compound.
 const SAFE_SINGLE_CHARACTER_NEIGHBOR = new Set("人个件条本名位家次种年日月天时".split(""));
+const NON_NAME_ACTION_SUFFIXES = ["机械", "男子", "女子", "男人", "女人", "老人", "孩子", "士兵", "队员", "医生", "警察"];
 
 // These source entries came from phrases that cannot be safely reduced to a
 // standalone English word. Leaving them untouched is better than teaching a
@@ -40,6 +42,12 @@ const BLOCKED_TERMS = new Set([
   "令人",
   "天花",
   "根据",
+  "出声",
+  "走向",
+  "招呼",
+  "精神",
+  "专业",
+  "直升",
 ]);
 const ALLOWED_TERMS_WITH_FRAGMENT_PREFIX = new Set(["使用", "使命", "使劲", "使动"]);
 
@@ -66,6 +74,13 @@ const PROTECTED_COMPOUNDS = [
   "感谢费",
   "研究所",
   "办公桌",
+  "驾驶座",
+  "驾驶席",
+  "有意思",
+  "有意无意",
+  "显示屏",
+  "显示器",
+  "杀人狂",
 ];
 
 /** Character that sits next to a word and acts like a natural boundary. */
@@ -110,7 +125,7 @@ function buildDictMap(entries: Cet4Entry[]): Map<string, Cet4Entry[]> {
   const map = new Map<string, Cet4Entry[]>();
   for (const e of entries) {
     const values = map.get(e.zh) ?? [];
-    if (!values.some((item) => item.en === e.en)) values.push(e);
+    if (!values.some((item) => item.en === e.en && item.partOfSpeech === e.partOfSpeech)) values.push(e);
     map.set(e.zh, values);
   }
   return map;
@@ -171,7 +186,8 @@ export function findTerms(
   extraProtectedTerms: string[] = [],
   corrections: ReadonlyMap<string, string> = new Map(),
 ): MatchedTerm[] {
-  const dict = buildDictMap(entries.filter((e) => !isBlockedTerm(e.zh) && !blacklist.has(e.zh) && !blacklist.has(e.en)));
+  const curatedEntries = applyCuratedEntryOverrides(entries);
+  const dict = buildDictMap(curatedEntries.filter((e) => !isBlockedTerm(e.zh) && !blacklist.has(e.zh) && !blacklist.has(e.en)));
   const sentences = splitSentences(text);
   const protectedRanges = buildProtectedRanges(text, extraProtectedTerms);
   const protectedCompoundRanges = buildProtectedCompoundRanges(text);
@@ -240,6 +256,7 @@ function findTermsViaSegments(
     const end = seg.index + seg.segment.length;
     if (isInsideProtected(protectedRanges, start, end)) continue;
     if (isProtectedCompound(protectedCompoundRanges, start, end) || hasUnsafeSingleCharacterNeighbor(segments, seg, dict)) continue;
+    if (isContextuallyUnsafeTerm(text, seg.segment, start)) continue;
 
     const leftChar = text[start - 1] ?? "";
     const rightChar = text[end] ?? "";
@@ -301,6 +318,7 @@ function findTermsViaScan(
       if (isInsideProtected(protectedRanges, i, i + len)) continue;
       if (isProtectedCompound(protectedCompoundRanges, i, i + len)) continue;
       if (isContainedByLongerSegment(segments, dict, i, i + len)) continue;
+      if (isContextuallyUnsafeTerm(text, candidate, i)) continue;
 
       const leftChar = text[i - 1] ?? "";
       const rightChar = text[i + len] ?? "";
@@ -346,26 +364,19 @@ function buildUncertainScanStarts(
   dict: Map<string, Cet4Entry[]>,
 ): Set<number> {
   const starts = new Set<number>();
+  const longestTerm = maxKeyLength(dict);
   for (let index = 0; index < segments.length; index += 1) {
     const segment = segments[index];
     const length = [...segment.segment].length;
-    const next = segments[index + 1];
-    const previous = segments[index - 1];
-    if (
-      next
-      && next.index === segment.index + segment.segment.length
-      && [...next.segment].length === 1
-      && dict.has(`${segment.segment}${next.segment}`)
-    ) {
-      starts.add(segment.index);
-    }
-    if (
-      previous
-      && previous.index + previous.segment.length === segment.index
-      && [...previous.segment].length === 1
-      && dict.has(`${previous.segment}${segment.segment}`)
-    ) {
-      starts.add(previous.index);
+    let compound = segment.segment;
+    let compoundEnd = segment.index + segment.segment.length;
+    for (let lookahead = index + 1; lookahead < Math.min(segments.length, index + 5); lookahead += 1) {
+      const next = segments[lookahead];
+      if (next.index !== compoundEnd || !isCJKChar(next.segment)) break;
+      compound += next.segment;
+      compoundEnd += next.segment.length;
+      if ([...compound].length > longestTerm) break;
+      if (dict.has(compound)) starts.add(segment.index);
     }
     if (length > 8 || dict.has(segment.segment)) continue;
     for (let offset = 0; offset < segment.segment.length; offset += 1) {
@@ -376,14 +387,42 @@ function buildUncertainScanStarts(
 }
 
 function buildLocalContext(text: string, start: number, end: number): string {
-  return text.slice(Math.max(0, start - 6), Math.min(text.length, end + 6));
+  const term = text.slice(start, end);
+  let left = text.slice(Math.max(0, start - 14), start);
+  let right = text.slice(end, Math.min(text.length, end + 14));
+  const previousSameTerm = left.lastIndexOf(term);
+  const nextSameTerm = right.indexOf(term);
+  if (previousSameTerm >= 0) left = left.slice(previousSameTerm + term.length);
+  if (nextSameTerm >= 0) right = right.slice(0, nextSameTerm);
+  return `${left}${term}${right}`;
+}
+
+function isContextuallyUnsafeTerm(text: string, term: string, start: number): boolean {
+  if (term === "地点" && text.slice(start + term.length, start + term.length + 2) === "点头") return true;
+  if (term === "得到" && text[start - 1] === "不" && text[start + term.length] === "了") return true;
+  if (term === "后来" && text[start - 1] === "饭") return true;
+  if (term !== "样子") return false;
+
+  const leftContext = text.slice(Math.max(0, start - 18), start);
+  if (!leftContext.endsWith("的")) return false;
+
+  const numeral = "零一二三四五六七八九十百千万两几数\\d";
+  const measure = "本个岁米天年人页章件条只张册斤倍层排套种名位";
+  const quantityBeforeDe = new RegExp(
+    `[${numeral}]+(?:[、至到\\-—~～]?[${numeral}]+)?(?:[${measure}]|公里|上下|左右|来|多|余|出头|出头些)?的$`,
+  );
+  const estimateBeforeDe = /(?:大概|大约|约有|差不多|上下|左右)[^，。！？；;]{0,10}的$/;
+  const uncertainStateBeforeDe = /(?:不久|好久|刚刚|刚才|似乎|可能|估计|仿佛|看起来|像是)[^，。！？；;]{0,8}的$/;
+  return quantityBeforeDe.test(leftContext) || estimateBeforeDe.test(leftContext) || uncertainStateBeforeDe.test(leftContext);
 }
 
 // ---- overlap resolution ----
 
 function resolveOverlaps(candidates: MatchedTerm[], textLen: number): MatchedTerm[] {
-  // High-confidence first, then leftmost
+  // Prefer a complete compound over its prefix when both begin at the same
+  // position, then use boundary quality and reading order.
   candidates.sort((a, b) => {
+    if (a.start === b.start && a.end !== b.end) return (b.end - b.start) - (a.end - a.start);
     if (a.boundaryConfidence !== b.boundaryConfidence) return a.boundaryConfidence - b.boundaryConfidence;
     return a.start - b.start;
   });
@@ -419,10 +458,12 @@ function buildProtectedRanges(text: string, extraProtectedTerms: string[]): Prot
     for (const match of text.matchAll(pattern)) {
       const name = match[1];
       const nameStart = (match.index ?? 0) + match[0].lastIndexOf(name);
+      if (pattern === speakerPattern && /[说道问答喊叫]$/.test(name)) continue;
       // The action-name heuristic can otherwise treat phrases such as
       // “这个生物看起来” as a person's name. Determiners and pronouns are
       // strong evidence that this is ordinary prose instead.
       if ((pattern === actionNamePattern || pattern === namedPersonPattern) && FUNCTION_WORD.has(name[0])) continue;
+      if (pattern === actionNamePattern && NON_NAME_ACTION_SUFFIXES.some((suffix) => name.endsWith(suffix))) continue;
       // A two-character word before a title is often a verb phrase, as in
       // “代替队长”, rather than a person's name. Keep short names protected
       // when they begin a clause or follow clear dialogue punctuation.

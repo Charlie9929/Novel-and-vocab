@@ -21196,10 +21196,11 @@
   },
   {
     "zh": "粗糙",
-    "en": "roughly",
-    "meaning": "粗糙地，粗略地",
-    "partOfSpeech": "adverb",
-    "phonetic": "/ˈrʌfli/"
+    "en": "rough",
+    "meaning": "粗糙的；不平滑的",
+    "partOfSpeech": "adjective",
+    "phonetic": "/ˈrʌf/",
+    "priority": 20
   },
   {
     "zh": "兜圈",
@@ -26761,5 +26762,53 @@
     "meaning": "零；零点，零度",
     "partOfSpeech": "noun",
     "phonetic": "/ˈzɪroʊ/"
+  },
+  {
+    "zh": "实际上",
+    "en": "actually",
+    "meaning": "实际上；事实上",
+    "partOfSpeech": "adverb",
+    "phonetic": "/ˈæktʃuəli/",
+    "priority": 30
+  },
+  {
+    "zh": "表现出",
+    "en": "show",
+    "meaning": "表现出；显露",
+    "partOfSpeech": "verb",
+    "phonetic": "/ʃoʊ/",
+    "priority": 30
+  },
+  {
+    "zh": "反应过来",
+    "en": "react",
+    "meaning": "反应过来；作出反应",
+    "partOfSpeech": "verb",
+    "phonetic": "/riˈækt/",
+    "priority": 30
+  },
+  {
+    "zh": "注意到",
+    "en": "notice",
+    "meaning": "注意到；察觉",
+    "partOfSpeech": "verb",
+    "phonetic": "/ˈnoʊtɪs/",
+    "priority": 30
+  },
+  {
+    "zh": "小心翼翼",
+    "en": "carefully",
+    "meaning": "小心翼翼地；谨慎地",
+    "partOfSpeech": "adverb",
+    "phonetic": "/ˈkɛrfəli/",
+    "priority": 30
+  },
+  {
+    "zh": "看样子",
+    "en": "apparently",
+    "meaning": "看样子；看来",
+    "partOfSpeech": "adverb",
+    "phonetic": "/əˈpærəntli/",
+    "priority": 30
   }
 ]
