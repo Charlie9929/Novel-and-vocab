@@ -39,7 +39,7 @@ export function FeedbackDialog({ replacement, onClose, onSubmit }: FeedbackDialo
     } catch {
       // The local record remains the source of truth when the network fails.
     }
-    setSubmitMessage(sentToAi ? "已反馈给 AI" : "已保存，稍后再提交");
+    setSubmitMessage(sentToAi ? "已反馈给 AI" : "已保存到本机，AI 暂不可用");
     window.setTimeout(onClose, 650);
   }
 
