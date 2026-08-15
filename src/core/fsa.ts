@@ -7,10 +7,13 @@
  */
 
 import type { LocalNovel } from "./types";
-import { readNovelFile } from "./fileReader";
+import { isSupportedNovelFile, readNovelFile } from "./fileReader";
 
-const TEXT_TYPES: FilePickerAcceptType[] = [
-  { description: "文本文件", accept: { "text/plain": [".txt"] } },
+const NOVEL_TYPES: FilePickerAcceptType[] = [
+  {
+    description: "小说文件",
+    accept: { "text/plain": [".txt"], "application/pdf": [".pdf"] },
+  },
 ];
 
 let hasLoggedSupport: boolean | undefined;
@@ -26,12 +29,14 @@ export function supportsFsa(): boolean {
 export async function pickNovelViaFsa(): Promise<{ novel: LocalNovel; handle: FileSystemFileHandle | null }> {
   if (!supportsFsa()) return fallbackInput();
 
+  let fileSelected = false;
   try {
-    const [handle] = await window.showOpenFilePicker?.({ types: TEXT_TYPES, multiple: false }) ?? [];
+    const [handle] = await window.showOpenFilePicker?.({ types: NOVEL_TYPES, multiple: false }) ?? [];
     if (!handle) return fallbackInput();
     const file = await handle.getFile();
-    if (!file.name.toLowerCase().endsWith(".txt")) {
-      throw new Error("请选择 .txt 小说文件。");
+    fileSelected = true;
+    if (!isSupportedNovelFile(file)) {
+      throw new Error("请选择 .txt 或 .pdf 小说文件。");
     }
     const novel = await readNovelFile(file);
     return { novel, handle };
@@ -39,6 +44,7 @@ export async function pickNovelViaFsa(): Promise<{ novel: LocalNovel; handle: Fi
     if (err instanceof DOMException && err.name === "AbortError") {
       throw err; // user cancelled — let caller swallow
     }
+    if (fileSelected) throw err;
     // If FSA fails for any other reason, fall back to regular input
     return fallbackInput();
   }
@@ -74,7 +80,7 @@ function fallbackInput(): Promise<{ novel: LocalNovel; handle: null }> {
   return new Promise((resolve, reject) => {
     const input = document.createElement("input");
     input.type = "file";
-    input.accept = ".txt,text/plain";
+    input.accept = ".txt,.pdf,text/plain,application/pdf";
     input.style.position = "fixed";
     input.style.opacity = "0";
     input.style.pointerEvents = "none";

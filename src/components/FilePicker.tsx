@@ -69,7 +69,7 @@ export function FilePicker({ shelf, onLoaded, onResumeMissing }: FilePickerProps
     <section className="file-picker">
       <div className="brand-mark">读</div>
       <h1>沉浸式小说背单词</h1>
-      <p>选择 .txt 小说，浏览器在你的设备上读取。</p>
+      <p>选择 .txt 或 .pdf 小说，浏览器在你的设备上读取。</p>
 
       {hasShelf ? (
         <div className="shelf-list">
@@ -81,7 +81,7 @@ export function FilePicker({ shelf, onLoaded, onResumeMissing }: FilePickerProps
               onClick={() => resumeBook(entry)}
               disabled={isReading}
             >
-              <div className="shelf-card-title">{entry.progress.fileName.replace(/\.txt$/i, "")}</div>
+              <div className="shelf-card-title">{entry.progress.fileName.replace(/\.(txt|pdf)$/i, "")}</div>
               <div className="shelf-card-meta">
                 <span>
                   第 {entry.progress.chapterIndex + 1} 章 · 进度 {entry.progress.scrollPercent}%
@@ -105,7 +105,7 @@ export function FilePicker({ shelf, onLoaded, onResumeMissing }: FilePickerProps
       ) : (
         <>
           <button className="primary-button" type="button" onClick={openNewBook} disabled={isReading}>
-            {isReading ? "读取中..." : "选择 .txt 小说"}
+            {isReading ? "读取中..." : "选择 .txt / .pdf 小说"}
           </button>
         </>
       )}

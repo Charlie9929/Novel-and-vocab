@@ -1,15 +1,27 @@
 import type { LocalNovel } from "./types";
 
 const TEXT_EXTENSIONS = [".txt"];
+const PDF_EXTENSIONS = [".pdf"];
 
 export function isTxtFile(file: File): boolean {
-  const lowerName = file.name.toLowerCase();
-  return TEXT_EXTENSIONS.some((ext) => lowerName.endsWith(ext));
+  return hasExtension(file, TEXT_EXTENSIONS);
+}
+
+export function isPdfFile(file: File): boolean {
+  return hasExtension(file, PDF_EXTENSIONS);
+}
+
+export function isSupportedNovelFile(file: File): boolean {
+  return isTxtFile(file) || isPdfFile(file);
 }
 
 export function readNovelFile(file: File): Promise<LocalNovel> {
+  if (isPdfFile(file)) {
+    return readPdfFile(file);
+  }
+
   if (!isTxtFile(file)) {
-    return Promise.reject(new Error("请选择 .txt 小说文件。"));
+    return Promise.reject(new Error("请选择 .txt 或 .pdf 小说文件。"));
   }
 
   return new Promise((resolve, reject) => {
@@ -35,6 +47,81 @@ export function readNovelFile(file: File): Promise<LocalNovel> {
 
     reader.readAsArrayBuffer(file);
   });
+}
+
+/**
+ * Extracts the text layer from a PDF in the browser. Image-only PDFs do not
+ * have a text layer and are rejected with an actionable message instead of
+ * silently opening an empty book.
+ */
+export async function readPdfFile(file: File): Promise<LocalNovel> {
+  if (!isPdfFile(file)) {
+    throw new Error("请选择 .pdf 小说文件。");
+  }
+
+  const [{ GlobalWorkerOptions, getDocument }, workerModule] = await Promise.all([
+    import("pdfjs-dist/legacy/build/pdf.mjs"),
+    import("pdfjs-dist/legacy/build/pdf.worker.min.mjs?url"),
+  ]);
+  GlobalWorkerOptions.workerSrc = workerModule.default;
+
+  const loadingTask = getDocument({ data: new Uint8Array(await file.arrayBuffer()) });
+  let document: Awaited<typeof loadingTask.promise> | undefined;
+
+  try {
+    document = await loadingTask.promise;
+    const pages: string[] = [];
+
+    for (let pageNumber = 1; pageNumber <= document.numPages; pageNumber += 1) {
+      const page = await document.getPage(pageNumber);
+      const content = await page.getTextContent();
+      pages.push(extractPageText(content.items));
+      page.cleanup();
+    }
+
+    const text = pages.filter((page) => page.trim()).join("\n\n");
+    if (!text.trim()) {
+      throw new Error("这个 PDF 没有可提取的文字，可能是扫描版图片 PDF。请先 OCR 或转换为可复制文字的 PDF。");
+    }
+
+    return {
+      fileName: file.name,
+      fileSize: file.size,
+      lastModified: file.lastModified,
+      fingerprint: createFileFingerprint(file, text),
+      text: normalizeNovelText(text),
+    };
+  } catch (error) {
+    if (error instanceof Error && error.message.includes("没有可提取的文字")) {
+      throw error;
+    }
+    throw new Error("PDF 读取失败，请确认文件没有损坏，并尝试使用可复制文字的 PDF。", { cause: error });
+  } finally {
+    if (document) {
+      await document.destroy();
+    } else {
+      await loadingTask.destroy();
+    }
+  }
+}
+
+function extractPageText(items: Array<unknown>): string {
+  let pageText = "";
+
+  for (const item of items) {
+    if (!item || typeof item !== "object" || !("str" in item)) continue;
+
+    const textItem = item as { str: string; hasEOL?: boolean };
+    const value = textItem.str;
+    if (value) {
+      const previous = pageText.at(-1) ?? "";
+      const needsSpace = /[A-Za-z0-9]$/.test(previous) && /^[A-Za-z0-9]/.test(value);
+      pageText += `${needsSpace ? " " : ""}${value}`;
+    }
+    if (textItem.hasEOL && !pageText.endsWith("\n")) pageText += "\n";
+  }
+
+  return pageText.trim();
 }
 
 export function decodeNovelBytes(bytes: Uint8Array): string {
@@ -66,4 +153,9 @@ function createFileFingerprint(file: File, text: string): string {
     hash = Math.imul(hash, 16777619);
   }
   return `novel-${(hash >>> 0).toString(16)}`;
+}
+
+function hasExtension(file: File, extensions: string[]): boolean {
+  const lowerName = file.name.toLowerCase();
+  return extensions.some((extension) => lowerName.endsWith(extension));
 }

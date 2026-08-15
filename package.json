@@ -13,6 +13,7 @@
   "dependencies": {
     "@vitejs/plugin-react": "^5.0.4",
     "dexie": "^4.2.0",
+    "pdfjs-dist": "^5.7.284",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "typescript": "~5.9.3",
