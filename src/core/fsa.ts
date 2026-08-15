@@ -7,7 +7,11 @@
  */
 
 import type { LocalNovel } from "./types";
-import { isSupportedNovelFile, readNovelFile } from "./fileReader";
+import {
+  isSupportedNovelFile,
+  readNovelFile,
+  type NovelReadProgressHandler,
+} from "./fileReader";
 
 const NOVEL_TYPES: FilePickerAcceptType[] = [
   {
@@ -26,19 +30,21 @@ export function supportsFsa(): boolean {
 }
 
 /** Request a new file via the native picker. Returns the novel and a handle (or null on unsupported browsers). */
-export async function pickNovelViaFsa(): Promise<{ novel: LocalNovel; handle: FileSystemFileHandle | null }> {
-  if (!supportsFsa()) return fallbackInput();
+export async function pickNovelViaFsa(
+  onProgress?: NovelReadProgressHandler,
+): Promise<{ novel: LocalNovel; handle: FileSystemFileHandle | null }> {
+  if (!supportsFsa()) return fallbackInput(onProgress);
 
   let fileSelected = false;
   try {
     const [handle] = await window.showOpenFilePicker?.({ types: NOVEL_TYPES, multiple: false }) ?? [];
-    if (!handle) return fallbackInput();
+    if (!handle) return fallbackInput(onProgress);
     const file = await handle.getFile();
     fileSelected = true;
     if (!isSupportedNovelFile(file)) {
       throw new Error("请选择 .txt 或 .pdf 小说文件。");
     }
-    const novel = await readNovelFile(file);
+    const novel = await readNovelFile(file, onProgress);
     return { novel, handle };
   } catch (err: unknown) {
     if (err instanceof DOMException && err.name === "AbortError") {
@@ -46,12 +52,15 @@ export async function pickNovelViaFsa(): Promise<{ novel: LocalNovel; handle: Fi
     }
     if (fileSelected) throw err;
     // If FSA fails for any other reason, fall back to regular input
-    return fallbackInput();
+    return fallbackInput(onProgress);
   }
 }
 
 /** Re-read a known file from a saved handle. Returns null if permission denied. */
-export async function readFromHandle(handle: FileSystemFileHandle): Promise<LocalNovel | null> {
+export async function readFromHandle(
+  handle: FileSystemFileHandle,
+  onProgress?: NovelReadProgressHandler,
+): Promise<LocalNovel | null> {
   if (!supportsFsa()) return null;
 
   try {
@@ -61,7 +70,7 @@ export async function readFromHandle(handle: FileSystemFileHandle): Promise<Loca
       if (requested !== "granted") return null;
     }
     const file = await handle.getFile();
-    return await readNovelFile(file);
+    return await readNovelFile(file, onProgress);
   } catch {
     return null;
   }
@@ -76,7 +85,7 @@ export function serializeHandle(handle: FileSystemFileHandle): FileSystemFileHan
 
 let fallbackResolver: ((file: File) => void) | null = null;
 
-function fallbackInput(): Promise<{ novel: LocalNovel; handle: null }> {
+function fallbackInput(onProgress?: NovelReadProgressHandler): Promise<{ novel: LocalNovel; handle: null }> {
   return new Promise((resolve, reject) => {
     const input = document.createElement("input");
     input.type = "file";
@@ -89,7 +98,7 @@ function fallbackInput(): Promise<{ novel: LocalNovel; handle: null }> {
 
     fallbackResolver = (file: File) => {
       cleanup();
-      readNovelFile(file).then(
+      readNovelFile(file, onProgress).then(
         (novel) => resolve({ novel, handle: null }),
         reject,
       );

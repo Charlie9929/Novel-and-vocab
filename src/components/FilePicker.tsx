@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { getFileHandle } from "../core/db";
 import { makeDemoNovel } from "../core/demoNovel";
+import type { NovelReadProgress } from "../core/fileReader";
 import { pickNovelViaFsa, readFromHandle, supportsFsa } from "../core/fsa";
 import type { LocalNovel } from "../core/types";
 import type { ReadingProgressRecord } from "../core/db";
@@ -13,36 +14,44 @@ export interface ShelfEntry {
 interface FilePickerProps {
   shelf: ShelfEntry[];
   onLoaded: (novel: LocalNovel, handle: FileSystemFileHandle | null) => void;
-  onResumeMissing: () => void; // file missing, user should re-select
+  onResumeMissing: (onProgress: (progress: NovelReadProgress) => void) => Promise<void> | void;
 }
 
 export function FilePicker({ shelf, onLoaded, onResumeMissing }: FilePickerProps) {
   const [error, setError] = useState("");
   const [isReading, setIsReading] = useState(false);
+  const [readProgress, setReadProgress] = useState<NovelReadProgress | null>(null);
+
+  function handleReadProgress(progress: NovelReadProgress) {
+    setReadProgress(progress);
+  }
 
   async function openNewBook() {
     setError("");
     setIsReading(true);
+    setReadProgress({ phase: "reading", percent: 0 });
     try {
-      const { novel, handle } = await pickNovelViaFsa();
+      const { novel, handle } = await pickNovelViaFsa(handleReadProgress);
       onLoaded(novel, handle);
     } catch (err: unknown) {
       if (err instanceof DOMException && err.name === "AbortError") return;
       setError(err instanceof Error ? err.message : "读取失败。");
     } finally {
       setIsReading(false);
+      setReadProgress(null);
     }
   }
 
   async function resumeBook(entry: ShelfEntry) {
     setError("");
     setIsReading(true);
+    setReadProgress({ phase: "reading", percent: 0 });
     try {
       if (entry.hasHandle) {
         // Try FSA handle first — this gives one-click resume
         const handle = await getFileHandle(entry.progress.fileFingerprint);
         if (handle) {
-          const novel = await readFromHandle(handle);
+          const novel = await readFromHandle(handle, handleReadProgress);
           if (novel) {
             onLoaded(novel, handle);
             return;
@@ -50,12 +59,13 @@ export function FilePicker({ shelf, onLoaded, onResumeMissing }: FilePickerProps
         }
       }
       // Fallback: ask user to re-select the file
-      onResumeMissing();
+      await onResumeMissing(handleReadProgress);
     } catch (err: unknown) {
       if (err instanceof DOMException && err.name === "AbortError") return;
       setError(err instanceof Error ? err.message : "读取失败。");
     } finally {
       setIsReading(false);
+      setReadProgress(null);
     }
   }
 
@@ -114,6 +124,8 @@ export function FilePicker({ shelf, onLoaded, onResumeMissing }: FilePickerProps
         体验示例
       </button>
 
+      {isReading && readProgress ? <ReadProgress progress={readProgress} /> : null}
+
       {!supportsFsa() && hasShelf ? (
         <p className="muted shelf-note">你使用的浏览器不支持一键恢复。请用 Chrome 或 Edge 体验最佳书架功能。</p>
       ) : null}
@@ -121,6 +133,35 @@ export function FilePicker({ shelf, onLoaded, onResumeMissing }: FilePickerProps
       {error ? <p className="error-text">{error}</p> : null}
     </section>
   );
+}
+
+function ReadProgress({ progress }: { progress: NovelReadProgress }) {
+  const percent = Math.max(0, Math.min(100, progress.percent));
+  const detail = getProgressDetail(progress);
+
+  return (
+    <div className="read-progress" role="status" aria-live="polite" aria-label={`${detail} ${percent}%`}>
+      <div className="read-progress-meta">
+        <span>{detail}</span>
+        <strong>{percent}%</strong>
+      </div>
+      <div className="read-progress-track" aria-hidden="true">
+        <span style={{ width: `${percent}%` }} />
+      </div>
+    </div>
+  );
+}
+
+function getProgressDetail(progress: NovelReadProgress): string {
+  if (progress.phase === "reading") return "正在读取文件";
+  if (progress.phase === "parsing") return "正在打开 PDF";
+  if (progress.phase === "extracting") {
+    if (progress.currentPage && progress.totalPages) {
+      return `正在提取文字 · ${progress.currentPage}/${progress.totalPages} 页`;
+    }
+    return "正在提取 PDF 文字";
+  }
+  return "正在整理小说内容";
 }
 
 function formatRelativeTime(timestamp: number): string {

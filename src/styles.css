@@ -156,6 +156,43 @@ button {
   text-align: center;
 }
 
+.read-progress {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  border: 1px solid #dcece6;
+  border-radius: 8px;
+  padding: 12px 14px;
+  background: #f4faf7;
+  color: #14615c;
+}
+
+.read-progress-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.read-progress-meta strong {
+  flex: 0 0 auto;
+}
+
+.read-progress-track {
+  height: 7px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: #dcece6;
+}
+
+.read-progress-track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #14615c;
+  transition: width 160ms ease-out;
+}
+
 .file-picker p,
 .muted,
 .empty-state,

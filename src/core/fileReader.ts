@@ -3,6 +3,17 @@ import type { LocalNovel } from "./types";
 const TEXT_EXTENSIONS = [".txt"];
 const PDF_EXTENSIONS = [".pdf"];
 
+export type NovelReadPhase = "reading" | "parsing" | "extracting" | "finishing";
+
+export interface NovelReadProgress {
+  phase: NovelReadPhase;
+  percent: number;
+  currentPage?: number;
+  totalPages?: number;
+}
+
+export type NovelReadProgressHandler = (progress: NovelReadProgress) => void;
+
 export function isTxtFile(file: File): boolean {
   return hasExtension(file, TEXT_EXTENSIONS);
 }
@@ -15,9 +26,9 @@ export function isSupportedNovelFile(file: File): boolean {
   return isTxtFile(file) || isPdfFile(file);
 }
 
-export function readNovelFile(file: File): Promise<LocalNovel> {
+export function readNovelFile(file: File, onProgress?: NovelReadProgressHandler): Promise<LocalNovel> {
   if (isPdfFile(file)) {
-    return readPdfFile(file);
+    return readPdfFile(file, onProgress);
   }
 
   if (!isTxtFile(file)) {
@@ -27,19 +38,27 @@ export function readNovelFile(file: File): Promise<LocalNovel> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
 
+    reader.onprogress = (event) => {
+      if (event.lengthComputable) {
+        onProgress?.({ phase: "reading", percent: Math.round((event.loaded / event.total) * 90) });
+      }
+    };
     reader.onerror = () => reject(new Error("本地文件读取失败，请重新选择文件。"));
     reader.onload = () => {
       try {
+        onProgress?.({ phase: "finishing", percent: 95 });
         const bytes = reader.result instanceof ArrayBuffer ? new Uint8Array(reader.result) : new Uint8Array();
         const text = decodeNovelBytes(bytes);
         if (!text.trim()) throw new Error("文件内容为空。");
-        resolve({
+        const novel = {
           fileName: file.name,
           fileSize: file.size,
           lastModified: file.lastModified,
           fingerprint: createFileFingerprint(file, text),
           text: normalizeNovelText(text),
-        });
+        };
+        onProgress?.({ phase: "finishing", percent: 100 });
+        resolve(novel);
       } catch (error) {
         reject(error instanceof Error ? error : new Error("无法识别文本编码。"));
       }
@@ -54,7 +73,7 @@ export function readNovelFile(file: File): Promise<LocalNovel> {
  * have a text layer and are rejected with an actionable message instead of
  * silently opening an empty book.
  */
-export async function readPdfFile(file: File): Promise<LocalNovel> {
+export async function readPdfFile(file: File, onProgress?: NovelReadProgressHandler): Promise<LocalNovel> {
   if (!isPdfFile(file)) {
     throw new Error("请选择 .pdf 小说文件。");
   }
@@ -65,11 +84,18 @@ export async function readPdfFile(file: File): Promise<LocalNovel> {
   ]);
   GlobalWorkerOptions.workerSrc = workerModule.default;
 
-  const loadingTask = getDocument({ data: new Uint8Array(await file.arrayBuffer()) });
+  const bytes = new Uint8Array(await readFileAsArrayBuffer(file, onProgress));
+  onProgress?.({ phase: "parsing", percent: 28 });
+  const loadingTask = getDocument({ data: bytes });
+  loadingTask.onProgress = ({ loaded, total }: { loaded: number; total: number }) => {
+    const ratio = total > 0 ? loaded / total : 0.5;
+    onProgress?.({ phase: "parsing", percent: 28 + Math.round(Math.min(1, ratio) * 10) });
+  };
   let document: Awaited<typeof loadingTask.promise> | undefined;
 
   try {
     document = await loadingTask.promise;
+    onProgress?.({ phase: "extracting", percent: 38, currentPage: 0, totalPages: document.numPages });
     const pages: string[] = [];
 
     for (let pageNumber = 1; pageNumber <= document.numPages; pageNumber += 1) {
@@ -77,6 +103,12 @@ export async function readPdfFile(file: File): Promise<LocalNovel> {
       const content = await page.getTextContent();
       pages.push(extractPageText(content.items));
       page.cleanup();
+      onProgress?.({
+        phase: "extracting",
+        percent: 38 + Math.round((pageNumber / document.numPages) * 57),
+        currentPage: pageNumber,
+        totalPages: document.numPages,
+      });
     }
 
     const text = pages.filter((page) => page.trim()).join("\n\n");
@@ -84,13 +116,16 @@ export async function readPdfFile(file: File): Promise<LocalNovel> {
       throw new Error("这个 PDF 没有可提取的文字，可能是扫描版图片 PDF。请先 OCR 或转换为可复制文字的 PDF。");
     }
 
-    return {
+    onProgress?.({ phase: "finishing", percent: 98, currentPage: document.numPages, totalPages: document.numPages });
+    const novel = {
       fileName: file.name,
       fileSize: file.size,
       lastModified: file.lastModified,
       fingerprint: createFileFingerprint(file, text),
       text: normalizeNovelText(text),
     };
+    onProgress?.({ phase: "finishing", percent: 100, currentPage: document.numPages, totalPages: document.numPages });
+    return novel;
   } catch (error) {
     if (error instanceof Error && error.message.includes("没有可提取的文字")) {
       throw error;
@@ -103,6 +138,26 @@ export async function readPdfFile(file: File): Promise<LocalNovel> {
       await loadingTask.destroy();
     }
   }
+}
+
+function readFileAsArrayBuffer(file: File, onProgress?: NovelReadProgressHandler): Promise<ArrayBuffer> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onprogress = (event) => {
+      if (event.lengthComputable) {
+        onProgress?.({ phase: "reading", percent: Math.round((event.loaded / event.total) * 25) });
+      }
+    };
+    reader.onerror = () => reject(new Error("本地文件读取失败，请重新选择文件。"));
+    reader.onload = () => {
+      if (reader.result instanceof ArrayBuffer) {
+        resolve(reader.result);
+      } else {
+        reject(new Error("本地文件读取失败，请重新选择文件。"));
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  });
 }
 
 function extractPageText(items: Array<unknown>): string {

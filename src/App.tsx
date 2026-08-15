@@ -29,6 +29,7 @@ import {
   type VocabRecord,
 } from "./core/db";
 import { DEFAULT_DENSITY, DENSITY_VALUES, type DensityLevel } from "./core/density";
+import type { NovelReadProgressHandler } from "./core/fileReader";
 import { pickNovelViaFsa } from "./core/fsa";
 import { createQuizQuestions, replaceChapterTerms } from "./core/replacer";
 import type { Sm2State } from "./core/sm2";
@@ -113,15 +114,13 @@ export default function App() {
   }
 
   /** Called when user clicks a shelf card for a book without an FSA handle. */
-  function handleResumeMissing() {
-    void (async () => {
-      try {
-        const { novel: pickedNovel, handle } = await pickNovelViaFsa();
-        await handleNovelLoaded(pickedNovel, handle);
-      } catch {
-        // user cancelled
-      }
-    })();
+  async function handleResumeMissing(onProgress?: NovelReadProgressHandler) {
+    try {
+      const { novel: pickedNovel, handle } = await pickNovelViaFsa(onProgress);
+      await handleNovelLoaded(pickedNovel, handle);
+    } catch {
+      // user cancelled
+    }
   }
 
   function persistProgress(nextChapterIndex = chapterIndex, nextScrollPercent = progressPercent) {
