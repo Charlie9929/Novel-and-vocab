@@ -25,6 +25,7 @@ import {
   saveQuizHistory,
   saveReadingProgress,
   saveReplacementRecords,
+  saveTranslationFeedback,
   type VocabRecord,
 } from "./core/db";
 import { DEFAULT_DENSITY, DENSITY_VALUES, type DensityLevel } from "./core/density";
@@ -160,6 +161,11 @@ export default function App() {
     setSelectedWord(null);
   }
 
+  async function handleTranslationFeedback(replacement: ReplacementToken) {
+    await saveTranslationFeedback(replacement);
+    await handleBlacklist(replacement);
+  }
+
   async function handleRemoveBlacklist(term: string) {
     await removeBlacklistTerm(term);
     await refreshLocalState();
@@ -276,7 +282,7 @@ export default function App() {
         replacement={selectedWord}
         onClose={() => setSelectedWord(null)}
         onSave={(replacement) => void handleSaveWord(replacement)}
-        onBlacklist={(replacement) => void handleBlacklist(replacement)}
+        onFeedback={(replacement) => void handleTranslationFeedback(replacement)}
       />
       {quizQuestions ? (
         <QuizPanel

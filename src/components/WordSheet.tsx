@@ -4,10 +4,10 @@ interface WordSheetProps {
   replacement: ReplacementToken | null;
   onClose: () => void;
   onSave: (replacement: ReplacementToken) => void;
-  onBlacklist: (replacement: ReplacementToken) => void;
+  onFeedback: (replacement: ReplacementToken) => void;
 }
 
-export function WordSheet({ replacement, onClose, onSave, onBlacklist }: WordSheetProps) {
+export function WordSheet({ replacement, onClose, onSave, onFeedback }: WordSheetProps) {
   if (!replacement) return null;
   const currentWord = replacement;
 
@@ -47,8 +47,8 @@ export function WordSheet({ replacement, onClose, onSave, onBlacklist }: WordShe
           <button className="primary-button" type="button" onClick={() => onSave(currentWord)}>
             加入生词本
           </button>
-          <button className="secondary-button" type="button" onClick={() => onBlacklist(currentWord)}>
-            加入黑名单
+          <button className="secondary-button" type="button" onClick={() => onFeedback(currentWord)}>
+            翻译不合适
           </button>
         </div>
       </aside>

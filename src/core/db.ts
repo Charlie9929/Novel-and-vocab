@@ -41,6 +41,17 @@ export interface BlacklistRecord {
   createdAt: number;
 }
 
+export interface TranslationFeedbackRecord {
+  key: string;
+  originalChinese: string;
+  englishWord: string;
+  meaning: string;
+  partOfSpeech: string;
+  sourceSentence: string;
+  createdAt: number;
+  status: "pending";
+}
+
 export interface QuizHistoryRecord {
   id?: number;
   fileFingerprint: string;
@@ -71,6 +82,7 @@ class ImmersiveVocabDb extends Dexie {
   settings!: Table<SettingsRecord, number>;
   fileHandles!: Table<FileHandleRecord, string>;
   contextCorrections!: Table<ContextCorrection, string>;
+  translationFeedback!: Table<TranslationFeedbackRecord, string>;
 
   constructor() {
     super("immersiveVocabReader");
@@ -107,6 +119,17 @@ class ImmersiveVocabDb extends Dexie {
       settings: "++id, &key",
       fileHandles: "fileFingerprint, savedAt",
       contextCorrections: "key, zh, updatedAt",
+    });
+    this.version(5).stores({
+      readingProgress: "fileFingerprint, updatedAt",
+      vocabulary: "++id, &key, word, originalChinese, fileFingerprint, createdAt, sm2.dueAt",
+      replacementRecords: "++id, &key, fileFingerprint, chapterIndex, word, originalChinese",
+      blacklist: "++id, &term, createdAt",
+      quizHistory: "++id, fileFingerprint, chapterIndex, createdAt",
+      settings: "++id, &key",
+      fileHandles: "fileFingerprint, savedAt",
+      contextCorrections: "key, zh, updatedAt",
+      translationFeedback: "&key, originalChinese, englishWord, createdAt, status",
     });
   }
 }
@@ -155,6 +178,20 @@ export async function addBlacklistTerm(term: string): Promise<void> {
   await db.blacklist.put({ term, createdAt: Date.now() });
 }
 
+export async function saveTranslationFeedback(replacement: ReplacementToken): Promise<void> {
+  const context = normalizeContext(replacement.sentence, replacement.zh);
+  await db.translationFeedback.put({
+    key: `${replacement.zh}:${replacement.en}:${context}`,
+    originalChinese: replacement.zh,
+    englishWord: replacement.en,
+    meaning: replacement.meaning,
+    partOfSpeech: replacement.partOfSpeech,
+    sourceSentence: replacement.sentence,
+    createdAt: Date.now(),
+    status: "pending",
+  });
+}
+
 export async function getBlacklistTerms(): Promise<string[]> {
   return (await db.blacklist.orderBy("createdAt").toArray()).map((item) => item.term);
 }
@@ -180,6 +217,7 @@ export async function clearLocalLearningData(): Promise<void> {
     db.settings.clear(),
     db.fileHandles.clear(),
     db.contextCorrections.clear(),
+    db.translationFeedback.clear(),
   ]);
 }
 
