@@ -360,10 +360,11 @@
   },
   {
     "zh": "完成",
-    "en": "achieve",
-    "meaning": "完成，实现；达到",
+    "en": "complete",
+    "meaning": "完成；结束；完整的",
     "partOfSpeech": "verb",
-    "phonetic": "/əˈtʃiv/"
+    "phonetic": "/kəmˈplit/",
+    "priority": 10
   },
   {
     "zh": "完成",
@@ -388,10 +389,11 @@
   },
   {
     "zh": "认识",
-    "en": "acquaintance",
-    "meaning": "认识;了解;熟人",
-    "partOfSpeech": "noun",
-    "phonetic": "/əˈkweɪntəns/"
+    "en": "know",
+    "meaning": "认识；知道；了解",
+    "partOfSpeech": "verb",
+    "phonetic": "/ˈnoʊ/",
+    "priority": 10
   },
   {
     "zh": "认识",
@@ -431,17 +433,18 @@
   },
   {
     "zh": "行为",
-    "en": "act",
-    "meaning": "行为",
+    "en": "behavior",
+    "meaning": "行为；举止；态度",
     "partOfSpeech": "noun",
-    "phonetic": "/ˈækt/"
+    "phonetic": "/bɪˈheɪvjɚ/",
+    "priority": 10
   },
   {
     "zh": "行为",
-    "en": "behavior",
-    "meaning": "行为，举止，态度",
+    "en": "act",
+    "meaning": "行为；行动",
     "partOfSpeech": "noun",
-    "phonetic": "/bɪˈheɪvjɚ/"
+    "phonetic": "/ˈækt/"
   },
   {
     "zh": "行为",
@@ -592,17 +595,18 @@
   },
   {
     "zh": "允许",
+    "en": "allow",
+    "meaning": "允许；准许",
+    "partOfSpeech": "verb",
+    "phonetic": "/əˈlaʊ/",
+    "priority": 10
+  },
+  {
+    "zh": "允许",
     "en": "admission",
     "meaning": "允许进入；承认",
     "partOfSpeech": "noun",
     "phonetic": "/æˈdmɪʃən/"
-  },
-  {
-    "zh": "允许",
-    "en": "allow",
-    "meaning": "允许，准许；任",
-    "partOfSpeech": "verb",
-    "phonetic": "/əˈlaʊ/"
   },
   {
     "zh": "允许",
@@ -732,10 +736,11 @@
   },
   {
     "zh": "事情",
-    "en": "affair",
-    "meaning": "事情，事件；事务",
+    "en": "matter",
+    "meaning": "事情；问题；物质",
     "partOfSpeech": "noun",
-    "phonetic": "/əˈfɛr/"
+    "phonetic": "/ˈmætɚ/",
+    "priority": 10
   },
   {
     "zh": "事情",
@@ -901,17 +906,18 @@
   },
   {
     "zh": "帮助",
-    "en": "aid",
-    "meaning": "帮助，救护；助手",
-    "partOfSpeech": "noun",
-    "phonetic": "/ˈeɪd/"
-  },
-  {
-    "zh": "帮助",
     "en": "help",
     "meaning": "帮助；援助",
     "partOfSpeech": "verb",
-    "phonetic": "/ˈhɛlp/"
+    "phonetic": "/ˈhɛlp/",
+    "priority": 10
+  },
+  {
+    "zh": "帮助",
+    "en": "aid",
+    "meaning": "帮助；救护；助手",
+    "partOfSpeech": "noun",
+    "phonetic": "/ˈeɪd/"
   },
   {
     "zh": "瞄准",
@@ -1854,17 +1860,26 @@
   },
   {
     "zh": "宇宙",
+    "en": "universe",
+    "meaning": "宇宙，世界",
+    "partOfSpeech": "noun",
+    "phonetic": "/ˈjunəˌvɝs/",
+    "priority": 10
+  },
+  {
+    "zh": "宇宙",
     "en": "astronaut",
     "meaning": "宇宙航行员，宇航员",
     "partOfSpeech": "noun",
     "phonetic": "/ˈæstrəˌnɑt/"
   },
   {
-    "zh": "宇宙",
-    "en": "universe",
-    "meaning": "宇宙，世界",
+    "zh": "运动",
+    "en": "sport",
+    "meaning": "运动；运动会",
     "partOfSpeech": "noun",
-    "phonetic": "/ˈjunəˌvɝs/"
+    "phonetic": "/ˈspɔrt/",
+    "priority": 10
   },
   {
     "zh": "运动",
@@ -1879,13 +1894,6 @@
     "meaning": "运动；手势；提议",
     "partOfSpeech": "noun",
     "phonetic": "/ˈmoʊʃən/"
-  },
-  {
-    "zh": "运动",
-    "en": "sport",
-    "meaning": "运动；运动会",
-    "partOfSpeech": "noun",
-    "phonetic": "/ˈspɔrt/"
   },
   {
     "zh": "运动",
@@ -2085,10 +2093,11 @@
   },
   {
     "zh": "自动",
-    "en": "automation",
-    "meaning": "自动，自动化",
-    "partOfSpeech": "noun",
-    "phonetic": "/ɔtəˈmeɪʃən/"
+    "en": "automatic",
+    "meaning": "自动的；无意识的",
+    "partOfSpeech": "adjective",
+    "phonetic": "/ˌɔtəˈmætɪk/",
+    "priority": 10
   },
   {
     "zh": "秋季",
@@ -2247,10 +2256,11 @@
   },
   {
     "zh": "严重",
-    "en": "badly",
-    "meaning": "坏，差；严重地",
-    "partOfSpeech": "adverb",
-    "phonetic": "/ˈbædli/"
+    "en": "serious",
+    "meaning": "严重的；严肃的；认真的",
+    "partOfSpeech": "adjective",
+    "phonetic": "/ˈsɪriəs/",
+    "priority": 10
   },
   {
     "zh": "羽毛",
@@ -2751,10 +2761,11 @@
   },
   {
     "zh": "表现",
-    "en": "behave",
-    "meaning": "表现，举止；运转",
+    "en": "perform",
+    "meaning": "表现；执行；表演",
     "partOfSpeech": "verb",
-    "phonetic": "/bɪˈheɪv/"
+    "phonetic": "/pɚˈfɔrm/",
+    "priority": 10
   },
   {
     "zh": "信任",
@@ -2932,7 +2943,7 @@
     "phonetic": "/ˈbaɪnd/"
   },
   {
-    "zh": "生物",
+    "zh": "生物学",
     "en": "biology",
     "meaning": "生物学；生态学",
     "partOfSpeech": "noun",
@@ -4221,10 +4232,11 @@
   },
   {
     "zh": "小心",
-    "en": "care",
-    "meaning": "小心",
-    "partOfSpeech": "noun",
-    "phonetic": "/ˈkɛr/"
+    "en": "careful",
+    "meaning": "小心的；谨慎的",
+    "partOfSpeech": "adjective",
+    "phonetic": "/ˈkɛrfəl/",
+    "priority": 10
   },
   {
     "zh": "生涯",
@@ -5588,24 +5600,26 @@
   },
   {
     "zh": "普通",
-    "en": "commonly",
-    "meaning": "普通地，一般地",
-    "partOfSpeech": "adverb",
-    "phonetic": "/ˈkɑmənli/"
-  },
-  {
-    "zh": "通讯",
-    "en": "communicate",
-    "meaning": "通讯;传达;传播",
-    "partOfSpeech": "verb",
-    "phonetic": "/kəˈmjunəˌkeɪt/"
+    "en": "common",
+    "meaning": "普通的；常见的；共同的",
+    "partOfSpeech": "adjective",
+    "phonetic": "/ˈkɑmən/",
+    "priority": 10
   },
   {
     "zh": "通讯",
     "en": "communication",
-    "meaning": "通讯;传达；交通",
+    "meaning": "通讯；传达；交通",
     "partOfSpeech": "noun",
-    "phonetic": "/kəˌmjunəˈkeɪʃən/"
+    "phonetic": "/kəˌmjunəˈkeɪʃən/",
+    "priority": 10
+  },
+  {
+    "zh": "通讯",
+    "en": "communicate",
+    "meaning": "通讯；传达；传播",
+    "partOfSpeech": "verb",
+    "phonetic": "/kəˈmjunəˌkeɪt/"
   },
   {
     "zh": "共产",
@@ -5798,10 +5812,11 @@
   },
   {
     "zh": "理解",
-    "en": "comprehension",
-    "meaning": "理解，理解力；领悟",
-    "partOfSpeech": "noun",
-    "phonetic": "/ˌkɑmpriˈhɛnʃən/"
+    "en": "understand",
+    "meaning": "理解；明白；认识到",
+    "partOfSpeech": "verb",
+    "phonetic": "/ˌʌndɚˈstænd/",
+    "priority": 10
   },
   {
     "zh": "理解",
@@ -6091,18 +6106,27 @@
     "phonetic": "/ˈkɑnʃəsnəs/"
   },
   {
-    "zh": "结果",
-    "en": "consequence",
-    "meaning": "结果，后果",
-    "partOfSpeech": "noun",
-    "phonetic": "/ˈkɑnsəkwəns/"
+    "zh": "意识到",
+    "en": "realize",
+    "meaning": "意识到；认识到",
+    "partOfSpeech": "verb",
+    "phonetic": "/ˈriəˌlaɪz/",
+    "priority": 20
   },
   {
     "zh": "结果",
-    "en": "effect",
-    "meaning": "结果；效果，效力",
+    "en": "result",
+    "meaning": "结果；成果；后果",
     "partOfSpeech": "noun",
-    "phonetic": "/ɪˈfɛkt/"
+    "phonetic": "/rɪˈzʌlt/",
+    "priority": 10
+  },
+  {
+    "zh": "结果",
+    "en": "consequence",
+    "meaning": "结果；后果",
+    "partOfSpeech": "noun",
+    "phonetic": "/ˈkɑnsəkwəns/"
   },
   {
     "zh": "结果",
@@ -6120,10 +6144,11 @@
   },
   {
     "zh": "保存",
-    "en": "conservation",
-    "meaning": "保存，保护；守恒",
-    "partOfSpeech": "noun",
-    "phonetic": "/ˌkɑnsɚˈveɪʃən/"
+    "en": "save",
+    "meaning": "保存；拯救；节省",
+    "partOfSpeech": "verb",
+    "phonetic": "/ˈseɪv/",
+    "priority": 10
   },
   {
     "zh": "保守",
@@ -6201,8 +6226,7 @@
     "en": "consumption",
     "meaning": "消耗量；消耗",
     "partOfSpeech": "noun",
-    "phonetic": "/kəˈnsʌmpʃən/",
-    "priority": 20
+    "phonetic": "/kəˈnsʌmpʃən/"
   },
   {
     "zh": "使接",
@@ -7025,10 +7049,11 @@
   },
   {
     "zh": "习惯",
-    "en": "custom",
-    "meaning": "习惯，风俗；海关",
+    "en": "habit",
+    "meaning": "习惯；习性",
     "partOfSpeech": "noun",
-    "phonetic": "/ˈkʌstəm/"
+    "phonetic": "/ˈhæbɪt/",
+    "priority": 10
   },
   {
     "zh": "顾客",
@@ -8195,10 +8220,11 @@
   },
   {
     "zh": "不再",
-    "en": "dismiss",
-    "meaning": "不再考虑；解雇",
-    "partOfSpeech": "verb",
-    "phonetic": "/dɪˈsmɪs/"
+    "en": "no longer",
+    "meaning": "不再",
+    "partOfSpeech": "adverb",
+    "phonetic": "/noʊ ˈlɔŋɡɚ/",
+    "priority": 10
   },
   {
     "zh": "陈列",
@@ -8699,10 +8725,11 @@
   },
   {
     "zh": "持续",
-    "en": "duration",
-    "meaning": "持续，持久",
-    "partOfSpeech": "noun",
-    "phonetic": "/ˈdʊˈreɪʃən/"
+    "en": "continue",
+    "meaning": "持续；继续",
+    "partOfSpeech": "verb",
+    "phonetic": "/kənˈtɪnju/",
+    "priority": 10
   },
   {
     "zh": "持续",
@@ -8783,10 +8810,11 @@
   },
   {
     "zh": "容易",
-    "en": "ease",
-    "meaning": "容易，舒适",
-    "partOfSpeech": "noun",
-    "phonetic": "/ˈiz/"
+    "en": "easy",
+    "meaning": "容易的；轻松的",
+    "partOfSpeech": "adjective",
+    "phonetic": "/ˈizi/",
+    "priority": 10
   },
   {
     "zh": "容易",
@@ -8972,10 +9000,11 @@
   },
   {
     "zh": "电子",
-    "en": "electron",
-    "meaning": "电子",
-    "partOfSpeech": "noun",
-    "phonetic": "/ɪˈlɛktrɑn/"
+    "en": "electronic",
+    "meaning": "电子的；电子设备的",
+    "partOfSpeech": "adjective",
+    "phonetic": "/ɪˌlɛkˈtrɑnɪk/",
+    "priority": 10
   },
   {
     "zh": "电子",
@@ -9245,17 +9274,18 @@
   },
   {
     "zh": "发动",
-    "en": "engine",
-    "meaning": "发动机，引擎；机车",
-    "partOfSpeech": "noun",
-    "phonetic": "/ˈɛndʒən/"
+    "en": "launch",
+    "meaning": "发动；发起；启动",
+    "partOfSpeech": "verb",
+    "phonetic": "/ˈlɔntʃ/",
+    "priority": 10
   },
   {
     "zh": "发动",
-    "en": "motor",
-    "meaning": "发动机；机动车",
+    "en": "engine",
+    "meaning": "发动机；引擎；机车",
     "partOfSpeech": "noun",
-    "phonetic": "/ˈmoʊtɚ/"
+    "phonetic": "/ˈɛndʒən/"
   },
   {
     "zh": "工程",
@@ -9564,7 +9594,7 @@
     "zh": "甚至",
     "en": "even",
     "meaning": "甚至；甚至更，还",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈivɪn/"
   },
   {
@@ -9842,10 +9872,11 @@
   },
   {
     "zh": "运用",
-    "en": "exert",
-    "meaning": "尽(力)，运用",
+    "en": "apply",
+    "meaning": "运用；应用；实施",
     "partOfSpeech": "verb",
-    "phonetic": "/ɪˈɡzɝt/"
+    "phonetic": "/əˈplaɪ/",
+    "priority": 10
   },
   {
     "zh": "使筋",
@@ -11137,17 +11168,18 @@
   },
   {
     "zh": "向前",
-    "en": "forth",
-    "meaning": "向前；向外，往外",
-    "partOfSpeech": "adjective",
-    "phonetic": "/ˈfɔrθ/"
+    "en": "forward",
+    "meaning": "向前；向前地；今后",
+    "partOfSpeech": "adverb",
+    "phonetic": "/ˈfɔrwɚd/",
+    "priority": 10
   },
   {
     "zh": "向前",
-    "en": "forward",
-    "meaning": "向前；今后，往后",
-    "partOfSpeech": "adjective",
-    "phonetic": "/ˈfɔrwɚd/"
+    "en": "forth",
+    "meaning": "向前；向外，往外",
+    "partOfSpeech": "adverb",
+    "phonetic": "/ˈfɔrθ/"
   },
   {
     "zh": "两星",
@@ -11753,17 +11785,18 @@
   },
   {
     "zh": "灵魂",
-    "en": "ghost",
-    "meaning": "鬼，灵魂；鬼魂",
-    "partOfSpeech": "noun",
-    "phonetic": "/ˈɡoʊst/"
-  },
-  {
-    "zh": "灵魂",
     "en": "soul",
     "meaning": "灵魂；精神；人",
     "partOfSpeech": "noun",
-    "phonetic": "/ˈsoʊl/"
+    "phonetic": "/ˈsoʊl/",
+    "priority": 10
+  },
+  {
+    "zh": "灵魂",
+    "en": "ghost",
+    "meaning": "鬼；灵魂；鬼魂",
+    "partOfSpeech": "noun",
+    "phonetic": "/ˈɡoʊst/"
   },
   {
     "zh": "巨人",
@@ -12026,10 +12059,11 @@
   },
   {
     "zh": "等级",
-    "en": "grade",
-    "meaning": "等级",
+    "en": "level",
+    "meaning": "等级；水平；级别",
     "partOfSpeech": "noun",
-    "phonetic": "/ˈɡreɪd/"
+    "phonetic": "/ˈlɛvəl/",
+    "priority": 10
   },
   {
     "zh": "逐渐",
@@ -12411,10 +12445,11 @@
   },
   {
     "zh": "黑色",
-    "en": "gunpowder",
-    "meaning": "黑色火药；有烟火药",
-    "partOfSpeech": "noun",
-    "phonetic": "/ˈɡʌˌnpaʊdɚ/"
+    "en": "black",
+    "meaning": "黑色的；黑色",
+    "partOfSpeech": "adjective",
+    "phonetic": "/ˈblæk/",
+    "priority": 10
   },
   {
     "zh": "体育",
@@ -12558,10 +12593,10 @@
   },
   {
     "zh": "简直",
-    "en": "hardly",
-    "meaning": "几乎不，简直不",
+    "en": "simply",
+    "meaning": "简直；简单地",
     "partOfSpeech": "adverb",
-    "phonetic": "/ˈhɑrdli/"
+    "phonetic": "/ˈsɪmpli/"
   },
   {
     "zh": "艰难",
@@ -13363,10 +13398,11 @@
   },
   {
     "zh": "重要",
-    "en": "importance",
-    "meaning": "重要；重要性",
-    "partOfSpeech": "noun",
-    "phonetic": "/ɪˈmpɔrtəns/"
+    "en": "important",
+    "meaning": "重要的；有重大影响的",
+    "partOfSpeech": "adjective",
+    "phonetic": "/ɪmˈpɔrtənt/",
+    "priority": 10
   },
   {
     "zh": "强加",
@@ -13419,10 +13455,11 @@
   },
   {
     "zh": "改进",
-    "en": "improvement",
-    "meaning": "改进，改善；改进处",
-    "partOfSpeech": "noun",
-    "phonetic": "/ɪˈmpruvmənt/"
+    "en": "improve",
+    "meaning": "改进；改善；提高",
+    "partOfSpeech": "verb",
+    "phonetic": "/ɪmˈpruv/",
+    "priority": 10
   },
   {
     "zh": "英寸",
@@ -13468,10 +13505,11 @@
   },
   {
     "zh": "真正",
-    "en": "indeed",
-    "meaning": "真正地；确实",
+    "en": "true",
+    "meaning": "真正的；真实的；忠实的",
     "partOfSpeech": "adjective",
-    "phonetic": "/ɪˈndid/"
+    "phonetic": "/ˈtru/",
+    "priority": 10
   },
   {
     "zh": "真正",
@@ -13748,10 +13786,11 @@
   },
   {
     "zh": "代替",
-    "en": "instead",
-    "meaning": "代替，顶替；反而",
-    "partOfSpeech": "adjective",
-    "phonetic": "/ɪˈnstɛd/"
+    "en": "replace",
+    "meaning": "代替；取代；替换",
+    "partOfSpeech": "verb",
+    "phonetic": "/rɪˈpleɪs/",
+    "priority": 10
   },
   {
     "zh": "代替",
@@ -13796,10 +13835,11 @@
   },
   {
     "zh": "研究",
-    "en": "institute",
-    "meaning": "研究所；学院",
+    "en": "research",
+    "meaning": "研究；调查；研究成果",
     "partOfSpeech": "noun",
-    "phonetic": "/ˈɪnstəˌtut/"
+    "phonetic": "/rɪˈsɝtʃ/",
+    "priority": 10
   },
   {
     "zh": "仪器",
@@ -13866,10 +13906,11 @@
   },
   {
     "zh": "想要",
-    "en": "intend",
-    "meaning": "想要，打算；意指",
+    "en": "want",
+    "meaning": "想要；希望得到",
     "partOfSpeech": "verb",
-    "phonetic": "/ɪˈntɛnd/"
+    "phonetic": "/ˈwɑnt/",
+    "priority": 10
   },
   {
     "zh": "想要",
@@ -13880,10 +13921,11 @@
   },
   {
     "zh": "强烈",
-    "en": "intensity",
-    "meaning": "强烈，剧烈；强度",
-    "partOfSpeech": "noun",
-    "phonetic": "/ɪˈntɛnsəti/"
+    "en": "strong",
+    "meaning": "强烈的；强大的；坚强的",
+    "partOfSpeech": "adjective",
+    "phonetic": "/ˈstrɔŋ/",
+    "priority": 10
   },
   {
     "zh": "意图",
@@ -14096,7 +14138,7 @@
     "phonetic": "/ˈaɪlənd/"
   },
   {
-    "zh": "使隔",
+    "zh": "隔离",
     "en": "isolate",
     "meaning": "使隔离，使孤立",
     "partOfSpeech": "verb",
@@ -14124,7 +14166,7 @@
     "phonetic": "/ˈɪʃu/"
   },
   {
-    "zh": "意大",
+    "zh": "意大利人",
     "en": "italian",
     "meaning": "意大利人",
     "partOfSpeech": "noun",
@@ -14853,10 +14895,11 @@
   },
   {
     "zh": "领导",
-    "en": "leadership",
-    "meaning": "领导",
+    "en": "leader",
+    "meaning": "领导者；负责人",
     "partOfSpeech": "noun",
-    "phonetic": "/ˈlidɚˌʃɪp/"
+    "phonetic": "/ˈlidɚ/",
+    "priority": 10
   },
   {
     "zh": "叶子",
@@ -15181,7 +15224,7 @@
     "phonetic": "/ˈlaɪtnɪŋ/"
   },
   {
-    "zh": "很可",
+    "zh": "很可能",
     "en": "likely",
     "meaning": "很可能",
     "partOfSpeech": "adjective",
@@ -15504,10 +15547,11 @@
   },
   {
     "zh": "放下",
-    "en": "lower",
+    "en": "put down",
     "meaning": "放下",
     "partOfSpeech": "verb",
-    "phonetic": "/ˈloʊɚ/"
+    "phonetic": "/ˌpʊt ˈdaʊn/",
+    "priority": 10
   },
   {
     "zh": "忠诚",
@@ -15672,10 +15716,11 @@
   },
   {
     "zh": "大多",
-    "en": "majority",
-    "meaning": "多数，大多数",
-    "partOfSpeech": "noun",
-    "phonetic": "/məˈdʒɔrəti/"
+    "en": "mostly",
+    "meaning": "大多；主要地",
+    "partOfSpeech": "adverb",
+    "phonetic": "/ˈmoʊstli/",
+    "priority": 10
   },
   {
     "zh": "男子",
@@ -15971,7 +16016,7 @@
     "zh": "同时",
     "en": "meanwhile",
     "meaning": "同时，当时",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈmiˌnwaɪl/"
   },
   {
@@ -15997,10 +16042,11 @@
   },
   {
     "zh": "机械",
-    "en": "mechanically",
-    "meaning": "机械地",
-    "partOfSpeech": "adverb",
-    "phonetic": "/məˈkænɪkli/"
+    "en": "mechanical",
+    "meaning": "机械的；机械般的",
+    "partOfSpeech": "adjective",
+    "phonetic": "/məˈkænɪkəl/",
+    "priority": 10
   },
   {
     "zh": "力学",
@@ -16104,8 +16150,9 @@
     "zh": "提及",
     "en": "mention",
     "meaning": "提及，说起",
-    "partOfSpeech": "noun",
-    "phonetic": "/ˈmɛnʃən/"
+    "partOfSpeech": "verb",
+    "phonetic": "/ˈmɛnʃən/",
+    "priority": 10
   },
   {
     "zh": "菜单",
@@ -16690,10 +16737,11 @@
   },
   {
     "zh": "说出",
-    "en": "name",
-    "meaning": "说出",
+    "en": "say",
+    "meaning": "说出；讲出",
     "partOfSpeech": "verb",
-    "phonetic": "/ˈneɪm/"
+    "phonetic": "/ˈseɪ/",
+    "priority": 10
   },
   {
     "zh": "也就",
@@ -16781,10 +16829,11 @@
   },
   {
     "zh": "必要",
-    "en": "necessity",
-    "meaning": "必要性；必然性",
-    "partOfSpeech": "noun",
-    "phonetic": "/nəˈsɛsəti/"
+    "en": "necessary",
+    "meaning": "必要的；必需的",
+    "partOfSpeech": "adjective",
+    "phonetic": "/ˈnɛsəˌsɛri/",
+    "priority": 10
   },
   {
     "zh": "脖子",
@@ -17131,10 +17180,11 @@
   },
   {
     "zh": "观察",
-    "en": "observer",
-    "meaning": "观察员，观测者",
-    "partOfSpeech": "noun",
-    "phonetic": "/əˈbzɝvɚ/"
+    "en": "observe",
+    "meaning": "观察；注意到；遵守",
+    "partOfSpeech": "verb",
+    "phonetic": "/əbˈzɝv/",
+    "priority": 10
   },
   {
     "zh": "障碍",
@@ -17341,10 +17391,11 @@
   },
   {
     "zh": "运行",
-    "en": "orbit",
-    "meaning": "运行轨道",
-    "partOfSpeech": "noun",
-    "phonetic": "/ˈɔrbət/"
+    "en": "run",
+    "meaning": "运行；运转；经营",
+    "partOfSpeech": "verb",
+    "phonetic": "/ˈrʌn/",
+    "priority": 10
   },
   {
     "zh": "环绕",
@@ -17393,7 +17444,8 @@
     "en": "organize",
     "meaning": "组织，编组",
     "partOfSpeech": "verb",
-    "phonetic": "/ˈɔrɡəˌnaɪz/"
+    "phonetic": "/ˈɔrɡəˌnaɪz/",
+    "contextHints": ["组织起来", "组织人员", "组织活动", "组织语言", "组织实施", "组织团队", "组织工作", "组织进攻", "组织自己的"]
   },
   {
     "zh": "孤儿",
@@ -17677,10 +17729,11 @@
   },
   {
     "zh": "小猫",
-    "en": "panda",
-    "meaning": "小猫熊；猫熊",
+    "en": "cat",
+    "meaning": "猫；小猫",
     "partOfSpeech": "noun",
-    "phonetic": "/ˈpændə/"
+    "phonetic": "/ˈkæt/",
+    "priority": 10
   },
   {
     "zh": "窗格",
@@ -17740,10 +17793,11 @@
   },
   {
     "zh": "部分",
-    "en": "partially",
-    "meaning": "部分地",
-    "partOfSpeech": "adverb",
-    "phonetic": "/ˈpɑrʃəli/"
+    "en": "part",
+    "meaning": "部分；一部分",
+    "partOfSpeech": "noun",
+    "phonetic": "/ˈpɑrt/",
+    "priority": 10
   },
   {
     "zh": "部分",
@@ -18496,10 +18550,11 @@
   },
   {
     "zh": "丰富",
-    "en": "plenty",
-    "meaning": "丰富，充足，大量",
-    "partOfSpeech": "noun",
-    "phonetic": "/ˈplɛnti/"
+    "en": "rich",
+    "meaning": "丰富的；富有的；浓郁的",
+    "partOfSpeech": "adjective",
+    "phonetic": "/ˈrɪtʃ/",
+    "priority": 10
   },
   {
     "zh": "小块",
@@ -18997,10 +19052,11 @@
   },
   {
     "zh": "目前",
-    "en": "present",
-    "meaning": "目前",
-    "partOfSpeech": "noun",
-    "phonetic": "/ˈprɛzənt/"
+    "en": "currently",
+    "meaning": "目前；现在",
+    "partOfSpeech": "adverb",
+    "phonetic": "/ˈkɝəntli/",
+    "priority": 10
   },
   {
     "zh": "目前",
@@ -19028,7 +19084,8 @@
     "en": "protect",
     "meaning": "保护，保卫，警戒",
     "partOfSpeech": "verb",
-    "phonetic": "/prəˈtɛkt/"
+    "phonetic": "/prəˈtɛkt/",
+    "priority": 10
   },
   {
     "zh": "保护",
@@ -19130,10 +19187,11 @@
   },
   {
     "zh": "负责",
-    "en": "principal",
-    "meaning": "负责人",
-    "partOfSpeech": "noun",
-    "phonetic": "/ˈprɪnsəpəl/"
+    "en": "responsible",
+    "meaning": "负责的；有责任的",
+    "partOfSpeech": "adjective",
+    "phonetic": "/rɪˈspɑnsəbəl/",
+    "priority": 10
   },
   {
     "zh": "原则",
@@ -19284,10 +19342,11 @@
   },
   {
     "zh": "伸出",
-    "en": "project",
-    "meaning": "伸出",
+    "en": "extend",
+    "meaning": "伸出；延伸；扩大",
     "partOfSpeech": "verb",
-    "phonetic": "/ˈprɑdʒɛkt/"
+    "phonetic": "/ɪkˈstɛnd/",
+    "priority": 10
   },
   {
     "zh": "诺言",
@@ -20033,17 +20092,18 @@
   },
   {
     "zh": "收到",
-    "en": "receipt",
-    "meaning": "收到；收条，收据",
-    "partOfSpeech": "noun",
-    "phonetic": "/rɪˈsit/"
-  },
-  {
-    "zh": "收到",
     "en": "receive",
     "meaning": "收到；得到；接待",
     "partOfSpeech": "verb",
-    "phonetic": "/rəˈsiv/"
+    "phonetic": "/rəˈsiv/",
+    "priority": 10
+  },
+  {
+    "zh": "收到",
+    "en": "receipt",
+    "meaning": "收到；收条；收据",
+    "partOfSpeech": "noun",
+    "phonetic": "/rɪˈsit/"
   },
   {
     "zh": "收受",
@@ -20096,10 +20156,11 @@
   },
   {
     "zh": "重新",
-    "en": "recover",
-    "meaning": "重新获得；挽回",
-    "partOfSpeech": "verb",
-    "phonetic": "/rɪˈkʌvɚ/"
+    "en": "again",
+    "meaning": "重新；再一次",
+    "partOfSpeech": "adverb",
+    "phonetic": "/əˈɡɛn/",
+    "priority": 10
   },
   {
     "zh": "重获",
@@ -20352,7 +20413,8 @@
     "en": "relationship",
     "meaning": "关系，联系",
     "partOfSpeech": "noun",
-    "phonetic": "/riˈleɪʃəˌnʃɪp/"
+    "phonetic": "/riˈleɪʃəˌnʃɪp/",
+    "priority": 10
   },
   {
     "zh": "相对",
@@ -20993,10 +21055,11 @@
   },
   {
     "zh": "机器",
-    "en": "robot",
-    "meaning": "机器人；自动机",
+    "en": "machine",
+    "meaning": "机器；机械装置",
     "partOfSpeech": "noun",
-    "phonetic": "/ˈroʊˌbɑt/"
+    "phonetic": "/məˈʃin/",
+    "priority": 10
   },
   {
     "zh": "使动",
@@ -21231,10 +21294,11 @@
   },
   {
     "zh": "安全",
-    "en": "safely",
-    "meaning": "安全地；可靠地",
-    "partOfSpeech": "adverb",
-    "phonetic": "/ˈseɪfli/"
+    "en": "safe",
+    "meaning": "安全的；没有危险的",
+    "partOfSpeech": "adjective",
+    "phonetic": "/ˈseɪf/",
+    "priority": 10
   },
   {
     "zh": "安全",
@@ -21981,10 +22045,11 @@
   },
   {
     "zh": "剥夺",
-    "en": "shear",
-    "meaning": "剪；剥夺",
+    "en": "deprive",
+    "meaning": "剥夺；使丧失",
     "partOfSpeech": "verb",
-    "phonetic": "/ˈʃɪr/"
+    "phonetic": "/dɪˈpraɪv/",
+    "priority": 10
   },
   {
     "zh": "流出",
@@ -22296,10 +22361,11 @@
   },
   {
     "zh": "简单",
-    "en": "simplicity",
-    "meaning": "简单，简易；朴素",
-    "partOfSpeech": "noun",
-    "phonetic": "/sɪˈmplɪsəti/"
+    "en": "simple",
+    "meaning": "简单的；简易的；朴素的",
+    "partOfSpeech": "adjective",
+    "phonetic": "/ˈsɪmpəl/",
+    "priority": 10
   },
   {
     "zh": "简单",
@@ -22324,10 +22390,10 @@
   },
   {
     "zh": "犯罪",
-    "en": "sin",
-    "meaning": "犯罪",
-    "partOfSpeech": "verb",
-    "phonetic": "/ˈsɪn/"
+    "en": "crime",
+    "meaning": "犯罪；罪行",
+    "partOfSpeech": "noun",
+    "phonetic": "/ˈkraɪm/"
   },
   {
     "zh": "演唱",
@@ -22638,7 +22704,7 @@
     "phonetic": "/ˈsɑkɚ/"
   },
   {
-    "zh": "社会",
+    "zh": "社会主义",
     "en": "socialism",
     "meaning": "社会主义",
     "partOfSpeech": "noun",
@@ -22739,14 +22805,14 @@
     "zh": "有时",
     "en": "sometimes",
     "meaning": "不时，有时",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/səˈmtaɪmz/"
   },
   {
     "zh": "有点",
     "en": "somewhat",
     "meaning": "有点",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈsʌˈmwʌt/"
   },
   {
@@ -22760,7 +22826,7 @@
     "zh": "不久",
     "en": "soon",
     "meaning": "不久；早，快",
-    "partOfSpeech": "adjective",
+    "partOfSpeech": "adverb",
     "phonetic": "/ˈsun/"
   },
   {
@@ -22912,10 +22978,11 @@
   },
   {
     "zh": "成为",
-    "en": "specialize",
-    "meaning": "成为…专家；专攻",
+    "en": "become",
+    "meaning": "成为；变成",
     "partOfSpeech": "verb",
-    "phonetic": "/ˈspɛʃəˌlaɪz/"
+    "phonetic": "/bɪˈkʌm/",
+    "priority": 10
   },
   {
     "zh": "指定",
@@ -23199,17 +23266,18 @@
   },
   {
     "zh": "工作",
-    "en": "staff",
-    "meaning": "工作人员；参谋",
-    "partOfSpeech": "noun",
-    "phonetic": "/ˈstæf/"
-  },
-  {
-    "zh": "工作",
     "en": "work",
     "meaning": "工作；职业",
     "partOfSpeech": "noun",
-    "phonetic": "/ˈwɝk/"
+    "phonetic": "/ˈwɝk/",
+    "priority": 10
+  },
+  {
+    "zh": "工作",
+    "en": "staff",
+    "meaning": "工作人员；职员",
+    "partOfSpeech": "noun",
+    "phonetic": "/ˈstæf/"
   },
   {
     "zh": "沾污",
@@ -23783,14 +23851,16 @@
     "en": "success",
     "meaning": "成功，成就，胜利",
     "partOfSpeech": "noun",
-    "phonetic": "/səˈksɛs/"
+    "phonetic": "/səˈksɛs/",
+    "contextHints": ["取得成功", "获得成功", "成功率", "成功的", "成功是"]
   },
   {
     "zh": "成功",
     "en": "successfully",
     "meaning": "成功地",
     "partOfSpeech": "adverb",
-    "phonetic": "/səˈksɛsfəli/"
+    "phonetic": "/səˈksɛsfəli/",
+    "contextHints": ["成功完成", "成功通过", "成功上位", "成功击败", "成功逃脱", "成功进入", "成功获得", "成功解决", "成功实现"]
   },
   {
     "zh": "成功",
@@ -24298,17 +24368,18 @@
   },
   {
     "zh": "技术",
-    "en": "technician",
-    "meaning": "技术员，技师",
+    "en": "technique",
+    "meaning": "技术；技巧；技能",
     "partOfSpeech": "noun",
-    "phonetic": "/tɛˈknɪʃən/"
+    "phonetic": "/tɛkˈnik/",
+    "priority": 10
   },
   {
     "zh": "技术",
-    "en": "technique",
-    "meaning": "技术，技巧；技能",
+    "en": "technician",
+    "meaning": "技术员；技师",
     "partOfSpeech": "noun",
-    "phonetic": "/tɛˈknik/"
+    "phonetic": "/tɛˈknɪʃən/"
   },
   {
     "zh": "青少",
@@ -24524,7 +24595,7 @@
     "zh": "感谢",
     "en": "thank",
     "meaning": "感谢",
-    "partOfSpeech": "noun",
+    "partOfSpeech": "verb",
     "phonetic": "/ˈθæŋk/"
   },
   {
@@ -24578,10 +24649,11 @@
   },
   {
     "zh": "无数",
-    "en": "thousand",
-    "meaning": "无数",
-    "partOfSpeech": "noun",
-    "phonetic": "/ˈθaʊzənd/"
+    "en": "numerous",
+    "meaning": "无数的；许多的",
+    "partOfSpeech": "adjective",
+    "phonetic": "/ˈnuːmərəs/",
+    "priority": 10
   },
   {
     "zh": "螺纹",
@@ -24676,10 +24748,11 @@
   },
   {
     "zh": "如此",
-    "en": "such",
-    "meaning": "这样的；如此的",
-    "partOfSpeech": "adjective",
-    "phonetic": "/sʌtʃ/"
+    "en": "so",
+    "meaning": "如此；这么；那么",
+    "partOfSpeech": "adverb",
+    "phonetic": "/ˈsoʊ/",
+    "priority": 10
   },
   {
     "zh": "如此",
@@ -24795,8 +24868,9 @@
     "zh": "共同",
     "en": "together",
     "meaning": "共同，一起",
-    "partOfSpeech": "adjective",
-    "phonetic": "/təˈɡɛðɚ/"
+    "partOfSpeech": "adverb",
+    "phonetic": "/təˈɡɛðɚ/",
+    "priority": 10
   },
   {
     "zh": "厕所",
@@ -25059,10 +25133,11 @@
   },
   {
     "zh": "变化",
-    "en": "transformation",
-    "meaning": "变化；改造；转变",
+    "en": "change",
+    "meaning": "变化；改变；变动",
     "partOfSpeech": "noun",
-    "phonetic": "/ˌtrænsfɚˈmeɪʃən/"
+    "phonetic": "/ˈtʃeɪndʒ/",
+    "priority": 10
   },
   {
     "zh": "变化",
@@ -25606,10 +25681,11 @@
   },
   {
     "zh": "发出",
-    "en": "utter",
-    "meaning": "发出，说，讲",
+    "en": "emit",
+    "meaning": "发出；散发；发射",
     "partOfSpeech": "verb",
-    "phonetic": "/ˈʌtɚ/"
+    "phonetic": "/ɪˈmɪt/",
+    "priority": 10
   },
   {
     "zh": "假期",
@@ -25697,10 +25773,11 @@
   },
   {
     "zh": "速度",
-    "en": "velocity",
-    "meaning": "速度，速率",
+    "en": "speed",
+    "meaning": "速度；迅速",
     "partOfSpeech": "noun",
-    "phonetic": "/vəˈlɑsəti/"
+    "phonetic": "/ˈspid/",
+    "priority": 10
   },
   {
     "zh": "丝绒",
@@ -26653,8 +26730,9 @@
     "zh": "昨天",
     "en": "yesterday",
     "meaning": "昨天，昨日",
-    "partOfSpeech": "adjective",
-    "phonetic": "/ˈjɛstɚˌdeɪ/"
+    "partOfSpeech": "noun",
+    "phonetic": "/ˈjɛstɚˌdeɪ/",
+    "priority": 10
   },
   {
     "zh": "出产",

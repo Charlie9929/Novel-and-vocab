@@ -25,11 +25,12 @@ export function selectCandidate(
   candidates: Cet4Entry[],
   sentence: string,
   correctedEnglish?: string,
+  localContext = sentence,
 ): { entry: Cet4Entry; reason: "correction" | "context" | "priority" } {
   const corrected = correctedEnglish && candidates.find((item) => item.en === correctedEnglish);
   if (corrected) return { entry: corrected, reason: "correction" };
 
-  const contextMatches = candidates.filter((item) => item.contextHints?.some((hint) => sentence.includes(hint)));
+  const contextMatches = candidates.filter((item) => item.contextHints?.some((hint) => localContext.includes(hint)));
   // Priority is an explicit curation signal for data whose source ordering is
   // noisy. The first entry remains the stable fallback when priorities tie.
   const pool = contextMatches.length > 0 ? contextMatches : candidates;

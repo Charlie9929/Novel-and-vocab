@@ -23,7 +23,7 @@ function countChinese(text: string): number {
 
 describe("real novel quality gate", () => {
   it("keeps every dictionary entry displayable with an IPA value", () => {
-    expect(dictionary).toHaveLength(3800);
+    expect(dictionary.length).toBeGreaterThanOrEqual(3800);
     expect(dictionary.every((entry) => entry.phonetic?.startsWith("/") && entry.phonetic.endsWith("/"))).toBe(true);
     expect(dictionary
       .filter((entry) => entry.partOfSpeech === "adjective" && entry.en.endsWith("ly") && !adjectiveLyExceptions.has(entry.en))

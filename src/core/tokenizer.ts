@@ -20,7 +20,28 @@ const SAFE_SINGLE_CHARACTER_NEIGHBOR = new Set("人个件条本名位家次种�
 // These source entries came from phrases that cannot be safely reduced to a
 // standalone English word. Leaving them untouched is better than teaching a
 // misleading translation such as 空中 -> stewardess.
-const BLOCKED_TERMS = new Set(["空中", "一阵", "无论", "一般", "一夜", "过去", "旁边"]);
+const BLOCKED_TERMS = new Set([
+  "空中",
+  "一阵",
+  "无论",
+  "一般",
+  "一夜",
+  "过去",
+  "旁边",
+  "的时",
+  "也就",
+  "下来",
+  "一把",
+  "一套",
+  "一大",
+  "有礼",
+  "才能",
+  "由于",
+  "令人",
+  "天花",
+  "根据",
+]);
+const ALLOWED_TERMS_WITH_FRAGMENT_PREFIX = new Set(["使用", "使命", "使劲", "使动"]);
 
 // These compounds are common in novels but are not themselves a useful
 // single-word learning target. Keep a valid dictionary prefix from leaking
@@ -35,6 +56,16 @@ const PROTECTED_COMPOUNDS = [
   "太阳神",
   "陌生人",
   "相关性",
+  "精神疾病",
+  "办公室",
+  "研究生",
+  "信息安全",
+  "副驾驶",
+  "下意识",
+  "潜意识",
+  "感谢费",
+  "研究所",
+  "办公桌",
 ];
 
 /** Character that sits next to a word and acts like a natural boundary. */
@@ -140,22 +171,52 @@ export function findTerms(
   extraProtectedTerms: string[] = [],
   corrections: ReadonlyMap<string, string> = new Map(),
 ): MatchedTerm[] {
-  const dict = buildDictMap(entries.filter((e) => !BLOCKED_TERMS.has(e.zh) && !blacklist.has(e.zh) && !blacklist.has(e.en)));
+  const dict = buildDictMap(entries.filter((e) => !isBlockedTerm(e.zh) && !blacklist.has(e.zh) && !blacklist.has(e.en)));
   const sentences = splitSentences(text);
   const protectedRanges = buildProtectedRanges(text, extraProtectedTerms);
+  const protectedCompoundRanges = buildProtectedCompoundRanges(text);
 
   // ---- path A: browser-native word segmentation ----
   const segments = trySegmentChinese(text);
   if (segments) {
-    const segmentedMatches = findTermsViaSegments(text, dict, segments, sentences, protectedRanges, corrections);
-    // Some mobile browsers expose Intl.Segmenter but return coarse or empty
-    // Chinese segments. Keep the browser path when it works, but recover from
-    // that partial implementation instead of showing a chapter with zero replacements.
-    if (segmentedMatches.length > 0 || text.length === 0) return segmentedMatches;
+    const segmentedMatches = findTermsViaSegments(
+      text,
+      dict,
+      segments,
+      sentences,
+      protectedRanges,
+      protectedCompoundRanges,
+      corrections,
+    );
+    // Browser segmentation can return a coarse span such as “很简单” or split
+    // a useful compound such as “意大利人”. Merge the native result with the
+    // scanner so one browser's segmentation does not decide correctness.
+    const uncertainScanStarts = buildUncertainScanStarts(segments, dict);
+    const scannedMatches = findTermsViaScan(
+      text,
+      dict,
+      sentences,
+      protectedRanges,
+      protectedCompoundRanges,
+      corrections,
+      segments,
+      uncertainScanStarts,
+    );
+    const mergedMatches = resolveOverlaps([...segmentedMatches, ...scannedMatches], text.length);
+    if (mergedMatches.length > 0 || text.length === 0) return mergedMatches;
   }
 
   // ---- path B: character-scan fallback ----
-  return findTermsViaScan(text, dict, sentences, protectedRanges, corrections, segments);
+  return findTermsViaScan(text, dict, sentences, protectedRanges, protectedCompoundRanges, corrections, segments);
+}
+
+function isBlockedTerm(term: string): boolean {
+  if (BLOCKED_TERMS.has(term)) return true;
+  // The source word list contains many reverse-definition fragments such as
+  // “使惊” and “使确”. Keep complete, commonly used terms with this prefix.
+  if (term.startsWith("使") && !ALLOWED_TERMS_WITH_FRAGMENT_PREFIX.has(term)) return true;
+  if (term.startsWith("的") && term.length === 2 && term !== "的确") return true;
+  return false;
 }
 
 // ---- path A implementation ----
@@ -166,6 +227,7 @@ function findTermsViaSegments(
   segments: SegmentSpan[],
   sentences: SentenceSpan[],
   protectedRanges: ProtectedRange[],
+  protectedCompoundRanges: ProtectedRange[],
   corrections: ReadonlyMap<string, string>,
 ): MatchedTerm[] {
   const matches: MatchedTerm[] = [];
@@ -177,14 +239,19 @@ function findTermsViaSegments(
     const start = seg.index;
     const end = seg.index + seg.segment.length;
     if (isInsideProtected(protectedRanges, start, end)) continue;
-    if (isProtectedCompound(text, start, end) || hasUnsafeSingleCharacterNeighbor(segments, seg)) continue;
+    if (isProtectedCompound(protectedCompoundRanges, start, end) || hasUnsafeSingleCharacterNeighbor(segments, seg, dict)) continue;
 
     const leftChar = text[start - 1] ?? "";
     const rightChar = text[end] ?? "";
     const confidence = boundaryConfidence(leftChar, rightChar);
 
     const sentence = findSentenceForRange(sentences, start, end);
-    const selected = selectCandidate(entries, sentence, corrections.get(correctionKey(seg.segment, sentence)));
+    const selected = selectCandidate(
+      entries,
+      sentence,
+      corrections.get(correctionKey(seg.segment, sentence)),
+      buildLocalContext(text, start, end),
+    );
     const entry = selected.entry;
     matches.push({
       id: `${entry.zh}-${entry.en}-${start}`,
@@ -212,13 +279,16 @@ function findTermsViaScan(
   dict: Map<string, Cet4Entry[]>,
   sentences: SentenceSpan[],
   protectedRanges: ProtectedRange[],
+  protectedCompoundRanges: ProtectedRange[],
   corrections: ReadonlyMap<string, string>,
   segments: SegmentSpan[] | null,
+  scanStarts?: ReadonlySet<number>,
 ): MatchedTerm[] {
   const candidates: MatchedTerm[] = [];
   const maxLen = maxKeyLength(dict);
 
   for (let i = 0; i < text.length; i++) {
+    if (scanStarts && !scanStarts.has(i)) continue;
     // Skip non-Chinese starting positions (e.g. punctuation, whitespace)
     if (!isCJKChar(text[i])) continue;
 
@@ -229,15 +299,20 @@ function findTermsViaScan(
       const entries = dict.get(candidate);
       if (!entries) continue;
       if (isInsideProtected(protectedRanges, i, i + len)) continue;
-      if (isProtectedCompound(text, i, i + len)) continue;
-      if (isContainedByLongerSegment(segments, i, i + len)) continue;
+      if (isProtectedCompound(protectedCompoundRanges, i, i + len)) continue;
+      if (isContainedByLongerSegment(segments, dict, i, i + len)) continue;
 
       const leftChar = text[i - 1] ?? "";
       const rightChar = text[i + len] ?? "";
       const confidence = boundaryConfidence(leftChar, rightChar);
 
       const sentence = findSentenceForRange(sentences, i, i + len);
-      const selected = selectCandidate(entries, sentence, corrections.get(correctionKey(candidate, sentence)));
+      const selected = selectCandidate(
+        entries,
+        sentence,
+        corrections.get(correctionKey(candidate, sentence)),
+        buildLocalContext(text, i, i + len),
+      );
       const entry = selected.entry;
       candidates.push({
         id: `${entry.zh}-${entry.en}-${i}`,
@@ -259,6 +334,49 @@ function findTermsViaScan(
   }
 
   return resolveOverlaps(candidates, text.length);
+}
+
+/**
+ * Native segmentation is usually the best boundary signal, but it can group
+ * an unknown short phrase or split a compound noun. Scan only those uncertain
+ * short spans so large chapters do not pay the cost of a full character scan.
+ */
+function buildUncertainScanStarts(
+  segments: SegmentSpan[],
+  dict: Map<string, Cet4Entry[]>,
+): Set<number> {
+  const starts = new Set<number>();
+  for (let index = 0; index < segments.length; index += 1) {
+    const segment = segments[index];
+    const length = [...segment.segment].length;
+    const next = segments[index + 1];
+    const previous = segments[index - 1];
+    if (
+      next
+      && next.index === segment.index + segment.segment.length
+      && [...next.segment].length === 1
+      && dict.has(`${segment.segment}${next.segment}`)
+    ) {
+      starts.add(segment.index);
+    }
+    if (
+      previous
+      && previous.index + previous.segment.length === segment.index
+      && [...previous.segment].length === 1
+      && dict.has(`${previous.segment}${segment.segment}`)
+    ) {
+      starts.add(previous.index);
+    }
+    if (length > 8 || dict.has(segment.segment)) continue;
+    for (let offset = 0; offset < segment.segment.length; offset += 1) {
+      starts.add(segment.index + offset);
+    }
+  }
+  return starts;
+}
+
+function buildLocalContext(text: string, start: number, end: number): string {
+  return text.slice(Math.max(0, start - 6), Math.min(text.length, end + 6));
 }
 
 // ---- overlap resolution ----
@@ -300,8 +418,19 @@ function buildProtectedRanges(text: string, extraProtectedTerms: string[]): Prot
   for (const pattern of [speakerPattern, namedPersonPattern, actionNamePattern]) {
     for (const match of text.matchAll(pattern)) {
       const name = match[1];
-      const start = (match.index ?? 0) + match[0].lastIndexOf(name);
-      markAllOccurrences(text, name, ranges, start);
+      const nameStart = (match.index ?? 0) + match[0].lastIndexOf(name);
+      // The action-name heuristic can otherwise treat phrases such as
+      // “这个生物看起来” as a person's name. Determiners and pronouns are
+      // strong evidence that this is ordinary prose instead.
+      if ((pattern === actionNamePattern || pattern === namedPersonPattern) && FUNCTION_WORD.has(name[0])) continue;
+      // A two-character word before a title is often a verb phrase, as in
+      // “代替队长”, rather than a person's name. Keep short names protected
+      // when they begin a clause or follow clear dialogue punctuation.
+      if (pattern === namedPersonPattern && name.length === 2) {
+        const previous = text[nameStart - 1] ?? "";
+        if (previous && !/[\n“"'‘「『。！？!?；;，,、：:（(]/.test(previous)) continue;
+      }
+      markAllOccurrences(text, name, ranges, nameStart);
     }
   }
 
@@ -327,7 +456,19 @@ function buildProtectedRanges(text: string, extraProtectedTerms: string[]): Prot
   return ranges;
 }
 
-function hasUnsafeSingleCharacterNeighbor(segments: SegmentSpan[], current: SegmentSpan): boolean {
+function buildProtectedCompoundRanges(text: string): ProtectedRange[] {
+  const ranges: ProtectedRange[] = [];
+  for (const compound of PROTECTED_COMPOUNDS) {
+    markAllOccurrences(text, compound, ranges);
+  }
+  return ranges;
+}
+
+function hasUnsafeSingleCharacterNeighbor(
+  segments: SegmentSpan[],
+  current: SegmentSpan,
+  dict: Map<string, Cet4Entry[]>,
+): boolean {
   const currentIndex = segments.findIndex((segment) => segment.index === current.index);
   if (currentIndex < 0) return false;
 
@@ -335,34 +476,38 @@ function hasUnsafeSingleCharacterNeighbor(segments: SegmentSpan[], current: Segm
   const next = segments[currentIndex + 1];
   return [previous, next].some((neighbor) => {
     if (!neighbor || !isCJKChar(neighbor.segment) || [...neighbor.segment].length !== 1) return false;
-    return !FUNCTION_WORD.has(neighbor.segment) && !SAFE_SINGLE_CHARACTER_NEIGHBOR.has(neighbor.segment);
+    // A single character is only unsafe when it actually forms a known
+    // longer dictionary term with the current segment. Otherwise common prose
+    // such as “书放下” should not be suppressed merely because Segmenter
+    // emitted “书” as a standalone token.
+    const formsKnownCompound = dict.has(`${neighbor.segment}${current.segment}`) || dict.has(`${current.segment}${neighbor.segment}`);
+    if (formsKnownCompound) return true;
+    if (FUNCTION_WORD.has(neighbor.segment) || SAFE_SINGLE_CHARACTER_NEIGHBOR.has(neighbor.segment)) return false;
+    return false;
   });
 }
 
-function isContainedByLongerSegment(segments: SegmentSpan[] | null, start: number, end: number): boolean {
+function isContainedByLongerSegment(
+  segments: SegmentSpan[] | null,
+  dict: Map<string, Cet4Entry[]>,
+  start: number,
+  end: number,
+): boolean {
   if (!segments || segments.length === 0) return false;
 
   return segments.some((segment) => {
     const segmentEnd = segment.index + segment.segment.length;
     const segmentLength = [...segment.segment].length;
-    return segmentLength <= 8 && segment.index <= start && segmentEnd >= end
+    return segmentLength <= 8 && dict.has(segment.segment) && segment.index <= start && segmentEnd >= end
       && (segment.index < start || segmentEnd > end);
   });
 }
 
-function isProtectedCompound(text: string, start: number, end: number): boolean {
-  return PROTECTED_COMPOUNDS.some((compound) => {
-    let cursor = 0;
-    while (cursor < text.length) {
-      const compoundStart = text.indexOf(compound, cursor);
-      if (compoundStart < 0) return false;
-      const compoundEnd = compoundStart + compound.length;
-      if (start < compoundEnd && end > compoundStart && !(start === compoundStart && end === compoundEnd)) {
-        return true;
-      }
-      cursor = compoundEnd;
-    }
-    return false;
+function isProtectedCompound(ranges: ProtectedRange[], start: number, end: number): boolean {
+  return ranges.some((range) => {
+    const overlaps = start < range.end && end > range.start;
+    const isExactCompound = start === range.start && end === range.end;
+    return overlaps && !isExactCompound;
   });
 }
 
