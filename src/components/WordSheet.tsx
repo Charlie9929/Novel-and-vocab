@@ -5,10 +5,9 @@ interface WordSheetProps {
   onClose: () => void;
   onSave: (replacement: ReplacementToken) => void;
   onBlacklist: (replacement: ReplacementToken) => void;
-  onCorrect: (replacement: ReplacementToken, selectedEnglish: string) => void;
 }
 
-export function WordSheet({ replacement, onClose, onSave, onBlacklist, onCorrect }: WordSheetProps) {
+export function WordSheet({ replacement, onClose, onSave, onBlacklist }: WordSheetProps) {
   if (!replacement) return null;
   const currentWord = replacement;
 
@@ -44,25 +43,6 @@ export function WordSheet({ replacement, onClose, onSave, onBlacklist, onCorrect
             <dd>{currentWord.sentence || "当前章节片段"}</dd>
           </div>
         </dl>
-        {currentWord.candidates.length > 1 ? (
-          <div className="candidate-block">
-            <strong>这个语境下更准确的是？</strong>
-            <p className="muted">选择后只会用于相同句子语境。</p>
-            <div className="candidate-list">
-              {currentWord.candidates.map((candidate) => (
-                <button
-                  type="button"
-                  key={candidate.en}
-                  className={candidate.en === currentWord.en ? "active" : ""}
-                  onClick={() => onCorrect(currentWord, candidate.en)}
-                >
-                  <strong>{candidate.en}</strong>
-                  <span>{candidate.meaning}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        ) : null}
         <div className="sheet-actions">
           <button className="primary-button" type="button" onClick={() => onSave(currentWord)}>
             加入生词本

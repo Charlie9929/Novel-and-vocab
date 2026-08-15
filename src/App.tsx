@@ -25,7 +25,6 @@ import {
   saveQuizHistory,
   saveReadingProgress,
   saveReplacementRecords,
-  saveContextCorrection,
   type VocabRecord,
 } from "./core/db";
 import { DEFAULT_DENSITY, DENSITY_VALUES, type DensityLevel } from "./core/density";
@@ -161,12 +160,6 @@ export default function App() {
     setSelectedWord(null);
   }
 
-  async function handleCorrectWord(replacement: ReplacementToken, selectedEnglish: string) {
-    await saveContextCorrection(replacement.zh, replacement.sentence, selectedEnglish);
-    await refreshLocalState();
-    setSelectedWord(null);
-  }
-
   async function handleRemoveBlacklist(term: string) {
     await removeBlacklistTerm(term);
     await refreshLocalState();
@@ -284,7 +277,6 @@ export default function App() {
         onClose={() => setSelectedWord(null)}
         onSave={(replacement) => void handleSaveWord(replacement)}
         onBlacklist={(replacement) => void handleBlacklist(replacement)}
-        onCorrect={(replacement, selectedEnglish) => void handleCorrectWord(replacement, selectedEnglish)}
       />
       {quizQuestions ? (
         <QuizPanel
