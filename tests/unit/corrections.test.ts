@@ -1,6 +1,18 @@
 import { describe, expect, it } from "vitest";
 import { correctionKey, normalizeContext, selectCandidate } from "../../src/core/corrections";
-import type { Cet4Entry } from "../../src/core/types";
+import { matchesLocalContextRule } from "../../src/core/context-rules";
+import type { Cet4Entry, LocalContextWindow } from "../../src/core/types";
+
+function contextAt(text: string, targetStart: number, targetLength: number): LocalContextWindow {
+  const targetEnd = targetStart + targetLength;
+  return {
+    text,
+    targetStart,
+    targetEnd,
+    left: text.slice(0, targetStart),
+    right: text.slice(targetEnd),
+  };
+}
 
 const candidates: Cet4Entry[] = [
   { zh: "选择", en: "choice", meaning: "选择", partOfSpeech: "noun", priority: 10 },
@@ -14,9 +26,9 @@ describe("context corrections", () => {
   });
 
   it("uses correction, context hint, then deterministic priority", () => {
-    expect(selectCandidate(candidates, "请选择。").entry.en).toBe("choose");
-    expect(selectCandidate(candidates, "请选择。", "choice").reason).toBe("correction");
-    expect(selectCandidate(candidates, "这是一个选择。").entry.en).toBe("choice");
+    expect(selectCandidate(candidates, undefined, contextAt("请选择。", 1, 2)).entry.en).toBe("choose");
+    expect(selectCandidate(candidates, "choice", contextAt("请选择。", 1, 2)).reason).toBe("correction");
+    expect(selectCandidate(candidates, undefined, contextAt("这是一个选择。", 4, 2)).entry.en).toBe("choice");
   });
 
   it("does not use a context-only candidate when its hint is absent", () => {
@@ -32,7 +44,33 @@ describe("context corrections", () => {
       },
     ];
 
-    expect(selectCandidate(contextOnlyFirst, "目前机器正常。", undefined, "目前机器正常").entry.en).toBe("currently");
-    expect(selectCandidate(contextOnlyFirst, "目前情况稳定。", undefined, "目前情况稳定").entry.en).toBe("current");
+    expect(selectCandidate(contextOnlyFirst, undefined, contextAt("目前机器正常", 0, 2)).entry.en).toBe("currently");
+    expect(selectCandidate(contextOnlyFirst, undefined, contextAt("目前情况稳定", 0, 2)).entry.en).toBe("current");
+  });
+
+  it("abstains when several local hints conflict", () => {
+    const conflicting: Cet4Entry[] = [
+      { zh: "组织", en: "organize", meaning: "组织", partOfSpeech: "verb", contextHints: ["组织活动"] },
+      { zh: "组织", en: "organization", meaning: "组织", partOfSpeech: "noun", contextHints: ["组织活动"] },
+    ];
+    const selection = selectCandidate(conflicting, undefined, contextAt("组织活动", 0, 2));
+    expect(selection.reason).toBe("ambiguous");
+    expect(selection.confidence).toBe("low");
+  });
+
+  it("uses explicit local left/right context rules without a sentence model", () => {
+    expect(matchesLocalContextRule({ kind: "leftSuffix", value: "取得" }, contextAt("他取得成功了", 3, 2))).toBe(true);
+    expect(matchesLocalContextRule({ kind: "rightPrefix", value: "了" }, contextAt("他成功了", 1, 2))).toBe(true);
+    expect(matchesLocalContextRule({ kind: "rightPrefix", value: "了" }, contextAt("他取得成功", 3, 2))).toBe(false);
+  });
+
+  it("anchors legacy contains hints to the selected duplicate occurrence", () => {
+    const text = "他成功上位并取得成功。";
+    const first = contextAt(text, text.indexOf("成功"), 2);
+    const second = contextAt(text, text.lastIndexOf("成功"), 2);
+    const nounHint = { kind: "contains" as const, value: "取得成功" };
+
+    expect(matchesLocalContextRule(nounHint, first)).toBe(false);
+    expect(matchesLocalContextRule(nounHint, second)).toBe(true);
   });
 });

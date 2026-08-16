@@ -1,5 +1,6 @@
 import type { Cet4Entry, Chapter, MatchedTerm, QuizQuestion, ReplacedChapter, RenderToken, ReplacementToken } from "./types";
 import { findTerms } from "./tokenizer";
+import { APPROVED_CANDIDATE_IDS } from "../data/approved-candidates";
 
 const CHINESE_CHARS_PER_VISIBLE_WORD = 110;
 const MAX_REPLACEMENTS_PER_SENTENCE = 2;
@@ -18,7 +19,10 @@ export function replaceChapterTerms(
   corrections: ReadonlyMap<string, string> = new Map(),
 ): ReplacedChapter {
   const eligible = findTerms(chapter.text, entries, blacklist, [chapter.title], corrections);
-  const selected = selectStableReplacements(chapter, eligible, density);
+  // Precision is the product requirement. Density controls how many safe
+  // candidates are shown; it can never promote an ambiguous candidate.
+  const renderable = eligible.filter(isReplacementSafe);
+  const selected = selectStableReplacements(chapter, renderable, density);
   const selectedByStart = new Map(selected.map((item) => [item.start, item]));
   const tokens: RenderToken[] = [];
   let cursor = 0;
@@ -43,6 +47,16 @@ export function replaceChapterTerms(
     replacements: selected,
     eligibleCount: eligible.length,
   };
+}
+
+/** Shared eligibility gate for the reader and the private quality evaluator. */
+export function isReplacementSafe(match: MatchedTerm): boolean {
+  return match.confidence === "high"
+    && match.boundaryConfidence <= 1
+    // A context rule chooses a sense, but it does not by itself make that
+    // sense production-approved. Rules are promoted only after the exact
+    // candidate has development/validation evidence in the allowlist.
+    && (match.selectionReason === "correction" || APPROVED_CANDIDATE_IDS.has(match.candidateId));
 }
 
 export function createQuizQuestions(replacements: ReplacementToken[], count = 5): QuizQuestion[] {
@@ -110,6 +124,10 @@ function selectStableReplacements(chapter: Chapter, matches: MatchedTerm[], dens
 
 /** Prioritize high-confidence matches, then deterministic tiebreak. */
 function qualitySort(a: MatchedTerm, b: MatchedTerm): number {
+  const confidenceRank = { high: 0, medium: 1, low: 2 } as const;
+  if (a.confidence !== b.confidence) return confidenceRank[a.confidence] - confidenceRank[b.confidence];
+  const sourceRank = { both: 0, segment: 1, scan: 2 } as const;
+  if (a.matchSource !== b.matchSource) return sourceRank[a.matchSource] - sourceRank[b.matchSource];
   // Lower boundaryConfidence = higher quality (0 = both sides clean)
   if (a.boundaryConfidence !== b.boundaryConfidence) {
     return a.boundaryConfidence - b.boundaryConfidence;

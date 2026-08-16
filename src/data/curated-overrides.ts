@@ -404,7 +404,13 @@ const CURATED_ENTRY_OVERRIDES: Record<string, Cet4Entry[]> = {
       partOfSpeech: "noun",
       phonetic: "/səkˈsɛs/",
       priority: 30,
-      contextHints: ["取得成功", "获得成功", "成功率", "成功的", "成功是"],
+      contextRules: [
+        { kind: "leftSuffix", value: "取得" },
+        { kind: "leftSuffix", value: "获得" },
+        { kind: "rightPrefix", value: "率" },
+        { kind: "rightPrefix", value: "的" },
+        { kind: "rightPrefix", value: "是" },
+      ],
     },
     {
       zh: "成功",
@@ -413,7 +419,14 @@ const CURATED_ENTRY_OVERRIDES: Record<string, Cet4Entry[]> = {
       partOfSpeech: "adverb",
       phonetic: "/səkˈsɛsfəli/",
       priority: 40,
-      contextHints: ["成功完成", "成功通过", "成功上位", "成功击败", "成功逃脱", "成功进入", "成功获得", "成功解决", "成功实现", "成功与", "成功将", "成功把", "成功从"],
+      contextRules: [
+        { kind: "rightPrefix", value: "完成" }, { kind: "rightPrefix", value: "通过" },
+        { kind: "rightPrefix", value: "上位" }, { kind: "rightPrefix", value: "击败" },
+        { kind: "rightPrefix", value: "逃脱" }, { kind: "rightPrefix", value: "进入" },
+        { kind: "rightPrefix", value: "获得" }, { kind: "rightPrefix", value: "解决" },
+        { kind: "rightPrefix", value: "实现" }, { kind: "rightPrefix", value: "与" },
+        { kind: "rightPrefix", value: "将" }, { kind: "rightPrefix", value: "把" }, { kind: "rightPrefix", value: "从" },
+      ],
     },
   ],
   "喜欢": [
@@ -602,7 +615,11 @@ const CURATED_ENTRY_OVERRIDES: Record<string, Cet4Entry[]> = {
       partOfSpeech: "adverb",
       phonetic: "/ˈseɪfli/",
       priority: 30,
-      contextHints: ["安全抵达", "安全到达", "安全返回", "安全离开", "安全护送", "安全通过", "安全度过"],
+      contextRules: [
+        { kind: "rightPrefix", value: "抵达" }, { kind: "rightPrefix", value: "到达" },
+        { kind: "rightPrefix", value: "返回" }, { kind: "rightPrefix", value: "离开" },
+        { kind: "rightPrefix", value: "护送" }, { kind: "rightPrefix", value: "通过" }, { kind: "rightPrefix", value: "度过" },
+      ],
     },
   ],
   "麻烦": [

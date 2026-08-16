@@ -2,6 +2,25 @@ export type PartOfSpeech = "noun" | "verb" | "adjective" | "adverb";
 
 export type TranslationFeedbackReason = "meaning" | "partOfSpeech" | "segmentation" | "context";
 
+/** Declarative, browser-only evidence for a word sense. */
+export interface LocalContextRule {
+  kind: "contains" | "leftSuffix" | "rightPrefix";
+  value: string;
+}
+
+/**
+ * A bounded, in-memory view around one exact candidate occurrence.  Offsets
+ * are relative to `text`, not the chapter, so context rules never need to
+ * rediscover the target with `indexOf` when the same word occurs twice.
+ */
+export interface LocalContextWindow {
+  text: string;
+  targetStart: number;
+  targetEnd: number;
+  left: string;
+  right: string;
+}
+
 export interface Cet4Entry {
   zh: string;
   en: string;
@@ -9,8 +28,20 @@ export interface Cet4Entry {
   partOfSpeech: PartOfSpeech;
   phonetic?: string;
   priority?: number;
+  /** Preferred structured form for new curation. */
+  contextRules?: LocalContextRule[];
+  /** Legacy contains-only hints; treated as local rules for compatibility. */
   contextHints?: string[];
 }
+
+/** A stable local identifier. It deliberately contains no novel text. */
+export function candidateIdFor(entry: Pick<Cet4Entry, "zh" | "en" | "partOfSpeech">): string {
+  return `${entry.zh}:${entry.en}:${entry.partOfSpeech}`;
+}
+
+export type MatchSource = "segment" | "scan" | "both";
+export type MatchConfidence = "high" | "medium" | "low";
+export type CandidateSelectionReason = "correction" | "context" | "priority" | "ambiguous";
 
 export interface LocalNovel {
   fileName: string;
@@ -46,7 +77,15 @@ export interface MatchedTerm {
   /** 0 = both sides at hard boundaries (best), 1 = one side, 2 = floating in Chinese text (worst) */
   boundaryConfidence: number;
   candidates: Cet4Entry[];
-  selectionReason: "correction" | "context" | "priority";
+  /** Native segmentation and scanner agreement is stronger evidence than either path alone. */
+  matchSource: MatchSource;
+  /**
+   * A low-confidence match remains available for diagnostics and a user can
+   * still blacklist it, but it is never rendered as an English replacement.
+   */
+  confidence: MatchConfidence;
+  candidateId: string;
+  selectionReason: CandidateSelectionReason;
 }
 
 export interface ReplacementToken extends MatchedTerm {

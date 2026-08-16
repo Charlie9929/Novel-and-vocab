@@ -1,4 +1,11 @@
-import type { Cet4Entry } from "./types";
+import {
+  candidateIdFor,
+  type CandidateSelectionReason,
+  type Cet4Entry,
+  type LocalContextWindow,
+  type MatchConfidence,
+} from "./types";
+import { entryHasLocalEvidence } from "./context-rules";
 
 export interface ContextCorrection {
   key: string;
@@ -23,25 +30,42 @@ export function correctionKey(zh: string, sentence: string): string {
 
 export function selectCandidate(
   candidates: Cet4Entry[],
-  sentence: string,
-  correctedEnglish?: string,
-  localContext = sentence,
-): { entry: Cet4Entry; reason: "correction" | "context" | "priority" } {
+  correctedEnglish: string | undefined,
+  localContext: LocalContextWindow,
+): { entry: Cet4Entry; reason: CandidateSelectionReason; confidence: MatchConfidence } {
+  if (!localContext) {
+    throw new Error("selectCandidate requires a span-aware local context window");
+  }
   const corrected = correctedEnglish && candidates.find((item) => item.en === correctedEnglish);
-  if (corrected) return { entry: corrected, reason: "correction" };
+  if (corrected) return { entry: corrected, reason: "correction", confidence: "high" };
 
-  const contextMatches = candidates.filter((item) => item.contextHints?.some((hint) => localContext.includes(hint)));
+  const contextMatches = candidates.filter((item) => entryHasLocalEvidence(item, localContext));
   // A context-specific candidate must never become the fallback merely because
   // it has a higher curation priority. Without a matching hint, only generic
   // candidates participate in selection.
-  const genericCandidates = candidates.filter((item) => !item.contextHints?.length);
+  const genericCandidates = candidates.filter((item) => !item.contextHints?.length && !item.contextRules?.length);
   const pool = contextMatches.length > 0
     ? contextMatches
     : genericCandidates.length > 0
       ? genericCandidates
       : candidates;
-  const entry = [...pool].sort((left, right) => (right.priority ?? 0) - (left.priority ?? 0))[0];
-  return { entry, reason: contextMatches.length > 0 ? "context" : "priority" };
+  const ordered = [...pool].sort((left, right) => (right.priority ?? 0) - (left.priority ?? 0));
+  const entry = ordered[0];
+  const distinct = new Set(pool.map(candidateIdFor));
+
+  // Context rules are evidence only when they resolve to one lexical option.
+  // A pair of competing substring hints is not a licence to guess.
+  if (contextMatches.length > 0) {
+    return distinct.size === 1
+      ? { entry, reason: "context", confidence: "high" }
+      : { entry, reason: "ambiguous", confidence: "low" };
+  }
+
+  // A single approved option is safe as a lexical fallback. Multiple raw
+  // CET entries often encode different senses/POS and must abstain in the
+  // reader until a local rule or an explicit correction disambiguates them.
+  if (distinct.size === 1) return { entry, reason: "priority", confidence: "high" };
+  return { entry, reason: "ambiguous", confidence: "low" };
 }
 
 function stableHash(input: string): string {

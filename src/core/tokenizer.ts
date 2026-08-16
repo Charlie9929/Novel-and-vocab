@@ -1,4 +1,11 @@
-import type { Cet4Entry, Chapter, MatchedTerm, SentenceSpan } from "./types";
+import {
+  candidateIdFor,
+  type Cet4Entry,
+  type Chapter,
+  type LocalContextWindow,
+  type MatchedTerm,
+  type SentenceSpan,
+} from "./types";
 import { correctionKey, selectCandidate } from "./corrections";
 import { applyCuratedEntryOverrides } from "../data/curated-overrides";
 
@@ -124,11 +131,23 @@ function trySegmentChinese(text: string): SegmentSpan[] | null {
 function buildDictMap(entries: Cet4Entry[]): Map<string, Cet4Entry[]> {
   const map = new Map<string, Cet4Entry[]>();
   for (const e of entries) {
+    if (!isProductionEntry(e)) continue;
     const values = map.get(e.zh) ?? [];
     if (!values.some((item) => item.en === e.en && item.partOfSpeech === e.partOfSpeech)) values.push(e);
     map.set(e.zh, values);
   }
   return map;
+}
+
+/**
+ * The source list contains reverse-definition debris (for example “使惊”).
+ * Keep that debris out of the production dictionary instead of merely hoping
+ * a later tokenizer branch happens to reject it.
+ */
+function isProductionEntry(entry: Cet4Entry): boolean {
+  if (!/^[一-鿿]{2,8}$/.test(entry.zh)) return false;
+  if (!/^[A-Za-z][A-Za-z -]*$/.test(entry.en)) return false;
+  return !isBlockedTerm(entry.zh);
 }
 
 /** Check whether a character range overlaps any protected range. */
@@ -265,7 +284,6 @@ function findTermsViaSegments(
     const sentence = findSentenceForRange(sentences, start, end);
     const selected = selectCandidate(
       entries,
-      sentence,
       corrections.get(correctionKey(seg.segment, sentence)),
       buildLocalContext(text, start, end),
     );
@@ -282,11 +300,14 @@ function findTermsViaSegments(
       sentence,
       boundaryConfidence: confidence,
       candidates: entries,
+      matchSource: "segment",
+      confidence: selected.confidence,
+      candidateId: candidateIdFor(entry),
       selectionReason: selected.reason,
     });
   }
 
-  return resolveOverlaps(matches, text.length);
+  return matches;
 }
 
 // ---- path B implementation ----
@@ -309,7 +330,9 @@ function findTermsViaScan(
     // Skip non-Chinese starting positions (e.g. punctuation, whitespace)
     if (!isCJKChar(text[i])) continue;
 
-    // Try longest match first
+    // Retain every candidate at a position. Resolution later considers
+    // semantic confidence as well as span length, so a long unsafe prefix
+    // cannot automatically swallow two safer words.
     for (let len = maxLen; len >= 2; len--) {
       if (i + len > text.length) continue;
       const candidate = text.slice(i, i + len);
@@ -327,7 +350,6 @@ function findTermsViaScan(
       const sentence = findSentenceForRange(sentences, i, i + len);
       const selected = selectCandidate(
         entries,
-        sentence,
         corrections.get(correctionKey(candidate, sentence)),
         buildLocalContext(text, i, i + len),
       );
@@ -344,10 +366,11 @@ function findTermsViaScan(
         sentence,
         boundaryConfidence: confidence,
         candidates: entries,
+        matchSource: "scan",
+        confidence: selected.confidence,
+        candidateId: candidateIdFor(entry),
         selectionReason: selected.reason,
       });
-
-      break; // longest match at this position wins
     }
   }
 
@@ -386,15 +409,19 @@ function buildUncertainScanStarts(
   return starts;
 }
 
-function buildLocalContext(text: string, start: number, end: number): string {
-  const term = text.slice(start, end);
-  let left = text.slice(Math.max(0, start - 14), start);
-  let right = text.slice(end, Math.min(text.length, end + 14));
-  const previousSameTerm = left.lastIndexOf(term);
-  const nextSameTerm = right.indexOf(term);
-  if (previousSameTerm >= 0) left = left.slice(previousSameTerm + term.length);
-  if (nextSameTerm >= 0) right = right.slice(0, nextSameTerm);
-  return `${left}${term}${right}`;
+function buildLocalContext(text: string, start: number, end: number): LocalContextWindow {
+  const contextStart = Math.max(0, start - 14);
+  const contextEnd = Math.min(text.length, end + 14);
+  const localText = text.slice(contextStart, contextEnd);
+  const targetStart = start - contextStart;
+  const targetEnd = end - contextStart;
+  return {
+    text: localText,
+    targetStart,
+    targetEnd,
+    left: localText.slice(0, targetStart),
+    right: localText.slice(targetEnd),
+  };
 }
 
 function isContextuallyUnsafeTerm(text: string, term: string, start: number): boolean {
@@ -418,25 +445,61 @@ function isContextuallyUnsafeTerm(text: string, term: string, start: number): bo
 
 // ---- overlap resolution ----
 
-function resolveOverlaps(candidates: MatchedTerm[], textLen: number): MatchedTerm[] {
-  // Prefer a complete compound over its prefix when both begin at the same
-  // position, then use boundary quality and reading order.
-  candidates.sort((a, b) => {
-    if (a.start === b.start && a.end !== b.end) return (b.end - b.start) - (a.end - a.start);
-    if (a.boundaryConfidence !== b.boundaryConfidence) return a.boundaryConfidence - b.boundaryConfidence;
-    return a.start - b.start;
-  });
-
-  const occupied = new Array<boolean>(textLen).fill(false);
-  const matches: MatchedTerm[] = [];
-
-  for (const c of candidates) {
-    if (hasOccupiedRange(occupied, c.start, c.end)) continue;
-    for (let i = c.start; i < c.end; i++) occupied[i] = true;
-    matches.push(c);
+function resolveOverlaps(candidates: MatchedTerm[], _textLen: number): MatchedTerm[] {
+  const deduplicated = new Map<string, MatchedTerm>();
+  for (const candidate of candidates) {
+    const key = `${candidate.start}:${candidate.end}:${candidate.candidateId}`;
+    const existing = deduplicated.get(key);
+    if (!existing) {
+      deduplicated.set(key, candidate);
+    } else if (existing.matchSource !== candidate.matchSource) {
+      deduplicated.set(key, { ...existing, matchSource: "both" });
+    }
   }
 
-  return matches.sort((a, b) => a.start - b.start);
+  const ordered = [...deduplicated.values()].sort((a, b) => a.end - b.end || a.start - b.start || b.zh.length - a.zh.length);
+  const previous = ordered.map((candidate, index) => {
+    for (let cursor = index - 1; cursor >= 0; cursor -= 1) {
+      if (ordered[cursor].end <= candidate.start) return cursor;
+    }
+    return -1;
+  });
+  const best = new Array<number>(ordered.length + 1).fill(0);
+  const take = new Array<boolean>(ordered.length).fill(false);
+
+  for (let index = 1; index <= ordered.length; index += 1) {
+    const candidate = ordered[index - 1];
+    const include = scoreCandidate(candidate) + best[previous[index - 1] + 1];
+    const exclude = best[index - 1];
+    // Stable tie-breaker: prefer the earlier ordered span, never a random
+    // choice caused by browser segmentation order.
+    take[index - 1] = include > exclude;
+    best[index] = include > exclude ? include : exclude;
+  }
+
+  const resolved: MatchedTerm[] = [];
+  for (let index = ordered.length; index > 0;) {
+    if (take[index - 1]) {
+      const candidate = ordered[index - 1];
+      resolved.push(candidate);
+      index = previous[index - 1] + 1;
+    } else {
+      index -= 1;
+    }
+  }
+  return resolved.reverse().sort((a, b) => a.start - b.start);
+}
+
+function scoreCandidate(candidate: MatchedTerm): number {
+  const semantic = candidate.confidence === "high" ? 100 : candidate.confidence === "medium" ? 45 : 0;
+  const source = candidate.matchSource === "both" ? 12 : candidate.matchSource === "segment" ? 8 : 0;
+  const boundary = (2 - candidate.boundaryConfidence) * 8;
+  // A verified multi-character dictionary item is normally a lexical unit.
+  // The quadratic bonus lets it beat a collection of overlapping prefixes,
+  // while confidence remains far more important (a low-confidence long span
+  // must not displace a high-confidence one).
+  const span = Math.min(candidate.zh.length, 6);
+  return semantic + source + boundary + span * span * 25;
 }
 
 // ---- utilities ----
@@ -564,13 +627,6 @@ function markAllOccurrences(text: string, term: string, ranges: ProtectedRange[]
     ranges.push({ start, end: start + term.length });
     cursor = start + term.length;
   }
-}
-
-function hasOccupiedRange(occupied: boolean[], start: number, end: number): boolean {
-  for (let index = start; index < end; index += 1) {
-    if (occupied[index]) return true;
-  }
-  return false;
 }
 
 function findSentenceForRange(sentences: SentenceSpan[], start: number, end: number): string {
