@@ -239,6 +239,7 @@ export default function App() {
 
       {activeTab === "reader" ? (
         <Reader
+          key={currentChapter.id}
           chapter={currentChapter}
           tokens={replacedChapter.tokens}
           chapterCount={chapters.length}

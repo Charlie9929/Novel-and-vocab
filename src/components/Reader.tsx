@@ -41,9 +41,13 @@ export function Reader({
   useEffect(() => {
     const article = articleRef.current;
     if (!article) return;
+    // A chapter change must not inherit the previous chapter's scrollTop.
+    // The key on Reader remounts the view, while this explicit assignment also
+    // covers browsers that restore scroll position on reused overflow nodes.
+    article.scrollTop = 0;
     const frame = requestAnimationFrame(() => {
       const maxScroll = article.scrollHeight - article.clientHeight;
-      article.scrollTo({ top: maxScroll * (progressPercent / 100) });
+      article.scrollTo({ top: maxScroll * (progressPercent / 100), left: 0, behavior: "auto" });
     });
     completedChapterRef.current = progressPercent >= 96 ? chapter.id : null;
     return () => cancelAnimationFrame(frame);
