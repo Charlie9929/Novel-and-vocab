@@ -38,6 +38,17 @@ button {
   background: #fffdf8;
 }
 
+/* Keep the document itself fixed while reading. The article is the sole
+   scroll container, so changing chapters can reliably reset its scrollTop on
+   mobile Safari, Chrome and desktop browsers alike. */
+.reader-shell {
+  height: 100vh;
+  height: 100dvh;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow: hidden;
+}
+
 .centered-shell {
   justify-content: center;
   padding: 24px;

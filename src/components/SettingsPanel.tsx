@@ -26,7 +26,7 @@ export function SettingsPanel({
       <div className="settings-list">
         <div className="setting-block">
           <strong>替换密度</strong>
-          <p>控制英文单词替换中文的频率。</p>
+          <p>只调整已通过本地审校的高置信词；不确定的词不会因提高密度而强行替换。</p>
           <div className="density-selector">
             {DENSITY_OPTIONS.map((level) => (
               <button

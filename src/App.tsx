@@ -226,7 +226,7 @@ export default function App() {
   }
 
   return (
-    <main className="app-shell">
+    <main className="app-shell reader-shell">
       <div className="top-bar">
         <div>
           <span className="eyebrow">本地文件</span>
