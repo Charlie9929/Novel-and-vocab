@@ -3,7 +3,7 @@ export type DensityLevel = "low" | "medium" | "high";
 export const DENSITY_VALUES: Record<DensityLevel, number> = {
   low: 0.15,
   medium: 0.35,
-  high: 0.55,
+  high: 0.8,
 };
 
 export const DENSITY_LABELS: Record<DensityLevel, string> = {
