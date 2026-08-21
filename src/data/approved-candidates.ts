@@ -173,12 +173,10 @@ const STAGE_THREE_CANDIDATES = [
   "小心翼翼:carefully:adverb",
   "发现:discover:verb",
   "表现出:show:verb",
-  "如此:so:adverb",
   "终于:eventually:adverb",
   "直接:directly:adverb",
   "山腰:hillside:noun",
   "自然:naturally:adverb",
-  "成为:become:verb",
   "控制:control:verb",
   "排练:rehearsal:noun",
   "盘子:dish:noun",
@@ -229,7 +227,6 @@ const STAGE_THREE_CANDIDATES = [
   "学者:scholar:noun",
   "打扰:disturb:verb",
   "乐意:readily:adverb",
-  "陌生:strange:adjective",
   "相当:fairly:adverb",
   "五金:hardware:noun",
   "调整:adjust:verb",
@@ -1233,6 +1230,9 @@ const STAGE_FIVE_CANDIDATES = [
   "蒸汽:steam:noun",
   "桃子:peach:noun",
   "雇佣:employer:noun",
+  "列车:train:noun",
+  "模型:model:noun",
+  "公民:citizen:noun",
 ] as const;
 
 export const APPROVED_CANDIDATE_BATCHES = [
