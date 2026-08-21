@@ -1,6 +1,7 @@
 import type { Cet4Entry, Chapter, MatchedTerm, QuizQuestion, ReplacedChapter, RenderToken, ReplacementToken } from "./types";
 import { findTerms } from "./tokenizer";
 import { APPROVED_CANDIDATE_IDS } from "../data/approved-candidates";
+import { candidateMode, FLOATING_BOUNDARY_TERMS } from "../data/candidate-policy";
 
 const MAX_REPLACEMENTS_PER_SENTENCE = 2;
 const MAX_REPLACEMENTS_PER_CHINESE_TERM = 2;
@@ -52,7 +53,10 @@ export function replaceChapterTerms(
 /** Shared eligibility gate for the reader and the private quality evaluator. */
 export function isReplacementSafe(match: MatchedTerm): boolean {
   return match.confidence === "high"
-    && match.boundaryConfidence <= 1
+    && (match.boundaryConfidence <= 1
+      || match.contextEvidence === true
+      || (match.boundaryConfidence === 2 && FLOATING_BOUNDARY_TERMS.has(match.zh)))
+    && candidateMode(match.candidateId) !== "blocked"
     // A context rule chooses a sense, but it does not by itself make that
     // sense production-approved. Rules are promoted only after the exact
     // candidate has development/validation evidence in the allowlist.

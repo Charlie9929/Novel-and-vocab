@@ -8,6 +8,7 @@ import {
 } from "./types";
 import { correctionKey, selectCandidate } from "./corrections";
 import { applyCuratedEntryOverrides } from "../data/curated-overrides";
+import { candidateMode, hasContextualEvidence } from "../data/candidate-policy";
 
 const CHAPTER_HEADING = /(^|\n)(第[零一二三四五六七八九十百千万\d]+[章节回卷部篇][^\n]{0,40})/g;
 const SENTENCE_END = /[。！？!?；;…]+/g;
@@ -36,7 +37,6 @@ const BLOCKED_TERMS = new Set([
   "一般",
   "一夜",
   "过去",
-  "旁边",
   "的时",
   "也就",
   "下来",
@@ -52,7 +52,6 @@ const BLOCKED_TERMS = new Set([
   "出声",
   "走向",
   "招呼",
-  "精神",
   "专业",
   "直升",
 ]);
@@ -82,6 +81,9 @@ const PROTECTED_COMPOUNDS = [
   "潜意识",
   "感谢费",
   "研究所",
+  "电影院",
+  "那段时间",
+  "相处的时间",
   "范围内",
   "范围外",
   "范围之外",
@@ -100,6 +102,10 @@ const PROTECTED_COMPOUNDS = [
   "显示屏",
   "显示器",
   "杀人狂",
+  "信号塔",
+  "自然光线",
+  "眼睛不是眼睛",
+  "不同地方",
 ];
 
 /** Character that sits next to a word and acts like a natural boundary. */
@@ -300,6 +306,13 @@ function findTermsViaSegments(
       buildLocalContext(text, start, end),
     );
     const entry = selected.entry;
+    const selectedCandidateId = candidateIdFor(entry);
+    const selectedContext = buildLocalContext(text, start, end);
+    if (candidateMode(selectedCandidateId) === "blocked") continue;
+    const contextEvidence = candidateMode(selectedCandidateId) === "contextual"
+      ? hasContextualEvidence(seg.segment, selectedContext)
+      : false;
+    if (candidateMode(selectedCandidateId) === "contextual" && !contextEvidence) continue;
     matches.push({
       id: `${entry.zh}-${entry.en}-${start}`,
       zh: entry.zh,
@@ -314,7 +327,8 @@ function findTermsViaSegments(
       candidates: entries,
       matchSource: "segment",
       confidence: selected.confidence,
-      candidateId: candidateIdFor(entry),
+      candidateId: selectedCandidateId,
+      contextEvidence,
       selectionReason: selected.reason,
     });
   }
@@ -366,6 +380,13 @@ function findTermsViaScan(
         buildLocalContext(text, i, i + len),
       );
       const entry = selected.entry;
+      const selectedCandidateId = candidateIdFor(entry);
+      const selectedContext = buildLocalContext(text, i, i + len);
+      if (candidateMode(selectedCandidateId) === "blocked") continue;
+      const contextEvidence = candidateMode(selectedCandidateId) === "contextual"
+        ? hasContextualEvidence(candidate, selectedContext)
+        : false;
+      if (candidateMode(selectedCandidateId) === "contextual" && !contextEvidence) continue;
       candidates.push({
         id: `${entry.zh}-${entry.en}-${i}`,
         zh: entry.zh,
@@ -380,7 +401,8 @@ function findTermsViaScan(
         candidates: entries,
         matchSource: "scan",
         confidence: selected.confidence,
-        candidateId: candidateIdFor(entry),
+        candidateId: selectedCandidateId,
+        contextEvidence,
         selectionReason: selected.reason,
       });
     }

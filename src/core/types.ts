@@ -85,6 +85,8 @@ export interface MatchedTerm {
    */
   confidence: MatchConfidence;
   candidateId: string;
+  /** True when a contextual candidate matched an explicit local allow rule. */
+  contextEvidence?: boolean;
   selectionReason: CandidateSelectionReason;
 }
 

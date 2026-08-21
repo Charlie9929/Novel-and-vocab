@@ -4,8 +4,9 @@ import { join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import entries from "../../src/data/cet4-map.json";
 import { evaluateLocalQuality, type LocalQualityLabel, type LocalQualityPrediction } from "../../src/core/evaluation";
-import { findTerms } from "../../src/core/tokenizer";
-import { isReplacementSafe } from "../../src/core/replacer";
+import { findTerms, splitChapters } from "../../src/core/tokenizer";
+import { isReplacementSafe, replaceChapterTerms } from "../../src/core/replacer";
+import { DENSITY_VALUES } from "../../src/core/density";
 import type { Cet4Entry } from "../../src/core/types";
 
 const corpusDir = process.env.NOVEL_CORPUS_DIR;
@@ -90,6 +91,33 @@ describe.skipIf(!corpusDir || !manifestPath)("private local novel quality gate",
       });
     }
 
+    // The frozen labels measure event-level precision and coverage. Separately
+    // run the actual high-density reader path over every blind book so the
+    // release gate also proves that the product makes enough real attempts;
+    // this count is never used to inflate labeled precision or coverage.
+    let blindCorpusAttempts = 0;
+    const blindPaths = [...new Set(samples
+      .filter((sample: { split: string }) => sample.split === "blind")
+      .map((sample: { relativePath: string }) => sample.relativePath))];
+    for (const relativePath of blindPaths) {
+      let text = textCache.get(relativePath);
+      if (!text) {
+        const raw = await readFile(join(corpusDir!, relativePath));
+        const fingerprintedSample = samples.find((sample: { relativePath: string }) => sample.relativePath === relativePath);
+        expect(fingerprintedSample && fingerprint(raw), `Corpus file changed: ${relativePath}`).toBe(fingerprintedSample?.fileFingerprint);
+        text = decode(raw);
+        textCache.set(relativePath, text);
+      }
+      for (const chapter of splitChapters(text)) {
+        blindCorpusAttempts += replaceChapterTerms(
+          chapter,
+          entries as Cet4Entry[],
+          new Set(),
+          DENSITY_VALUES.high,
+        ).replacements.length;
+      }
+    }
+
     const labels: LocalQualityLabel[] = samples.map((sample: {
       id: string; split: LocalQualityLabel["split"]; category: string; expectedDecision: LocalQualityLabel["expectedDecision"];
       expectedCandidateId: string | null; expectedPartOfSpeech: LocalQualityLabel["expectedPartOfSpeech"] | null;
@@ -105,7 +133,7 @@ describe.skipIf(!corpusDir || !manifestPath)("private local novel quality gate",
     const blindIds = new Set(labels.filter((label) => label.split === "blind").map((label) => label.id));
     const blindReport = evaluateLocalQuality(labels.filter((label) => blindIds.has(label.id)), predictions.filter((prediction) => blindIds.has(prediction.id)));
     // The output contains counts and aggregate metrics only—never novel text.
-    console.table({ all: report, blind: blindReport });
+    console.table({ all: report, blind: blindReport, blindCorpusAttempts });
     console.table(Object.fromEntries(Object.entries(blindReport.byCategory).map(([category, value]) => [category, value])));
     console.table(Object.fromEntries([...diagnostic.entries()].map(([key, value]) => [key, value])));
     console.table(Object.fromEntries([...candidateDiagnostic.entries()]
@@ -133,13 +161,27 @@ describe.skipIf(!corpusDir || !manifestPath)("private local novel quality gate",
         }];
       }));
       console.table(blindGenreReports);
+      for (const [genre, metrics] of Object.entries(blindGenreReports)) {
+        if (metrics.total === 0) continue;
+        expect(metrics.endToEndReplacementPrecision, `${genre} blind precision`).toBeGreaterThanOrEqual(0.99);
+        expect(metrics.replacementCoverage, `${genre} blind coverage`).toBeGreaterThanOrEqual(0.45);
+      }
       // Keep the association alive for TypeScript's structural inference and
       // make an absent genre mapping a visible data-quality issue.
       expect(sampleById.size).toBe(samples.length);
     }
     console.log("Development-approved candidate IDs", JSON.stringify([...developmentApproved].sort()));
     console.log("Validation-rejected candidate IDs", JSON.stringify([...validationFailures].sort()));
-    expect(blindReport.actualReplacements, "Blind set must exercise at least 120 real replacements, not only abstentions.").toBeGreaterThanOrEqual(120);
-    expect(blindReport.endToEndReplacementPrecision, "Blind end-to-end replacement precision.").toBeGreaterThanOrEqual(0.97);
+    // Product acceptance: coverage must be useful, but a wrong inline word is
+    // more damaging than leaving the Chinese text untouched. The blind split
+    // is the primary release signal; the aggregate report catches regressions
+    // hidden by split variance.
+    expect(report.actualReplacements, "Reviewed corpus must exercise at least 1,000 real replacements.").toBeGreaterThanOrEqual(1000);
+    expect(report.endToEndReplacementPrecision, "Aggregate replacement precision.").toBeGreaterThanOrEqual(0.995);
+    expect(report.replacementCoverage, "Aggregate replacement coverage.").toBeGreaterThanOrEqual(0.55);
+    expect(blindReport.actualReplacements, "Blind set must exercise at least 800 real replacements.").toBeGreaterThanOrEqual(800);
+    expect(blindReport.endToEndReplacementPrecision, "Blind end-to-end replacement precision.").toBeGreaterThanOrEqual(0.995);
+    expect(blindReport.replacementCoverage, "Blind replacement coverage.").toBeGreaterThanOrEqual(0.55);
+    expect(blindCorpusAttempts, "The complete blind-book reader path must make at least 1,000 real replacement attempts.").toBeGreaterThanOrEqual(1000);
   }, 30_000);
 });

@@ -15,7 +15,8 @@
     "quality:expand": "node scripts/expand-local-quality-manifest.mjs",
     "quality:propose-candidates": "node scripts/propose-local-candidate-promotions.mjs",
     "quality:baseline": "node scripts/run-git-baseline-quality.mjs",
-    "quality:novels": "node scripts/run-local-quality-gate.mjs"
+    "quality:novels": "node scripts/run-local-quality-gate.mjs",
+    "quality:audit-candidates": "node scripts/audit-production-candidates.mjs"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.0.4",

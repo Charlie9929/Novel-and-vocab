@@ -6,6 +6,7 @@ import {
   type MatchConfidence,
 } from "./types";
 import { entryHasLocalEvidence } from "./context-rules";
+import { APPROVED_CANDIDATE_IDS } from "../data/approved-candidates";
 
 export interface ContextCorrection {
   key: string;
@@ -49,6 +50,17 @@ export function selectCandidate(
     : genericCandidates.length > 0
       ? genericCandidates
       : candidates;
+  // Approval is lexical evidence only after context-specific senses have had
+  // first chance to match. This prevents an approved generic synonym from
+  // overriding a context-only rule when its hint is absent.
+  const approvedGeneric = genericCandidates.filter((item) =>
+    APPROVED_CANDIDATE_IDS.has(candidateIdFor(item))
+    && Boolean(item.phonetic)
+    && !item.contextHints?.length
+    && !item.contextRules?.length);
+  if (contextMatches.length === 0 && approvedGeneric.length === 1) {
+    return { entry: approvedGeneric[0], reason: "priority", confidence: "high" };
+  }
   const ordered = [...pool].sort((left, right) => (right.priority ?? 0) - (left.priority ?? 0));
   const entry = ordered[0];
   const distinct = new Set(pool.map(candidateIdFor));

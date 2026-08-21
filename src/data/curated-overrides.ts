@@ -1,6 +1,66 @@
 import type { Cet4Entry } from "../core/types";
 
 const CURATED_ENTRY_OVERRIDES: Record<string, Cet4Entry[]> = {
+  "电影": [
+    { zh: "电影", en: "movie", meaning: "电影；影片", partOfSpeech: "noun", phonetic: "/ˈmuvi/", priority: 30 },
+  ],
+  "作者": [{ zh: "作者", en: "author", meaning: "作者", partOfSpeech: "noun", priority: 30 }],
+  "突然": [{ zh: "突然", en: "suddenly", meaning: "突然地", partOfSpeech: "adverb", priority: 30 }],
+  "时间": [{ zh: "时间", en: "time", meaning: "时间", partOfSpeech: "noun", priority: 30 }],
+  "说话": [{ zh: "说话", en: "speak", meaning: "说话", partOfSpeech: "verb", priority: 30 }],
+  "问题": [{ zh: "问题", en: "problem", meaning: "问题", partOfSpeech: "noun", priority: 30 }],
+  "想要": [{ zh: "想要", en: "want", meaning: "想要", partOfSpeech: "verb", priority: 30 }],
+  "如此": [{ zh: "如此", en: "so", meaning: "如此；这样", partOfSpeech: "adverb", priority: 30 }],
+  "关系": [{ zh: "关系", en: "relationship", meaning: "关系", partOfSpeech: "noun", priority: 30 }],
+  "离开": [{ zh: "离开", en: "leave", meaning: "离开", partOfSpeech: "verb", priority: 30 }],
+  "当时": [{ zh: "当时", en: "then", meaning: "当时；那时", partOfSpeech: "adverb", priority: 30 }],
+  "明白": [{ zh: "明白", en: "understand", meaning: "明白；理解", partOfSpeech: "verb", priority: 30 }],
+  "电视": [{ zh: "电视", en: "television", meaning: "电视", partOfSpeech: "noun", priority: 30 }],
+  "出现": [{ zh: "出现", en: "appear", meaning: "出现", partOfSpeech: "verb", priority: 30 }],
+  "游戏": [{ zh: "游戏", en: "game", meaning: "游戏", partOfSpeech: "noun", priority: 30 }],
+  "介绍": [{ zh: "介绍", en: "introduce", meaning: "介绍", partOfSpeech: "verb", priority: 30 }],
+  "父亲": [{ zh: "父亲", en: "father", meaning: "父亲", partOfSpeech: "noun", priority: 30 }],
+  "认识": [{ zh: "认识", en: "know", meaning: "认识；知道", partOfSpeech: "verb", priority: 30 }],
+  "容易": [{ zh: "容易", en: "easy", meaning: "容易的", partOfSpeech: "adjective", priority: 30 }],
+  "生活": [{ zh: "生活", en: "life", meaning: "生活；生命", partOfSpeech: "noun", priority: 30 }],
+  "行动": [{ zh: "行动", en: "action", meaning: "行动", partOfSpeech: "noun", priority: 30 }],
+  "接受": [{ zh: "接受", en: "accept", meaning: "接受", partOfSpeech: "verb", priority: 30 }],
+  "装备": [{ zh: "装备", en: "equipment", meaning: "装备；设备", partOfSpeech: "noun", priority: 30 }],
+  "需要": [{ zh: "需要", en: "need", meaning: "需要", partOfSpeech: "verb", priority: 30 }],
+  "部分": [{ zh: "部分", en: "part", meaning: "部分", partOfSpeech: "noun", priority: 30 }],
+  "电话": [{ zh: "电话", en: "phone", meaning: "电话", partOfSpeech: "noun", priority: 30 }],
+  "建立": [{ zh: "建立", en: "establish", meaning: "建立", partOfSpeech: "verb", priority: 30 }],
+  "工作": [{ zh: "工作", en: "work", meaning: "工作", partOfSpeech: "noun", priority: 30 }],
+  "理解": [{ zh: "理解", en: "understand", meaning: "理解", partOfSpeech: "verb", priority: 30 }],
+  "通知": [{ zh: "通知", en: "inform", meaning: "通知；告知", partOfSpeech: "verb", priority: 30 }],
+  "消息": [{ zh: "消息", en: "information", meaning: "消息；信息", partOfSpeech: "noun", priority: 30 }],
+  "简单": [{ zh: "简单", en: "simple", meaning: "简单的", partOfSpeech: "adjective", priority: 30 }],
+  "结果": [{ zh: "结果", en: "result", meaning: "结果", partOfSpeech: "noun", priority: 30 }],
+  "包括": [{ zh: "包括", en: "include", meaning: "包括", partOfSpeech: "verb", priority: 30 }],
+  "专门": [{ zh: "专门", en: "specially", meaning: "专门地", partOfSpeech: "adverb", priority: 30 }],
+  "命令": [{ zh: "命令", en: "instruction", meaning: "命令；指令", partOfSpeech: "noun", priority: 30 }],
+  "警察": [{ zh: "警察", en: "police", meaning: "警察", partOfSpeech: "noun", priority: 30 }],
+  "仅仅": [{ zh: "仅仅", en: "merely", meaning: "仅仅；只是", partOfSpeech: "adverb", priority: 30 }],
+  "收到": [{ zh: "收到", en: "receive", meaning: "收到", partOfSpeech: "verb", priority: 30 }],
+  "机会": [{ zh: "机会", en: "chance", meaning: "机会", partOfSpeech: "noun", priority: 30 }],
+  "结婚": [
+    { zh: "结婚", en: "marry", meaning: "结婚", partOfSpeech: "verb", phonetic: "/ˈmɛri/", priority: 30 },
+  ],
+  "提供": [
+    { zh: "提供", en: "provide", meaning: "提供；供给", partOfSpeech: "verb", phonetic: "/prəˈvaɪd/", priority: 30 },
+  ],
+  "必然": [
+    { zh: "必然", en: "necessarily", meaning: "必然；必定", partOfSpeech: "adverb", phonetic: "/ˌnɛsəˈsɛrəli/", priority: 30 },
+  ],
+  "牛奶": [
+    { zh: "牛奶", en: "milk", meaning: "牛奶；乳", partOfSpeech: "noun", phonetic: "/ˈmɪlk/", priority: 30 },
+  ],
+  "大学": [
+    { zh: "大学", en: "university", meaning: "大学；综合性大学", partOfSpeech: "noun", phonetic: "/ˌjunəˈvɝsəti/", priority: 30 },
+  ],
+  "各自": [
+    { zh: "各自", en: "respectively", meaning: "各自；分别地", partOfSpeech: "adverb", phonetic: "/rɪˈspɛktɪvli/", priority: 30 },
+  ],
   "情况": [
     { zh: "情况", en: "situation", meaning: "情况；形势；处境", partOfSpeech: "noun", phonetic: "/ˌsɪtʃuˈeɪʃən/", priority: 30 },
   ],
@@ -162,7 +222,7 @@ const CURATED_ENTRY_OVERRIDES: Record<string, Cet4Entry[]> = {
     { zh: "学生", en: "student", meaning: "学生；学者", partOfSpeech: "noun", phonetic: "/ˈstudənt/", priority: 30 },
   ],
   "姿势": [
-    { zh: "姿势", en: "posture", meaning: "姿势；姿态", partOfSpeech: "noun", phonetic: "/ˈpɑstʃɚ/", priority: 30 },
+    { zh: "姿势", en: "gesture", meaning: "姿势；姿态", partOfSpeech: "noun", phonetic: "/ˈdʒɛstʃɚ/", priority: 30 },
   ],
   "最大": [
     { zh: "最大", en: "maximum", meaning: "最大的；最大限度的", partOfSpeech: "adjective", phonetic: "/ˈmæksəməm/", priority: 30 },
@@ -654,6 +714,13 @@ export function applyCuratedEntryOverrides(entries: Cet4Entry[]): Cet4Entry[] {
   const untouched = entries.filter((entry) => !overriddenTerms.has(entry.zh));
   const overrides = Object.entries(CURATED_ENTRY_OVERRIDES)
     .filter(([term]) => presentTerms.has(term))
-    .flatMap(([, values]) => values);
+    .flatMap(([term, values]) => values.map((value) => {
+      if (value.phonetic) return value;
+      const source = entries.find((entry) => entry.zh === term
+        && entry.en === value.en
+        && entry.partOfSpeech === value.partOfSpeech
+        && entry.phonetic);
+      return source ? { ...value, phonetic: source.phonetic } : value;
+    }));
   return [...untouched, ...overrides];
 }
