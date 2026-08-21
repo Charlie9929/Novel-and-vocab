@@ -4,8 +4,8 @@ import { registerSW } from "virtual:pwa-register";
 import App from "./App";
 import "./styles.css";
 
-// Keep an update waiting until the current browsing session closes. Reloading
-// here can discard a long-running local PDF import halfway through extraction.
+// The PWA worker auto-activates the newest bundle after a deployment. Local
+// novels remain in memory/IndexedDB; the app shell can safely refresh.
 registerSW({ immediate: true });
 
 createRoot(document.getElementById("root")!).render(

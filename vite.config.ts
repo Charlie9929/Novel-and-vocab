@@ -6,7 +6,10 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: "prompt",
+      // Vocabulary and replacement rules ship in the app bundle. Activate a
+      // new bundle as soon as it is available so a stale PWA worker cannot
+      // keep users on an older whitelist after a deployment.
+      registerType: "autoUpdate",
       includeAssets: ["pwa-192.svg", "pwa-512.svg"],
       manifest: {
         name: "沉浸式小说背单词",
