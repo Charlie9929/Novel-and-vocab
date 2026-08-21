@@ -90,3 +90,7 @@ npm run quality:novels           # 上述精度/覆盖率硬门槛通过
 - [替换安全门](src/core/replacer.ts)
 - [本地质量验收](tests/quality/local-novel-evaluation.test.ts)
 - [候选审计脚本](scripts/audit-production-candidates.mjs)
+
+## 本轮发布状态
+
+提交 `96e73c863b33139cb51745d8edafc0717028a8b0` 已推送到 `main`。Cloudflare Pages 已完成部署；线上 `https://wordflow-dcx.pages.dev/` 使用 `index-CHgFk7yk.js` / `index-CT38p7Jg.css`，首页返回 HTTP 200，并已确认目录文案进入线上 bundle。
