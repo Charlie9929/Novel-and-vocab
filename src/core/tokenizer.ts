@@ -10,7 +10,8 @@ import { correctionKey, selectCandidate } from "./corrections";
 import { applyCuratedEntryOverrides } from "../data/curated-overrides";
 import { candidateMode, hasContextualEvidence } from "../data/candidate-policy";
 
-const CHAPTER_HEADING = /(^|\n)(第[零一二三四五六七八九十百千万\d]+[章节回卷部篇][^\n]{0,40})/g;
+const CHAPTER_HEADING =
+  /(^|\n)((?:第[ \t]*[零一二三四五六七八九十百千万\d]+[ \t]*[章节回卷部篇]|序章|序幕|楔子|引子|尾声|后记|番外(?:[零一二三四五六七八九十百千万\d]+)?(?:篇|章)?)[^\n]{0,80})/g;
 const SENTENCE_END = /[。！？!?；;…]+/g;
 
 // ---- helpers ----
@@ -181,20 +182,31 @@ export function splitChapters(text: string): Chapter[] {
     return splitFallbackChapters(text);
   }
 
-  return matches.map((match, index) => {
+  const chapters: Chapter[] = [];
+  const firstHeadingStart = (matches[0].index ?? 0) + matches[0][1].length;
+  const preface = text.slice(0, firstHeadingStart).trim();
+
+  matches.forEach((match, matchIndex) => {
     const headingStart = (match.index ?? 0) + match[1].length;
     const heading = match[2].trim();
     const contentStart = headingStart + match[2].length;
-    const nextStart = index + 1 < matches.length ? matches[index + 1].index ?? text.length : text.length;
+    const nextStart = matchIndex + 1 < matches.length ? matches[matchIndex + 1].index ?? text.length : text.length;
     const chunk = text.slice(contentStart, nextStart).trim();
+    // Keep chapter indexes stable for existing reading-progress records. A
+    // preface is useful content, but making it a new chapter would shift every
+    // saved chapterIndex by one after an app update.
+    const chapterText = matchIndex === 0 && preface ? `${preface}\n\n${chunk}`.trim() : chunk;
 
-    return {
+    const index = chapters.length;
+    chapters.push({
       id: `chapter-${index}`,
       title: heading || `第 ${index + 1} 章`,
       index,
-      text: chunk,
-    };
+      text: chapterText,
+    });
   });
+
+  return chapters;
 }
 
 export function splitSentences(text: string): SentenceSpan[] {

@@ -1,11 +1,12 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { DENSITY_DISPLAY_LABELS, densityClassName, type DensityLevel } from "../core/density";
 import type { Chapter, RenderToken, ReplacementToken } from "../core/types";
+import { ChapterToc } from "./ChapterToc";
 
 interface ReaderProps {
   chapter: Chapter;
+  chapters: Chapter[];
   tokens: RenderToken[];
-  chapterCount: number;
   progressPercent: number;
   densityLevel: DensityLevel;
   replacementCount: number;
@@ -16,12 +17,13 @@ interface ReaderProps {
   onCompleteChapter: () => void;
   onPrevChapter: () => void;
   onNextChapter: () => void;
+  onSelectChapter: (chapterIndex: number) => void;
 }
 
 export function Reader({
   chapter,
+  chapters,
   tokens,
-  chapterCount,
   progressPercent,
   densityLevel,
   replacementCount,
@@ -32,9 +34,11 @@ export function Reader({
   onCompleteChapter,
   onPrevChapter,
   onNextChapter,
+  onSelectChapter,
 }: ReaderProps) {
   const articleRef = useRef<HTMLElement | null>(null);
   const completedChapterRef = useRef<string | null>(null);
+  const [isTocOpen, setIsTocOpen] = useState(false);
   const paragraphs = useMemo(() => groupTokensIntoParagraphs(tokens), [tokens]);
   const densityClass = densityClassName(densityLevel);
 
@@ -72,11 +76,21 @@ export function Reader({
       <header className="reader-header">
         <div>
           <span className="eyebrow">
-            {chapter.index + 1} / {chapterCount}
+            {chapter.index + 1} / {chapters.length}
           </span>
           <h2>{chapter.title}</h2>
         </div>
-        <span className="progress-pill">{progressPercent}%</span>
+        <div className="reader-header-actions">
+          <button
+            className="reader-toc-button"
+            type="button"
+            aria-label={`打开目录，共 ${chapters.length} 章`}
+            onClick={() => setIsTocOpen(true)}
+          >
+            目录
+          </button>
+          <span className="progress-pill">{progressPercent}%</span>
+        </div>
       </header>
       <div className="progress-track" aria-hidden="true">
         <span style={{ width: `${progressPercent}%` }} />
@@ -118,10 +132,19 @@ export function Reader({
         <button type="button" onClick={onCompleteChapter}>
           章节练习
         </button>
-        <button type="button" onClick={onNextChapter} disabled={chapter.index >= chapterCount - 1}>
+        <button type="button" onClick={onNextChapter} disabled={chapter.index >= chapters.length - 1}>
           下一章
         </button>
       </footer>
+      {isTocOpen ? (
+        <ChapterToc
+          chapters={chapters}
+          activeIndex={chapter.index}
+          activeProgress={progressPercent}
+          onSelect={onSelectChapter}
+          onClose={() => setIsTocOpen(false)}
+        />
+      ) : null}
     </section>
   );
 }

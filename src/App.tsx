@@ -241,8 +241,8 @@ export default function App() {
         <Reader
           key={currentChapter.id}
           chapter={currentChapter}
+          chapters={chapters}
           tokens={replacedChapter.tokens}
-          chapterCount={chapters.length}
           progressPercent={progressPercent}
           densityLevel={densityLevel}
           replacementCount={replacedChapter.replacements.length}
@@ -253,6 +253,7 @@ export default function App() {
           onCompleteChapter={openQuiz}
           onPrevChapter={() => goToChapter(chapterIndex - 1)}
           onNextChapter={() => goToChapter(chapterIndex + 1)}
+          onSelectChapter={goToChapter}
         />
       ) : null}
       {activeTab === "vocab" ? (

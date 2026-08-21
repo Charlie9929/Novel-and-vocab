@@ -57,6 +57,22 @@ describe("tokenizer", () => {
     expect(chapters[0].text).toBe("正文。");
   });
 
+  it("keeps a preface and recognizes named sections in the table of contents", () => {
+    const chapters = splitChapters(
+      "书名\n作者：测试\n\n楔子\n故事开始。\n第一章 出发\n\n他上路了。\n尾声\n\n故事结束。",
+    );
+
+    expect(chapters.map((item) => item.title)).toEqual(["楔子", "第一章 出发", "尾声"]);
+    expect(chapters[0].text).toContain("作者：测试");
+    expect(chapters[0].text).toContain("故事开始。");
+    expect(chapters[2].text).toBe("故事结束。");
+  });
+
+  it("accepts spaced numeric chapter headings", () => {
+    const chapters = splitChapters("第 1 章 开始\n\n第一段。\n第 2 章 继续\n\n第二段。");
+    expect(chapters.map((item) => item.title)).toEqual(["第 1 章 开始", "第 2 章 继续"]);
+  });
+
   it("finds replacements in mobile-style Chinese prose", () => {
     const matches = findTerms(
       "美猴王终于来到了山上，学到了许多本领，还给它起了个名字。",
