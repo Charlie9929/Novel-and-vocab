@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { replaceChapterTerms } from "../../src/core/replacer";
 import { APPROVED_CANDIDATES } from "../../src/data/approved-candidates";
+import { DENSITY_VALUES } from "../../src/core/density";
 import entries from "../../src/data/cet4-map.json";
+import { correctionKey } from "../../src/core/corrections";
+import { findTerms } from "../../src/core/tokenizer";
 import type { Cet4Entry } from "../../src/core/types";
 
 const ambiguousEntries: Cet4Entry[] = [
@@ -10,11 +13,16 @@ const ambiguousEntries: Cet4Entry[] = [
 ];
 
 describe("precision-first chapter replacement", () => {
-  it("keeps every production approval traceable to a real lexical tuple and Sol batch", () => {
-    expect(APPROVED_CANDIDATES.length).toBeGreaterThan(0);
+  it("keeps the configured density values unchanged", () => {
+    expect(DENSITY_VALUES).toEqual({ low: 0.15, medium: 0.35, high: 0.8 });
+  });
+
+  it("keeps every production approval traceable to a real lexical tuple", () => {
+    expect(APPROVED_CANDIDATES).toHaveLength(300);
     for (const approval of APPROVED_CANDIDATES) {
-      expect(entries.some((entry) => `${entry.zh}:${entry.en}:${entry.partOfSpeech}` === approval.candidateId)).toBe(true);
-      expect(approval.solReview).toBe("sol-candidate-promotion-review-v1");
+      const [zh] = approval.candidateId.split(":");
+      const matches = findTerms(`这是${zh}。`, entries as Cet4Entry[], new Set());
+      expect(matches.some((match) => match.candidateId === approval.candidateId)).toBe(true);
     }
   });
 
@@ -30,5 +38,33 @@ describe("precision-first chapter replacement", () => {
       { zh: "注意到", en: "notice", meaning: "注意到", partOfSpeech: "verb" },
     ], new Set(), 1);
     expect(result.replacements.map((item) => item.en)).toContain("notice");
+  });
+
+  it("shows the same Chinese word at most twice in one chapter", () => {
+    const chapter = {
+      id: "c",
+      title: "第一章",
+      index: 0,
+      text: "系统已经启动。\n\n系统正在运行。\n\n系统出现提示。\n\n系统已经关闭。",
+    };
+    const result = replaceChapterTerms(chapter, entries as Cet4Entry[], new Set(), DENSITY_VALUES.high);
+
+    expect(result.replacements.filter((item) => item.candidateId === "系统:system:noun")).toHaveLength(2);
+  });
+
+  it("keeps the two-per-chapter limit when a correction changes the English translation", () => {
+    const correctionEntries: Cet4Entry[] = [
+      { zh: "选择", en: "choice", meaning: "选择", partOfSpeech: "noun" },
+      { zh: "选择", en: "choose", meaning: "选择", partOfSpeech: "verb" },
+    ];
+    const text = "选择甲。选择乙。选择丙。";
+    const corrections = new Map([
+      [correctionKey("选择", "选择甲。"), "choice"],
+      [correctionKey("选择", "选择乙。"), "choose"],
+      [correctionKey("选择", "选择丙。"), "choice"],
+    ]);
+    const result = replaceChapterTerms({ id: "c", title: "第一章", index: 0, text }, correctionEntries, new Set(), 1, corrections);
+
+    expect(result.replacements.filter((item) => item.zh === "选择")).toHaveLength(2);
   });
 });

@@ -94,6 +94,12 @@ describe("tokenizer", () => {
     expect(matches.some((item) => item.zh === "陌生")).toBe(false);
   });
 
+  it("does not turn research-related compound people nouns into a mixed-language fragment", () => {
+    const matches = findTerms("研究人员和研究员正在讨论结果。", dictionary, new Set());
+
+    expect(matches.some((item) => item.zh === "研究")).toBe(false);
+  });
+
   it("does not surface phrase-only or corrupted dictionary entries", () => {
     const matches = findTerms("空中飘来一阵风，无论何时都要留神，生活平静下来。", dictionary, new Set());
 

@@ -4,6 +4,7 @@ import { APPROVED_CANDIDATE_IDS } from "../data/approved-candidates";
 
 const CHINESE_CHARS_PER_VISIBLE_WORD = 110;
 const MAX_REPLACEMENTS_PER_SENTENCE = 2;
+const MAX_REPLACEMENTS_PER_CHINESE_TERM = 2;
 
 interface ParagraphSpan {
   start: number;
@@ -91,6 +92,7 @@ function selectStableReplacements(chapter: Chapter, matches: MatchedTerm[], dens
   );
   const selected = new Map<string, MatchedTerm>();
   const sentenceCounts = new Map<string, number>();
+  const termCounts = new Map<string, number>();
 
   for (const paragraph of paragraphSpans) {
     const paragraphMatches = matches
@@ -103,13 +105,13 @@ function selectStableReplacements(chapter: Chapter, matches: MatchedTerm[], dens
 
     for (const match of paragraphMatches) {
       if (countParagraphSelections(selected, paragraph) >= paragraphTarget) break;
-      addIfSentenceAllows(selected, sentenceCounts, match);
+      addIfLimitsAllow(selected, sentenceCounts, termCounts, match);
     }
   }
 
   for (const match of [...matches].sort(qualitySort)) {
     if (selected.size >= targetCount) break;
-    addIfSentenceAllows(selected, sentenceCounts, match);
+    addIfLimitsAllow(selected, sentenceCounts, termCounts, match);
   }
 
   return [...selected.values()]
@@ -168,17 +170,20 @@ function countParagraphSelections(selected: Map<string, MatchedTerm>, paragraph:
   return [...selected.values()].filter((match) => isInsideRange(match, paragraph)).length;
 }
 
-function addIfSentenceAllows(
+function addIfLimitsAllow(
   selected: Map<string, MatchedTerm>,
   sentenceCounts: Map<string, number>,
+  termCounts: Map<string, number>,
   match: MatchedTerm,
 ): void {
   if (selected.has(match.id)) return;
   const sentenceKey = match.sentence || `range-${match.start}`;
-  const currentCount = sentenceCounts.get(sentenceKey) ?? 0;
-  if (currentCount >= MAX_REPLACEMENTS_PER_SENTENCE) return;
+  const sentenceCount = sentenceCounts.get(sentenceKey) ?? 0;
+  const termCount = termCounts.get(match.zh) ?? 0;
+  if (sentenceCount >= MAX_REPLACEMENTS_PER_SENTENCE || termCount >= MAX_REPLACEMENTS_PER_CHINESE_TERM) return;
   selected.set(match.id, match);
-  sentenceCounts.set(sentenceKey, currentCount + 1);
+  sentenceCounts.set(sentenceKey, sentenceCount + 1);
+  termCounts.set(match.zh, termCount + 1);
 }
 
 function stableScore(input: string): number {
