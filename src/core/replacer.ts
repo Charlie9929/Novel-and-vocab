@@ -2,7 +2,6 @@ import type { Cet4Entry, Chapter, MatchedTerm, QuizQuestion, ReplacedChapter, Re
 import { findTerms } from "./tokenizer";
 import { APPROVED_CANDIDATE_IDS } from "../data/approved-candidates";
 
-const CHINESE_CHARS_PER_VISIBLE_WORD = 110;
 const MAX_REPLACEMENTS_PER_SENTENCE = 2;
 const MAX_REPLACEMENTS_PER_CHINESE_TERM = 2;
 
@@ -16,7 +15,7 @@ export function replaceChapterTerms(
   chapter: Chapter,
   entries: Cet4Entry[],
   blacklist: Set<string>,
-  density = 0.35,
+  density = 2 / 3,
   corrections: ReadonlyMap<string, string> = new Map(),
 ): ReplacedChapter {
   const eligible = findTerms(chapter.text, entries, blacklist, [chapter.title], corrections);
@@ -80,48 +79,43 @@ export function createQuizQuestions(replacements: ReplacementToken[], count = 5)
 
 function selectStableReplacements(chapter: Chapter, matches: MatchedTerm[], density: number): ReplacementToken[] {
   if (matches.length === 0) return [];
+  const maximal = buildMaximalSafeSelection(chapter, matches);
+  const targetCount = Math.max(1, Math.round(maximal.length * density));
+  return maximal.slice(0, targetCount).map((match) => ({
+    ...match,
+    kind: "replacement",
+    chapterId: chapter.id,
+    chapterIndex: chapter.index,
+  }));
+}
+
+/** Build one deterministic, cap-respecting pool shared by all density levels. */
+function buildMaximalSafeSelection(chapter: Chapter, matches: MatchedTerm[]): MatchedTerm[] {
   const paragraphSpans = splitParagraphSpans(chapter.text);
-  const paragraphMinimum = paragraphSpans.reduce((total, paragraph) => {
-    const paragraphMatches = matches.filter((match) => isInsideRange(match, paragraph));
-    if (paragraphMatches.length === 0) return total;
-    return total + Math.min(paragraphMatches.length, Math.max(1, Math.ceil(paragraph.chineseCharCount / CHINESE_CHARS_PER_VISIBLE_WORD)));
-  }, 0);
-  const targetCount = Math.min(
-    matches.length,
-    Math.max(1, Math.round(matches.length * density), paragraphMinimum),
-  );
   const selected = new Map<string, MatchedTerm>();
   const sentenceCounts = new Map<string, number>();
   const termCounts = new Map<string, number>();
 
-  for (const paragraph of paragraphSpans) {
-    const paragraphMatches = matches
-      .filter((match) => isInsideRange(match, paragraph))
-      .sort(qualitySort);
-    const paragraphTarget = Math.min(
-      paragraphMatches.length,
-      Math.max(1, Math.ceil(paragraph.chineseCharCount / CHINESE_CHARS_PER_VISIBLE_WORD)),
-    );
-
-    for (const match of paragraphMatches) {
-      if (countParagraphSelections(selected, paragraph) >= paragraphTarget) break;
-      addIfLimitsAllow(selected, sentenceCounts, termCounts, match);
+  // Round-robin paragraphs so the maximal pool is distributed through a
+  // chapter.  Taking a prefix of this pool keeps low/medium/high nested.
+  const paragraphMatches = paragraphSpans.map((paragraph) => matches
+    .filter((match) => isInsideRange(match, paragraph))
+    .sort(qualitySort));
+  const maxRounds = Math.max(0, ...paragraphMatches.map((items) => items.length));
+  for (let round = 0; round < maxRounds; round += 1) {
+    for (const items of paragraphMatches) {
+      const match = items[round];
+      if (match) addIfLimitsAllow(selected, sentenceCounts, termCounts, match);
     }
   }
 
+  // A match can sit outside a paragraph span after unusual line formatting;
+  // include it deterministically as a final fallback.
   for (const match of [...matches].sort(qualitySort)) {
-    if (selected.size >= targetCount) break;
     addIfLimitsAllow(selected, sentenceCounts, termCounts, match);
   }
 
-  return [...selected.values()]
-    .sort((left, right) => left.start - right.start)
-    .map((match) => ({
-      ...match,
-      kind: "replacement",
-      chapterId: chapter.id,
-      chapterIndex: chapter.index,
-    }));
+  return [...selected.values()];
 }
 
 /** Prioritize high-confidence matches, then deterministic tiebreak. */
@@ -164,10 +158,6 @@ function countChineseChars(value: string): number {
 
 function isInsideRange(match: MatchedTerm, range: ParagraphSpan): boolean {
   return match.start >= range.start && match.end <= range.end;
-}
-
-function countParagraphSelections(selected: Map<string, MatchedTerm>, paragraph: ParagraphSpan): number {
-  return [...selected.values()].filter((match) => isInsideRange(match, paragraph)).length;
 }
 
 function addIfLimitsAllow(

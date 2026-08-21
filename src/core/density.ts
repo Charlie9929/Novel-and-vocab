@@ -1,9 +1,12 @@
 export type DensityLevel = "low" | "medium" | "high";
 
 export const DENSITY_VALUES: Record<DensityLevel, number> = {
-  low: 0.15,
-  medium: 0.35,
-  high: 0.8,
+  // Density is the share of the maximal safe vocabulary pool.  The pool is
+  // built once, so the three levels are nested and visibly different without
+  // introducing lower-confidence words at higher settings.
+  low: 1 / 3,
+  medium: 2 / 3,
+  high: 1,
 };
 
 export const DENSITY_LABELS: Record<DensityLevel, string> = {

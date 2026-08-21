@@ -100,6 +100,15 @@ describe("tokenizer", () => {
     expect(matches.some((item) => item.zh === "研究")).toBe(false);
   });
 
+  it("keeps newly approved vocabulary out of known mixed-language compounds", () => {
+    const matches = findTerms("回到范围内，切换睡眠模式，面对地狱猎犬，使用标准恢复剂。", dictionary, new Set());
+
+    expect(matches.some((item) => item.zh === "范围")).toBe(false);
+    expect(matches.some((item) => item.zh === "睡眠")).toBe(false);
+    expect(matches.some((item) => item.zh === "地狱")).toBe(false);
+    expect(matches.some((item) => item.zh === "标准")).toBe(false);
+  });
+
   it("does not surface phrase-only or corrupted dictionary entries", () => {
     const matches = findTerms("空中飘来一阵风，无论何时都要留神，生活平静下来。", dictionary, new Set());
 
