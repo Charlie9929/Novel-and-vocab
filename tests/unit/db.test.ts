@@ -3,10 +3,12 @@ import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import {
   db,
   clearLocalLearningData,
-      getContextCorrections,
-      saveContextCorrection,
-      saveTranslationFeedback,
+  getContextCorrections,
+  saveContextCorrection,
+  saveReplacementRecords,
+  saveTranslationFeedback,
 } from "../../src/core/db";
+import type { ReplacementToken } from "../../src/core/types";
 
 describe("local database v5", () => {
   beforeEach(async () => {
@@ -60,5 +62,30 @@ describe("local database v5", () => {
     expect(await db.contextCorrections.count()).toBe(0);
     expect(await db.translationFeedback.count()).toBe(0);
     expect(await db.fileHandles.count()).toBe(0);
+  });
+
+  it("deduplicates replacement records before the unique-key bulk write", async () => {
+    const replacement = {
+      id: "word-1",
+      zh: "选择",
+      en: "choose",
+      meaning: "选择",
+      partOfSpeech: "verb",
+      start: 4,
+      end: 6,
+      sentence: "请你选择。",
+      boundaryConfidence: 0,
+      candidates: [],
+      matchSource: "both",
+      confidence: "high",
+      candidateId: "选择:choose:verb",
+      selectionReason: "priority",
+      kind: "replacement",
+      chapterId: "chapter-0",
+      chapterIndex: 0,
+    } as ReplacementToken;
+
+    await saveReplacementRecords([replacement, { ...replacement, id: "word-1-copy" }], "demo");
+    expect(await db.replacementRecords.count()).toBe(1);
   });
 });

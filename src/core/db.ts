@@ -165,9 +165,11 @@ export async function addVocabulary(replacement: ReplacementToken, fileFingerpri
 
 export async function saveReplacementRecords(replacements: ReplacementToken[], fileFingerprint: string): Promise<void> {
   const now = Date.now();
-  await db.replacementRecords.bulkPut(
-    replacements.map((replacement) => ({
-      key: `${fileFingerprint}:${replacement.chapterIndex}:${replacement.start}:${replacement.en}`,
+  const records = new Map<string, ReplacementRecord>();
+  for (const replacement of replacements) {
+    const key = `${fileFingerprint}:${replacement.chapterIndex}:${replacement.start}:${replacement.en}`;
+    records.set(key, {
+      key,
       fileFingerprint,
       chapterIndex: replacement.chapterIndex,
       word: replacement.en,
@@ -175,8 +177,12 @@ export async function saveReplacementRecords(replacements: ReplacementToken[], f
       meaning: replacement.meaning,
       sourceSentence: replacement.sentence,
       createdAt: now,
-    })),
-  );
+    });
+  }
+
+  if (records.size > 0) {
+    await db.replacementRecords.bulkPut([...records.values()]);
+  }
 }
 
 export async function addBlacklistTerm(term: string): Promise<void> {

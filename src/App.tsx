@@ -55,6 +55,7 @@ export default function App() {
   const [isReviewing, setIsReviewing] = useState(false);
   const [shelf, setShelf] = useState<ShelfEntry[]>([]);
   const [corrections, setCorrections] = useState<Map<string, string>>(new Map());
+  const [storageWarning, setStorageWarning] = useState("");
 
   const chapters = useMemo(() => (novel ? splitChapters(novel.text) : []), [novel]);
   const currentChapter = chapters[chapterIndex] ?? chapters[0];
@@ -76,41 +77,56 @@ export default function App() {
 
   useEffect(() => {
     if (!novel || !replacedChapter) return;
-    void saveReplacementRecords(replacedChapter.replacements, novel.fingerprint);
+    void saveReplacementRecords(replacedChapter.replacements, novel.fingerprint).catch((error: unknown) => {
+      reportStorageIssue(error);
+    });
   }, [novel, replacedChapter]);
 
   async function refreshLocalState() {
-    const [blacklistTerms, words, savedDensity, shelfEntries, savedCorrections] = await Promise.all([
-      getBlacklistTerms(),
-      db.vocabulary.orderBy("createdAt").reverse().toArray(),
-      getSetting("replacementDensity"),
-      getAllShelfEntries(),
-      getContextCorrections(),
-    ]);
-    setBlacklist(blacklistTerms);
-    setVocab(words);
-    setCorrections(savedCorrections);
-    if (savedDensity === "low" || savedDensity === "medium" || savedDensity === "high") {
-      setDensityLevel(savedDensity);
-    }
+    try {
+      const [blacklistTerms, words, savedDensity, shelfEntries, savedCorrections] = await Promise.all([
+        getBlacklistTerms(),
+        db.vocabulary.orderBy("createdAt").reverse().toArray(),
+        getSetting("replacementDensity"),
+        getAllShelfEntries(),
+        getContextCorrections(),
+      ]);
+      setBlacklist(blacklistTerms);
+      setVocab(words);
+      setCorrections(savedCorrections);
+      if (savedDensity === "low" || savedDensity === "medium" || savedDensity === "high") {
+        setDensityLevel(savedDensity);
+      }
 
-    // Build shelf entries: for each reading progress record, check if we have a FSA handle
-    const entries: ShelfEntry[] = [];
-    for (const progress of shelfEntries) {
-      const handle = await getFileHandle(progress.fileFingerprint);
-      entries.push({ progress, hasHandle: !!handle });
+      // Build shelf entries: for each reading progress record, check if we have a FSA handle
+      const entries: ShelfEntry[] = [];
+      for (const progress of shelfEntries) {
+        const handle = await getFileHandle(progress.fileFingerprint);
+        entries.push({ progress, hasHandle: !!handle });
+      }
+      setShelf(entries);
+    } catch (error: unknown) {
+      reportStorageIssue(error);
     }
-    setShelf(entries);
   }
 
   async function handleNovelLoaded(nextNovel: LocalNovel, nextHandle: FileSystemFileHandle | null) {
     setNovel(nextNovel);
 
     if (nextHandle) {
-      await saveFileHandle(nextNovel.fingerprint, nextHandle);
+      try {
+        await saveFileHandle(nextNovel.fingerprint, nextHandle);
+      } catch (error: unknown) {
+        reportStorageIssue(error);
+      }
     }
 
-    const savedProgress = await getReadingProgress(nextNovel.fingerprint);
+    let savedProgress: Awaited<ReturnType<typeof getReadingProgress>>;
+    try {
+      savedProgress = await getReadingProgress(nextNovel.fingerprint);
+    } catch (error: unknown) {
+      reportStorageIssue(error);
+    }
     setChapterIndex(savedProgress?.chapterIndex ?? 0);
     setProgressPercent(savedProgress?.scrollPercent ?? 0);
     setActiveTab("reader");
@@ -135,6 +151,8 @@ export default function App() {
       chapterIndex: nextChapterIndex,
       scrollPercent: nextScrollPercent,
       updatedAt: Date.now(),
+    }).catch((error: unknown) => {
+      reportStorageIssue(error);
     });
   }
 
@@ -213,9 +231,15 @@ export default function App() {
     setNovel(null);
   }
 
+  function reportStorageIssue(error: unknown) {
+    console.warn("Local learning data is unavailable; reading can continue.", error);
+    setStorageWarning("本地学习记录暂时不可用，但不影响阅读。刷新或更换浏览器后可恢复保存。");
+  }
+
   if (!novel || !currentChapter || !replacedChapter) {
     return (
       <main className="app-shell centered-shell">
+        {storageWarning ? <p className="storage-warning" role="alert">{storageWarning}</p> : null}
         <FilePicker
           shelf={shelf}
           onLoaded={(nextNovel, nextHandle) => void handleNovelLoaded(nextNovel, nextHandle)}
@@ -236,6 +260,7 @@ export default function App() {
           书架
         </button>
       </div>
+      {storageWarning ? <p className="storage-warning" role="alert">{storageWarning}</p> : null}
 
       {activeTab === "reader" ? (
         <Reader

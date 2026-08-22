@@ -54,6 +54,17 @@ button {
   padding: 24px;
 }
 
+.app-error {
+  align-items: center;
+  gap: 14px;
+  text-align: center;
+}
+
+.app-error h1,
+.app-error p {
+  margin: 0;
+}
+
 .file-picker {
   display: grid;
   gap: 18px;
@@ -165,6 +176,18 @@ button {
 .shelf-note {
   font-size: 12px;
   text-align: center;
+}
+
+.storage-warning {
+  width: min(520px, 100%);
+  margin: 0 18px 10px;
+  border: 1px solid #f0c7b2;
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: #fff6f1;
+  color: #8a3b1f;
+  font-size: 13px;
+  line-height: 1.5;
 }
 
 .read-progress {
