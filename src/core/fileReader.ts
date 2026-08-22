@@ -131,8 +131,8 @@ export async function readPdfFile(file: File, onProgress?: NovelReadProgressHand
       if (pageNumber % 25 === 0) await yieldToBrowser();
     }
 
-    const text = textChunks.join("\n\n");
-    if (!text.trim()) {
+    const text = normalizeNovelText(textChunks.join("\n\n"));
+    if (!text) {
       throw new Error("这个 PDF 没有可提取的文字，可能是扫描版图片 PDF。请先 OCR 或转换为可复制文字的 PDF。");
     }
 
@@ -142,7 +142,7 @@ export async function readPdfFile(file: File, onProgress?: NovelReadProgressHand
       fileSize: file.size,
       lastModified: file.lastModified,
       fingerprint: createFileFingerprint(file, text),
-      text: text.trim(),
+      text,
     };
     onProgress?.({ phase: "finishing", percent: 100, currentPage: document.numPages, totalPages: document.numPages });
     return novel;
@@ -153,11 +153,7 @@ export async function readPdfFile(file: File, onProgress?: NovelReadProgressHand
     throw new Error("PDF 读取失败，请确认文件没有损坏，并尝试使用可复制文字的 PDF。", { cause: error });
   } finally {
     try {
-      if (document) {
-        await document.destroy();
-      } else {
-        await loadingTask.destroy();
-      }
+      await loadingTask.destroy();
     } finally {
       URL.revokeObjectURL(objectUrl);
     }
@@ -204,8 +200,13 @@ export function decodeNovelBytes(bytes: Uint8Array): string {
   }
 }
 
-function normalizeNovelText(text: string): string {
-  return text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").replace(/\uFEFF/g, "").trim();
+export function normalizeNovelText(text: string): string {
+  return text
+    .normalize("NFKC")
+    .replace(/\r\n/g, "\n")
+    .replace(/\r/g, "\n")
+    .replace(/\uFEFF/g, "")
+    .trim();
 }
 
 function createFileFingerprint(file: File, text: string): string {

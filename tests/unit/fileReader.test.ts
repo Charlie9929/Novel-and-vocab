@@ -5,6 +5,7 @@ import {
   isPdfFile,
   isSupportedNovelFile,
   isTxtFile,
+  normalizeNovelText,
   type NovelReadProgress,
 } from "../../src/core/fileReader";
 
@@ -28,6 +29,10 @@ describe("novel decoding", () => {
     expect(isSupportedNovelFile(txt)).toBe(true);
     expect(isSupportedNovelFile(pdf)).toBe(true);
     expect(isSupportedNovelFile(image)).toBe(false);
+  });
+
+  it("normalizes compatibility characters commonly emitted by PDF text layers", () => {
+    expect(normalizeNovelText("第⼀章 ⼩说\r\n可以复制⽂字")).toBe("第一章 小说\n可以复制文字");
   });
 
   it("throttles progress updates for very large PDFs", () => {

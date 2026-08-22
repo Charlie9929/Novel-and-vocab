@@ -2,6 +2,9 @@
   "name": "immersive-vocab-reader",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=22.13.0"
+  },
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
@@ -21,7 +24,7 @@
   "dependencies": {
     "@vitejs/plugin-react": "^5.0.4",
     "dexie": "^4.2.0",
-    "pdfjs-dist": "^5.7.284",
+    "pdfjs-dist": "6.2.108",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "typescript": "~5.9.3",
