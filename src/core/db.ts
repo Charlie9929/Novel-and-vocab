@@ -181,7 +181,24 @@ export async function saveReplacementRecords(replacements: ReplacementToken[], f
   }
 
   if (records.size > 0) {
-    await db.replacementRecords.bulkPut([...records.values()]);
+    await db.transaction("rw", db.replacementRecords, async () => {
+      const existingRecords = await db.replacementRecords
+        .where("key")
+        .anyOf([...records.keys()])
+        .toArray();
+      const existingIds = new Map(
+        existingRecords
+          .filter((record) => record.id !== undefined)
+          .map((record) => [record.key, record.id]),
+      );
+
+      await db.replacementRecords.bulkPut(
+        [...records.values()].map((record) => {
+          const id = existingIds.get(record.key);
+          return id === undefined ? record : { ...record, id };
+        }),
+      );
+    });
   }
 }
 

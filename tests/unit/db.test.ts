@@ -85,7 +85,10 @@ describe("local database v5", () => {
       chapterIndex: 0,
     } as ReplacementToken;
 
-    await saveReplacementRecords([replacement, { ...replacement, id: "word-1-copy" }], "demo");
+    await Promise.all([
+      saveReplacementRecords([replacement, { ...replacement, id: "word-1-copy" }], "demo"),
+      saveReplacementRecords([replacement], "demo"),
+    ]);
     expect(await db.replacementRecords.count()).toBe(1);
   });
 });
