@@ -18,7 +18,25 @@ describe("reader preferences", () => {
       lineHeight: 1.8,
       contentPadding: 12,
     });
-    expect(parseReaderPreferences(JSON.stringify({ fontSize: 15.5, lineHeight: "1.6", contentPadding: 20 }))).toEqual(
+    expect(parseReaderPreferences(JSON.stringify({ fontSize: 15.5, lineHeight: "1.6", contentPadding: 20 }))).toEqual({
+      fontSize: 19,
+      lineHeight: 1.8,
+      contentPadding: 20,
+    });
+  });
+
+  it("accepts the expanded stepped ranges and rejects values between steps", () => {
+    expect(normalizeReaderPreferences({ fontSize: 19, lineHeight: 1.4, contentPadding: 8 })).toEqual({
+      fontSize: 19,
+      lineHeight: 1.4,
+      contentPadding: 8,
+    });
+    expect(normalizeReaderPreferences({ fontSize: 19, lineHeight: 2.4, contentPadding: 40 })).toEqual({
+      fontSize: 19,
+      lineHeight: 2.4,
+      contentPadding: 40,
+    });
+    expect(normalizeReaderPreferences({ fontSize: 19, lineHeight: 1.45, contentPadding: 9 })).toEqual(
       DEFAULT_READER_PREFERENCES,
     );
   });

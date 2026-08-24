@@ -2,11 +2,15 @@ import type { DensityLevel } from "../core/density";
 import { DENSITY_LABELS, densityClassName } from "../core/density";
 import {
   DEFAULT_READER_PREFERENCES,
-  READER_CONTENT_PADDING_OPTIONS,
+  READER_CONTENT_PADDING_MAX,
+  READER_CONTENT_PADDING_MIN,
+  READER_CONTENT_PADDING_STEP,
   READER_FONT_SIZE_MAX,
   READER_FONT_SIZE_MIN,
   READER_FONT_SIZE_STEP,
-  READER_LINE_HEIGHT_OPTIONS,
+  READER_LINE_HEIGHT_MAX,
+  READER_LINE_HEIGHT_MIN,
+  READER_LINE_HEIGHT_STEP,
   normalizeReaderPreferences,
 } from "../core/readerPreferences";
 import type { ReaderPreferences } from "../core/types";
@@ -39,8 +43,6 @@ export function SettingsPanel({
   onReaderPreferencesChange,
 }: SettingsPanelProps) {
   const safePreferences = normalizeReaderPreferences(readerPreferences);
-  const lineHeightIndex = READER_LINE_HEIGHT_OPTIONS.indexOf(safePreferences.lineHeight);
-  const contentPaddingIndex = READER_CONTENT_PADDING_OPTIONS.indexOf(safePreferences.contentPadding);
 
   function updateReaderPreferences(changes: Partial<ReaderPreferences>) {
     onReaderPreferencesChange(normalizeReaderPreferences({ ...safePreferences, ...changes }));
@@ -95,19 +97,19 @@ export function SettingsPanel({
           <div className="reader-preference-control">
             <div className="reader-preference-heading">
               <label htmlFor="reader-line-height">行距</label>
-              <output htmlFor="reader-line-height">{safePreferences.lineHeight}</output>
+              <output htmlFor="reader-line-height">{safePreferences.lineHeight.toFixed(1)}</output>
             </div>
             <div className="reader-preference-slider">
               <span aria-hidden="true">紧</span>
               <input
                 id="reader-line-height"
                 type="range"
-                min={0}
-                max={READER_LINE_HEIGHT_OPTIONS.length - 1}
-                step={1}
-                value={lineHeightIndex}
+                min={READER_LINE_HEIGHT_MIN}
+                max={READER_LINE_HEIGHT_MAX}
+                step={READER_LINE_HEIGHT_STEP}
+                value={safePreferences.lineHeight}
                 onChange={(event) => updateReaderPreferences({
-                  lineHeight: READER_LINE_HEIGHT_OPTIONS[Number(event.target.value)],
+                  lineHeight: Number(event.target.value),
                 })}
               />
               <span aria-hidden="true">松</span>
@@ -124,12 +126,12 @@ export function SettingsPanel({
               <input
                 id="reader-content-padding"
                 type="range"
-                min={0}
-                max={READER_CONTENT_PADDING_OPTIONS.length - 1}
-                step={1}
-                value={contentPaddingIndex}
+                min={READER_CONTENT_PADDING_MIN}
+                max={READER_CONTENT_PADDING_MAX}
+                step={READER_CONTENT_PADDING_STEP}
+                value={safePreferences.contentPadding}
                 onChange={(event) => updateReaderPreferences({
-                  contentPadding: READER_CONTENT_PADDING_OPTIONS[Number(event.target.value)],
+                  contentPadding: Number(event.target.value),
                 })}
               />
               <span aria-hidden="true">宽</span>

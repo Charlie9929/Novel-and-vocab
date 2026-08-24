@@ -24,6 +24,9 @@ describe("settings panel", () => {
     expect(markup).toContain("reader-font-size");
     expect(markup).toContain("reader-line-height");
     expect(markup).toContain("reader-content-padding");
+    expect(markup).toContain('min="1.4"');
+    expect(markup).toContain('max="2.4"');
+    expect(markup).toContain('max="40"');
     expect(markup).not.toContain("作话");
   });
 });

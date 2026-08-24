@@ -61,8 +61,8 @@ export interface NovelLayoutMeta {
 
 export interface ReaderPreferences {
   fontSize: number;
-  lineHeight: 1.6 | 1.8 | 2.0;
-  contentPadding: 12 | 18 | 28;
+  lineHeight: number;
+  contentPadding: number;
 }
 
 export interface ReadingLocation {
