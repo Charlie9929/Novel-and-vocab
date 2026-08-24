@@ -12,22 +12,14 @@ export const READER_FONT_SIZE_MIN = 16;
 export const READER_FONT_SIZE_MAX = 26;
 export const READER_FONT_SIZE_STEP = 1;
 
-export const READER_LINE_HEIGHT_MIN = 1.4;
-export const READER_LINE_HEIGHT_MAX = 2.4;
-export const READER_LINE_HEIGHT_STEP = 0.1;
+export const READER_LINE_HEIGHT_OPTIONS = [1.4, 1.6, 1.8, 2.0, 2.2, 2.4] as const;
+export const READER_CONTENT_PADDING_OPTIONS = [8, 12, 18, 28, 34, 40] as const;
 
-export const READER_CONTENT_PADDING_MIN = 8;
-export const READER_CONTENT_PADDING_MAX = 40;
-export const READER_CONTENT_PADDING_STEP = 2;
+const lineHeightSet = new Set<number>(READER_LINE_HEIGHT_OPTIONS);
+const contentPaddingSet = new Set<number>(READER_CONTENT_PADDING_OPTIONS);
 
 function isFiniteNumber(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value);
-}
-
-function isSteppedValue(value: unknown, min: number, max: number, step: number): value is number {
-  if (!isFiniteNumber(value) || value < min || value > max) return false;
-  const steps = (value - min) / step;
-  return Math.abs(steps - Math.round(steps)) < 1e-8;
 }
 
 export function normalizeReaderPreferences(value: unknown, fallback: ReaderPreferences = DEFAULT_READER_PREFERENCES): ReaderPreferences {
@@ -41,15 +33,10 @@ export function normalizeReaderPreferences(value: unknown, fallback: ReaderPrefe
     candidate.fontSize <= READER_FONT_SIZE_MAX
       ? candidate.fontSize
       : fallback.fontSize;
-  const lineHeight = isSteppedValue(candidate.lineHeight, READER_LINE_HEIGHT_MIN, READER_LINE_HEIGHT_MAX, READER_LINE_HEIGHT_STEP)
-    ? Number(candidate.lineHeight.toFixed(1))
+  const lineHeight = isFiniteNumber(candidate.lineHeight) && lineHeightSet.has(candidate.lineHeight)
+    ? candidate.lineHeight
     : fallback.lineHeight;
-  const contentPadding = isSteppedValue(
-    candidate.contentPadding,
-    READER_CONTENT_PADDING_MIN,
-    READER_CONTENT_PADDING_MAX,
-    READER_CONTENT_PADDING_STEP,
-  )
+  const contentPadding = isFiniteNumber(candidate.contentPadding) && contentPaddingSet.has(candidate.contentPadding)
     ? candidate.contentPadding
     : fallback.contentPadding;
 

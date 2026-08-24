@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   DEFAULT_READER_PREFERENCES,
+  READER_CONTENT_PADDING_OPTIONS,
+  READER_LINE_HEIGHT_OPTIONS,
   normalizeReaderPreferences,
   parseReaderPreferences,
   serializeReaderPreferences,
@@ -18,14 +20,14 @@ describe("reader preferences", () => {
       lineHeight: 1.8,
       contentPadding: 12,
     });
-    expect(parseReaderPreferences(JSON.stringify({ fontSize: 15.5, lineHeight: "1.6", contentPadding: 20 }))).toEqual({
-      fontSize: 19,
-      lineHeight: 1.8,
-      contentPadding: 20,
-    });
+    expect(parseReaderPreferences(JSON.stringify({ fontSize: 15.5, lineHeight: "1.6", contentPadding: 20 }))).toEqual(
+      DEFAULT_READER_PREFERENCES,
+    );
   });
 
-  it("accepts the expanded stepped ranges and rejects values between steps", () => {
+  it("offers six wider-spread choices and rejects values between them", () => {
+    expect(READER_LINE_HEIGHT_OPTIONS).toHaveLength(6);
+    expect(READER_CONTENT_PADDING_OPTIONS).toHaveLength(6);
     expect(normalizeReaderPreferences({ fontSize: 19, lineHeight: 1.4, contentPadding: 8 })).toEqual({
       fontSize: 19,
       lineHeight: 1.4,
