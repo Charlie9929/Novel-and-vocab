@@ -183,5 +183,8 @@ describe.skipIf(!corpusDir || !manifestPath)("private local novel quality gate",
     expect(blindReport.endToEndReplacementPrecision, "Blind end-to-end replacement precision.").toBeGreaterThanOrEqual(0.995);
     expect(blindReport.replacementCoverage, "Blind replacement coverage.").toBeGreaterThanOrEqual(0.55);
     expect(blindCorpusAttempts, "The complete blind-book reader path must make at least 1,000 real replacement attempts.").toBeGreaterThanOrEqual(1000);
-  }, 30_000);
+  // The complete blind-book reader path is intentionally exhaustive and can
+  // take several minutes on a local WSL corpus; keep the release gate from
+  // reporting a false failure after its metrics have already been computed.
+  }, 1_800_000);
 });

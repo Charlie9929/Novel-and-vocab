@@ -43,12 +43,41 @@ export type MatchSource = "segment" | "scan" | "both";
 export type MatchConfidence = "high" | "medium" | "low";
 export type CandidateSelectionReason = "correction" | "context" | "priority" | "ambiguous";
 
+export type ParagraphStrategy =
+  | "blank-lines"
+  | "line-paragraphs"
+  | "wrapped-lines"
+  | "collapsed-text"
+  | "pdf-coordinate"
+  | "pdf-fallback";
+
+export interface NovelLayoutMeta {
+  version: 1;
+  source: "txt" | "pdf";
+  strategy: ParagraphStrategy;
+  confidence: "high" | "medium" | "low";
+  legacyChapterCount: number;
+}
+
+export interface ReaderPreferences {
+  fontSize: number;
+  lineHeight: 1.6 | 1.8 | 2.0;
+  contentPadding: 12 | 18 | 28;
+}
+
+export interface ReadingLocation {
+  scrollPercent: number;
+  paragraphIndex?: number;
+  paragraphOffset?: number;
+}
+
 export interface LocalNovel {
   fileName: string;
   fileSize: number;
   lastModified: number;
   fingerprint: string;
   text: string;
+  layout?: NovelLayoutMeta;
 }
 
 export interface Chapter {

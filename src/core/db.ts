@@ -9,6 +9,9 @@ export interface ReadingProgressRecord {
   chapterIndex: number;
   scrollPercent: number;
   updatedAt: number;
+  layoutVersion?: number;
+  paragraphIndex?: number;
+  paragraphOffset?: number;
 }
 
 export interface VocabRecord {

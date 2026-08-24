@@ -30,6 +30,14 @@ import {
 import { DEFAULT_DENSITY, DENSITY_VALUES, type DensityLevel } from "./core/density";
 import type { NovelReadProgressHandler } from "./core/fileReader";
 import { pickNovelViaFsa } from "./core/fsa";
+import {
+  DEFAULT_READER_PREFERENCES,
+  READER_PREFERENCES_KEY,
+  normalizeReaderPreferences,
+  parseReaderPreferences,
+  serializeReaderPreferences,
+} from "./core/readerPreferences";
+import { normalizeReadingLocation } from "./core/readingLocation";
 import { createQuizQuestions, replaceChapterTerms } from "./core/replacer";
 import type { Sm2State } from "./core/sm2";
 import { splitChapters } from "./core/tokenizer";
@@ -42,11 +50,78 @@ import type {
 
 const typedCet4Entries = cet4Entries as Cet4Entry[];
 
+interface ReaderProgressUpdate {
+  scrollPercent: number;
+  paragraphIndex?: number;
+  paragraphOffset?: number;
+}
+
+interface MappedProgress {
+  chapterIndex: number;
+  scrollPercent: number;
+  layoutChanged: boolean;
+}
+
+function clampProgress(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
+}
+
+/**
+ * Smart paragraph extraction can change the number of fallback chapters. Map
+ * an old location through the whole-book ratio only when both the layout
+ * version and chapter count prove that such a migration is needed.
+ */
+function mapSavedProgress(
+  savedProgress: {
+    chapterIndex?: number;
+    scrollPercent?: number;
+    layoutVersion?: number;
+  } | undefined,
+  nextNovel: LocalNovel,
+  currentChapterCount: number,
+): MappedProgress {
+  if (currentChapterCount <= 0) return { chapterIndex: 0, scrollPercent: 0, layoutChanged: false };
+
+  const savedChapterIndex = Number.isFinite(savedProgress?.chapterIndex)
+    ? Math.max(0, Math.floor(savedProgress?.chapterIndex ?? 0))
+    : 0;
+  const savedScrollPercent = Number.isFinite(savedProgress?.scrollPercent)
+    ? clampProgress(savedProgress?.scrollPercent ?? 0, 0, 100)
+    : 0;
+  const currentLayoutVersion = nextNovel.layout?.version;
+  const layoutChanged = currentLayoutVersion !== undefined && savedProgress?.layoutVersion !== currentLayoutVersion;
+  const legacyChapterCount = nextNovel.layout?.legacyChapterCount ?? currentChapterCount;
+  const chapterCountChanged = legacyChapterCount > 0 && legacyChapterCount !== currentChapterCount;
+
+  if (layoutChanged && chapterCountChanged) {
+    const oldChapter = clampProgress(savedChapterIndex, 0, legacyChapterCount - 1);
+    const bookRatio = (oldChapter + savedScrollPercent / 100) / legacyChapterCount;
+    const scaledPosition = clampProgress(bookRatio * currentChapterCount, 0, currentChapterCount);
+    const mappedChapterIndex = Math.min(currentChapterCount - 1, Math.floor(scaledPosition));
+    const mappedPercent = scaledPosition >= currentChapterCount
+      ? 100
+      : (scaledPosition - mappedChapterIndex) * 100;
+    return {
+      chapterIndex: mappedChapterIndex,
+      scrollPercent: Math.round(mappedPercent * 100) / 100,
+      layoutChanged: true,
+    };
+  }
+
+  return {
+    chapterIndex: Math.min(currentChapterCount - 1, savedChapterIndex),
+    scrollPercent: savedScrollPercent,
+    layoutChanged,
+  };
+}
+
 export default function App() {
   const [novel, setNovel] = useState<LocalNovel | null>(null);
   const [activeTab, setActiveTab] = useState<AppTab>("reader");
   const [chapterIndex, setChapterIndex] = useState(0);
   const [progressPercent, setProgressPercent] = useState(0);
+  const [paragraphIndex, setParagraphIndex] = useState<number | undefined>(undefined);
+  const [paragraphOffset, setParagraphOffset] = useState<number | undefined>(undefined);
   const [selectedWord, setSelectedWord] = useState<ReplacementToken | null>(null);
   const [blacklist, setBlacklist] = useState<string[]>([]);
   const [vocab, setVocab] = useState<VocabRecord[]>([]);
@@ -56,6 +131,8 @@ export default function App() {
   const [shelf, setShelf] = useState<ShelfEntry[]>([]);
   const [corrections, setCorrections] = useState<Map<string, string>>(new Map());
   const [storageWarning, setStorageWarning] = useState("");
+  const [readerPreferences, setReaderPreferences] = useState(DEFAULT_READER_PREFERENCES);
+  const [isImmersive, setIsImmersive] = useState(false);
 
   const chapters = useMemo(() => (novel ? splitChapters(novel.text) : []), [novel]);
   const currentChapter = chapters[chapterIndex] ?? chapters[0];
@@ -84,12 +161,13 @@ export default function App() {
 
   async function refreshLocalState() {
     try {
-      const [blacklistTerms, words, savedDensity, shelfEntries, savedCorrections] = await Promise.all([
+      const [blacklistTerms, words, savedDensity, shelfEntries, savedCorrections, savedReaderPreferences] = await Promise.all([
         getBlacklistTerms(),
         db.vocabulary.orderBy("createdAt").reverse().toArray(),
         getSetting("replacementDensity"),
         getAllShelfEntries(),
         getContextCorrections(),
+        getSetting(READER_PREFERENCES_KEY),
       ]);
       setBlacklist(blacklistTerms);
       setVocab(words);
@@ -97,6 +175,7 @@ export default function App() {
       if (savedDensity === "low" || savedDensity === "medium" || savedDensity === "high") {
         setDensityLevel(savedDensity);
       }
+      setReaderPreferences(parseReaderPreferences(savedReaderPreferences));
 
       // Build shelf entries: for each reading progress record, check if we have a FSA handle
       const entries: ShelfEntry[] = [];
@@ -112,6 +191,7 @@ export default function App() {
 
   async function handleNovelLoaded(nextNovel: LocalNovel, nextHandle: FileSystemFileHandle | null) {
     setNovel(nextNovel);
+    setIsImmersive(false);
 
     if (nextHandle) {
       try {
@@ -127,8 +207,17 @@ export default function App() {
     } catch (error: unknown) {
       reportStorageIssue(error);
     }
-    setChapterIndex(savedProgress?.chapterIndex ?? 0);
-    setProgressPercent(savedProgress?.scrollPercent ?? 0);
+    const nextChapters = splitChapters(nextNovel.text);
+    const location = normalizeReadingLocation(savedProgress);
+    const mappedLocation = mapSavedProgress(
+      savedProgress,
+      nextNovel,
+      nextChapters.length,
+    );
+    setChapterIndex(mappedLocation.chapterIndex);
+    setProgressPercent(mappedLocation.scrollPercent);
+    setParagraphIndex(mappedLocation.layoutChanged ? undefined : location.paragraphIndex);
+    setParagraphOffset(mappedLocation.layoutChanged ? undefined : location.paragraphOffset);
     setActiveTab("reader");
     await refreshLocalState();
   }
@@ -143,7 +232,15 @@ export default function App() {
     }
   }
 
-  function persistProgress(nextChapterIndex = chapterIndex, nextScrollPercent = progressPercent) {
+  function persistProgress(
+    nextChapterIndex = chapterIndex,
+    nextScrollPercent = progressPercent,
+    location: ReaderProgressUpdate = {
+      scrollPercent: nextScrollPercent,
+      paragraphIndex,
+      paragraphOffset,
+    },
+  ) {
     if (!novel) return;
     void saveReadingProgress({
       fileFingerprint: novel.fingerprint,
@@ -151,21 +248,33 @@ export default function App() {
       chapterIndex: nextChapterIndex,
       scrollPercent: nextScrollPercent,
       updatedAt: Date.now(),
+      layoutVersion: novel.layout?.version ?? 1,
+      paragraphIndex: location.paragraphIndex,
+      paragraphOffset: location.paragraphOffset,
     }).catch((error: unknown) => {
       reportStorageIssue(error);
     });
   }
 
-  function handleProgressChange(nextProgress: number) {
-    setProgressPercent(nextProgress);
-    persistProgress(chapterIndex, nextProgress);
+  function handleProgressChange(nextProgress: number, nextParagraphIndex?: number, nextParagraphOffset?: number) {
+    const location: ReaderProgressUpdate = {
+      scrollPercent: nextProgress,
+      paragraphIndex: nextParagraphIndex,
+      paragraphOffset: nextParagraphOffset,
+    };
+    setProgressPercent(location.scrollPercent);
+    setParagraphIndex(location.paragraphIndex);
+    setParagraphOffset(location.paragraphOffset);
+    persistProgress(chapterIndex, location.scrollPercent, location);
   }
 
   function goToChapter(nextIndex: number) {
     const safeIndex = Math.max(0, Math.min(chapters.length - 1, nextIndex));
     setChapterIndex(safeIndex);
     setProgressPercent(0);
-    persistProgress(safeIndex, 0);
+    setParagraphIndex(undefined);
+    setParagraphOffset(undefined);
+    persistProgress(safeIndex, 0, { scrollPercent: 0 });
   }
 
   async function handleSaveWord(replacement: ReplacementToken) {
@@ -190,12 +299,28 @@ export default function App() {
   async function handleClearData() {
     await clearLocalLearningData();
     setProgressPercent(0);
+    setParagraphIndex(undefined);
+    setParagraphOffset(undefined);
+    setReaderPreferences({ ...DEFAULT_READER_PREFERENCES });
     await refreshLocalState();
   }
 
   async function handleSetDensity(level: DensityLevel) {
     setDensityLevel(level);
     await putSetting("replacementDensity", level);
+  }
+
+  function handleReaderPreferencesChange(nextPreferences: typeof DEFAULT_READER_PREFERENCES) {
+    const normalized = normalizeReaderPreferences(nextPreferences);
+    setReaderPreferences(normalized);
+    void putSetting(READER_PREFERENCES_KEY, serializeReaderPreferences(normalized)).catch((error: unknown) => {
+      reportStorageIssue(error);
+    });
+  }
+
+  function handleTabChange(nextTab: AppTab) {
+    if (nextTab !== "reader") setIsImmersive(false);
+    setActiveTab(nextTab);
   }
 
   function handleStartReview() {
@@ -214,6 +339,7 @@ export default function App() {
   }
 
   function openQuiz() {
+    setIsImmersive(false);
     setQuizQuestions(createQuizQuestions(replacedChapter?.replacements ?? []));
   }
 
@@ -228,6 +354,7 @@ export default function App() {
   }
 
   function handleReturnToShelf() {
+    setIsImmersive(false);
     setNovel(null);
   }
 
@@ -251,15 +378,17 @@ export default function App() {
 
   return (
     <main className="app-shell reader-shell">
-      <div className="top-bar">
-        <div>
-          <span className="eyebrow">本地文件</span>
-          <strong>{novel.fileName}</strong>
+      {activeTab !== "reader" ? (
+        <div className="top-bar">
+          <div>
+            <span className="eyebrow">本地文件</span>
+            <strong>{novel.fileName}</strong>
+          </div>
+          <button type="button" onClick={handleReturnToShelf}>
+            书架
+          </button>
         </div>
-        <button type="button" onClick={handleReturnToShelf}>
-          书架
-        </button>
-      </div>
+      ) : null}
       {storageWarning ? <p className="storage-warning" role="alert">{storageWarning}</p> : null}
 
       {activeTab === "reader" ? (
@@ -269,12 +398,26 @@ export default function App() {
           chapters={chapters}
           tokens={replacedChapter.tokens}
           progressPercent={progressPercent}
+          readingLocation={{
+            scrollPercent: progressPercent,
+            paragraphIndex,
+            paragraphOffset,
+            layoutVersion: novel.layout?.version,
+          }}
           densityLevel={densityLevel}
           replacementCount={replacedChapter.replacements.length}
           vocabCount={vocab.length}
           reviewDueCount={reviewDueCount}
-          onSelectWord={setSelectedWord}
+          onSelectWord={(replacement) => {
+            setIsImmersive(false);
+            setSelectedWord(replacement);
+          }}
           onProgressChange={handleProgressChange}
+          readerPreferences={readerPreferences}
+          onReaderPreferencesChange={handleReaderPreferencesChange}
+          isImmersive={isImmersive}
+          onToggleImmersive={() => setIsImmersive((current) => !current)}
+          onReturnToShelf={handleReturnToShelf}
           onCompleteChapter={openQuiz}
           onPrevChapter={() => goToChapter(chapterIndex - 1)}
           onNextChapter={() => goToChapter(chapterIndex + 1)}
@@ -302,7 +445,7 @@ export default function App() {
         />
       ) : null}
 
-      <BottomNav activeTab={activeTab} onChange={setActiveTab} />
+      <BottomNav activeTab={activeTab} onChange={handleTabChange} hidden={activeTab === "reader" && isImmersive} />
       <WordSheet
         replacement={selectedWord}
         onClose={() => setSelectedWord(null)}

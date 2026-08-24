@@ -272,7 +272,7 @@ button {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 14px 16px 10px;
+  padding: max(8px, env(safe-area-inset-top)) 16px 8px;
   border-bottom: 1px solid #ece4d6;
   background: #fffdf8;
 }
@@ -299,6 +299,7 @@ button {
 }
 
 .reader-view {
+  position: relative;
   display: flex;
   min-height: 0;
   flex: 1;
@@ -309,22 +310,55 @@ button {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 14px 18px 10px;
+  gap: 8px;
+  min-height: 50px;
+  padding: 6px 12px;
 }
 
-.reader-header > div:first-child {
+.reader-header-title {
   min-width: 0;
   flex: 1;
 }
 
 .reader-header h2 {
   width: 100%;
-  max-width: 260px;
+  max-width: none;
   overflow: hidden;
-  font-size: 20px;
+  font-size: 16px;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.reader-shelf-button,
+.reader-settings-button {
+  min-width: 42px;
+  min-height: 38px;
+  border: 0;
+  border-radius: 999px;
+  padding: 0 9px;
+  background: #ece4d6;
+  color: #20201d;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.reader-settings-button {
+  border: 1px solid #b8d8cf;
+  background: #f0faf8;
+  color: #14615c;
+  font-size: 15px;
+}
+
+.reader-toolbar-hidden {
+  display: none;
+}
+
+.reader-view-immersive .progress-track {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  right: 0;
+  left: 0;
 }
 
 .reader-header-actions {
@@ -371,16 +405,17 @@ button {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 18px 18px 100px;
+  padding: 12px var(--reader-content-padding, 18px) 24px;
   -webkit-overflow-scrolling: touch;
 }
 
 .reader-article p {
-  margin: 0 0 18px;
+  margin: 0 0 0.75em;
   color: #292823;
-  font-size: 19px;
-  line-height: 2.05;
+  font-size: var(--reader-font-size, 19px);
+  line-height: var(--reader-line-height, 1.8);
   text-align: justify;
+  text-indent: 2em;
 }
 
 .inline-word {
@@ -414,12 +449,11 @@ button {
 }
 
 .chapter-controls {
-  position: sticky;
-  bottom: 68px;
   display: grid;
   grid-template-columns: 1fr 1.2fr 1fr;
   gap: 8px;
-  padding: 10px 14px;
+  margin-top: 24px;
+  padding: 10px 0 0;
   background: linear-gradient(180deg, rgba(255, 253, 248, 0.68), #fffdf8 32%);
 }
 
@@ -535,7 +569,7 @@ button {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
-  padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
+  padding: 6px 14px calc(6px + env(safe-area-inset-bottom));
   border-top: 1px solid #ece4d6;
   background: #fffdf8;
 }
@@ -753,6 +787,30 @@ button {
   gap: 10px;
 }
 
+.reader-settings-sheet {
+  padding-bottom: calc(18px + env(safe-area-inset-bottom));
+}
+
+.reader-settings-sheet fieldset {
+  min-width: 0;
+  margin: 0;
+}
+
+.reader-settings-sheet legend {
+  padding: 0;
+}
+
+.reader-settings-sheet input[type="range"] {
+  width: 100%;
+  accent-color: #14615c;
+}
+
+.reader-settings-sheet output {
+  color: #14615c;
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+}
+
 .sheet-actions .blacklist-button {
   grid-column: 1 / -1;
 }
@@ -921,12 +979,18 @@ button {
 }
 
 .density-selector button {
+  min-height: 44px;
   padding: 10px 0;
   border: 1px solid #d8d0c3;
   border-radius: 8px;
   background: #fffdf8;
   font-weight: 700;
   cursor: pointer;
+}
+
+.reader-settings-sheet .icon-button {
+  width: 44px;
+  height: 44px;
 }
 
 .density-selector button.density-low {
@@ -1119,7 +1183,4 @@ button {
     box-shadow: 0 0 60px rgba(32, 32, 29, 0.12);
   }
 
-  .reader-article p {
-    font-size: 20px;
-  }
 }

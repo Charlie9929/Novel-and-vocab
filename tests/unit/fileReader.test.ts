@@ -6,6 +6,7 @@ import {
   isSupportedNovelFile,
   isTxtFile,
   normalizeNovelText,
+  readNovelFile,
   type NovelReadProgress,
 } from "../../src/core/fileReader";
 
@@ -49,5 +50,32 @@ describe("novel decoding", () => {
       totalPages: 10_529,
     });
     expect(updates.every((progress, index) => index === 0 || progress.percent >= updates[index - 1].percent)).toBe(true);
+  });
+
+  it("keeps TXT identity based on decoded input while exposing restored paragraphs", async () => {
+    const originalReader = globalThis.FileReader;
+    class FakeFileReader {
+      result: ArrayBuffer | null = null;
+      onload: (() => void) | null = null;
+      onerror: (() => void) | null = null;
+      onprogress: ((event: ProgressEvent<FileReader>) => void) | null = null;
+
+      readAsArrayBuffer(file: File): void {
+        void file.arrayBuffer().then((buffer) => {
+          this.result = buffer;
+          this.onload?.();
+        });
+      }
+    }
+    Object.defineProperty(globalThis, "FileReader", { configurable: true, writable: true, value: FakeFileReader });
+    try {
+      const source = "\uFEFF　第一段。\r\n　第二段。";
+      const novel = await readNovelFile(new File([source], "story.txt", { lastModified: 123 }));
+      expect(novel.text).toBe("第一段。\n\n第二段。");
+      expect(novel.layout).toMatchObject({ source: "txt", strategy: "line-paragraphs", version: 1, legacyChapterCount: 1 });
+      expect(novel.fingerprint).toMatch(/^novel-[0-9a-f]+$/u);
+    } finally {
+      Object.defineProperty(globalThis, "FileReader", { configurable: true, writable: true, value: originalReader });
+    }
   });
 });

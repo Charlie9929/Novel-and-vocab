@@ -1,4 +1,6 @@
 import type { LocalNovel } from "./types";
+import { splitChapters } from "./tokenizer";
+import { segmentPdfParagraphs, segmentTxtParagraphs, type PdfPageText, type PdfTextItem } from "./paragraphs";
 
 const TEXT_EXTENSIONS = [".txt"];
 const PDF_EXTENSIONS = [".pdf"];
@@ -62,14 +64,26 @@ export function readNovelFile(file: File, onProgress?: NovelReadProgressHandler)
       try {
         onProgress?.({ phase: "finishing", percent: 95 });
         const bytes = reader.result instanceof ArrayBuffer ? new Uint8Array(reader.result) : new Uint8Array();
-        const text = decodeNovelBytes(bytes);
-        if (!text.trim()) throw new Error("文件内容为空。");
+        const rawText = decodeNovelBytes(bytes);
+        if (!rawText.trim()) throw new Error("文件内容为空。");
+        const legacyText = normalizeNovelText(rawText);
+        const segmented = segmentTxtParagraphs(legacyText);
+        const smartText = segmented.text || legacyText;
         const novel = {
           fileName: file.name,
           fileSize: file.size,
           lastModified: file.lastModified,
-          fingerprint: createFileFingerprint(file, text),
-          text: normalizeNovelText(text),
+          // Keep the fingerprint tied to the decoded source bytes.  Layout
+          // restoration is deliberately not part of file identity.
+          fingerprint: createFileFingerprint(file, rawText),
+          text: smartText,
+          layout: {
+            version: 1 as const,
+            source: "txt" as const,
+            strategy: segmented.text ? segmented.strategy : "blank-lines" as const,
+            confidence: segmented.text ? segmented.confidence : "low" as const,
+            legacyChapterCount: splitChapters(legacyText).length,
+          },
         };
         onProgress?.({ phase: "finishing", percent: 100 });
         resolve(novel);
@@ -119,30 +133,45 @@ export async function readPdfFile(file: File, onProgress?: NovelReadProgressHand
     document = await loadingTask.promise;
     onProgress?.({ phase: "extracting", percent: 38, currentPage: 0, totalPages: document.numPages });
     const textChunks: string[] = [];
+    const pdfPages: PdfPageText[] = [];
     const reportPageProgress = createPdfPageProgressReporter(document.numPages, onProgress);
 
     for (let pageNumber = 1; pageNumber <= document.numPages; pageNumber += 1) {
       const page = await document.getPage(pageNumber);
       const content = await page.getTextContent();
-      const pageText = extractPageText(content.items);
+      const items = content.items as Array<unknown>;
+      const pageText = extractPageText(items);
       if (pageText) textChunks.push(pageText);
+      pdfPages.push({ items: items.map(toPdfTextItem).filter((item): item is PdfTextItem => item !== undefined) });
       page.cleanup();
       reportPageProgress(pageNumber);
       if (pageNumber % 25 === 0) await yieldToBrowser();
     }
 
-    const text = normalizeNovelText(textChunks.join("\n\n"));
-    if (!text) {
+    const legacyText = normalizeNovelText(textChunks.join("\n\n"));
+    if (!legacyText) {
       throw new Error("这个 PDF 没有可提取的文字，可能是扫描版图片 PDF。请先 OCR 或转换为可复制文字的 PDF。");
     }
+    const segmented = segmentPdfParagraphs(pdfPages);
+    const text = segmented.text || legacyText;
 
     onProgress?.({ phase: "finishing", percent: 98, currentPage: document.numPages, totalPages: document.numPages });
     const novel = {
       fileName: file.name,
       fileSize: file.size,
       lastModified: file.lastModified,
-      fingerprint: createFileFingerprint(file, text),
+      // Keep the old flat extraction as the identity source.  A PDF can be
+      // reflowed differently as the paragraph algorithm improves without
+      // becoming a second copy in the shelf.
+      fingerprint: createFileFingerprint(file, legacyText),
       text,
+      layout: {
+        version: 1 as const,
+        source: "pdf" as const,
+        strategy: segmented.text ? segmented.strategy : "pdf-fallback" as const,
+        confidence: segmented.text ? segmented.confidence : "low" as const,
+        legacyChapterCount: splitChapters(legacyText).length,
+      },
     };
     onProgress?.({ phase: "finishing", percent: 100, currentPage: document.numPages, totalPages: document.numPages });
     return novel;
@@ -181,6 +210,26 @@ function extractPageText(items: Array<unknown>): string {
   }
 
   return pageText.trim();
+}
+
+function toPdfTextItem(value: unknown): PdfTextItem | undefined {
+  if (!value || typeof value !== "object" || !("str" in value) || typeof value.str !== "string") return undefined;
+  const item = value as {
+    str: string;
+    transform?: unknown;
+    width?: unknown;
+    height?: unknown;
+    hasEOL?: unknown;
+  };
+  return {
+    str: item.str,
+    transform: Array.isArray(item.transform) && item.transform.every((entry) => typeof entry === "number")
+      ? item.transform as number[]
+      : undefined,
+    width: typeof item.width === "number" ? item.width : undefined,
+    height: typeof item.height === "number" ? item.height : undefined,
+    hasEOL: typeof item.hasEOL === "boolean" ? item.hasEOL : undefined,
+  };
 }
 
 export function decodeNovelBytes(bytes: Uint8Array): string {

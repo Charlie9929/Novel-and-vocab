@@ -10,6 +10,8 @@
 ## 功能
 
 - 本地选择 `.txt` 或可复制文字的 `.pdf` 小说文件，通过浏览器读取；PDF 使用 PDF.js 提取文字层。
+- 导入时自动恢复 TXT 单换行段落，并根据 PDF 文字坐标合并物理换行；低置信或复杂版式会保守回退，扫描版 PDF 仍需 OCR。
+- 阅读页支持点击正文切换沉浸模式，并可全局调节字号、行距和左右边距；偏好保存在当前浏览器本地。
 - 小说全文不上传服务器，也不会在正常阅读时调用 AI API、云端翻译或分析服务。
 - 使用本地 `src/data/cet4-map.json` 做中英词表映射；生产入口会过滤反向释义碎片和高风险词项。
 - 断词同时保留原生分词与本地扫描候选；冲突按本地候选网格、边界证据与明确语境规则决策。多义、多词性且没有可靠证据的项默认保留中文。
@@ -81,6 +83,9 @@ src/
   components/        页面和交互组件
   core/
     fileReader.ts   本地 .txt / .pdf 文件读取
+    paragraphs.ts   TXT/PDF 智能段落恢复
+    readerPreferences.ts 阅读排版偏好
+    readingLocation.ts   段落锚点与阅读位置恢复
     tokenizer.ts    章节、句子、词项匹配
     replacer.ts     高置信、稳定替换和题目生成
     db.ts           Dexie / IndexedDB 表结构和读写方法
