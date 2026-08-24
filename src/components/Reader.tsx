@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent } from "react";
-import { DENSITY_DISPLAY_LABELS, densityClassName, type DensityLevel } from "../core/density";
+import { densityClassName, type DensityLevel } from "../core/density";
 import {
   captureReadingAnchor,
   getScrollPercent,
@@ -10,7 +10,6 @@ import {
 } from "../core/readingLocation";
 import type { Chapter, ReaderPreferences, RenderToken, ReplacementToken } from "../core/types";
 import { ChapterToc } from "./ChapterToc";
-import { ReaderSettingsSheet, type ReaderStatsSummary } from "./ReaderSettingsSheet";
 
 export interface ReaderProps {
   chapter: Chapter;
@@ -20,12 +19,8 @@ export interface ReaderProps {
   /** New records can provide an anchor; old records only have progressPercent. */
   readingLocation?: ReadingLocationSnapshot;
   densityLevel: DensityLevel;
-  replacementCount: number;
-  vocabCount?: number;
-  reviewDueCount?: number;
   readerPreferences: ReaderPreferences;
   isImmersive: boolean;
-  onReaderPreferencesChange: (preferences: ReaderPreferences) => void;
   onToggleImmersive: () => void;
   onReturnToShelf: () => void;
   onSelectWord: (replacement: ReplacementToken) => void;
@@ -47,12 +42,8 @@ export function Reader({
   progressPercent,
   readingLocation,
   densityLevel,
-  replacementCount,
-  vocabCount,
-  reviewDueCount,
   readerPreferences,
   isImmersive,
-  onReaderPreferencesChange,
   onToggleImmersive,
   onReturnToShelf,
   onSelectWord,
@@ -69,16 +60,8 @@ export function Reader({
   const didDragRef = useRef(false);
   const pointerDownRef = useRef<{ x: number; y: number } | null>(null);
   const [isTocOpen, setIsTocOpen] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const paragraphs = useMemo(() => groupTokensIntoParagraphs(tokens), [tokens]);
   const densityClass = densityClassName(densityLevel);
-
-  const stats: ReaderStatsSummary = {
-    densityLabel: DENSITY_DISPLAY_LABELS[densityLevel],
-    replacementCount,
-    vocabCount,
-    reviewDueCount,
-  };
 
   const articleStyle = {
     "--reader-font-size": `${readerPreferences.fontSize}px`,
@@ -146,11 +129,6 @@ export function Reader({
     setIsTocOpen(true);
   }
 
-  function openSettings() {
-    showToolbar();
-    setIsSettingsOpen(true);
-  }
-
   function openChapterExercise() {
     showToolbar();
     onCompleteChapter();
@@ -172,13 +150,6 @@ export function Reader({
       completedChapterRef.current = chapter.id;
       onCompleteChapter();
     }
-  }
-
-  function handlePreferencesChange(nextPreferences: ReaderPreferences) {
-    // Capture before changing the CSS variables so the same paragraph remains visible
-    // after the browser recalculates line wrapping.
-    pendingLayoutLocationRef.current = captureCurrentLocation();
-    onReaderPreferencesChange(nextPreferences);
   }
 
   function handleArticlePointerDown(event: React.PointerEvent<HTMLElement>) {
@@ -242,9 +213,6 @@ export function Reader({
           <h2 title={chapter.title}>{chapter.title}</h2>
         </div>
         <div className="reader-header-actions">
-          <button className="reader-settings-button" type="button" onClick={openSettings} aria-label="打开阅读设置">
-            Aa
-          </button>
           <button
             className="reader-toc-button"
             type="button"
@@ -305,14 +273,6 @@ export function Reader({
           activeProgress={progressPercent}
           onSelect={onSelectChapter}
           onClose={() => setIsTocOpen(false)}
-        />
-      ) : null}
-      {isSettingsOpen ? (
-        <ReaderSettingsSheet
-          preferences={readerPreferences}
-          stats={stats}
-          onChange={handlePreferencesChange}
-          onClose={() => setIsSettingsOpen(false)}
         />
       ) : null}
     </section>

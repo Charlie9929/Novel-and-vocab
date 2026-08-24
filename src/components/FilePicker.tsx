@@ -9,6 +9,8 @@ import type { ReadingProgressRecord } from "../core/db";
 export interface ShelfEntry {
   progress: ReadingProgressRecord;
   hasHandle: boolean;
+  /** Keeps a just-opened book resumable after returning to the shelf, even on mobile browsers without FSA. */
+  sessionNovel?: LocalNovel;
 }
 
 interface FilePickerProps {
@@ -47,6 +49,10 @@ export function FilePicker({ shelf, onLoaded, onResumeMissing }: FilePickerProps
     setIsReading(true);
     setReadProgress({ phase: "reading", percent: 0 });
     try {
+      if (entry.sessionNovel) {
+        onLoaded(entry.sessionNovel, null);
+        return;
+      }
       if (entry.hasHandle) {
         // Try FSA handle first — this gives one-click resume
         const handle = await getFileHandle(entry.progress.fileFingerprint);
@@ -101,7 +107,7 @@ export function FilePicker({ shelf, onLoaded, onResumeMissing }: FilePickerProps
               <div className="shelf-card-bar">
                 <span style={{ width: `${entry.progress.scrollPercent}%` }} />
               </div>
-              {entry.hasHandle ? (
+              {entry.sessionNovel || entry.hasHandle ? (
                 <span className="shelf-card-badge">一键恢复</span>
               ) : (
                 <span className="shelf-card-badge shelf-card-badge-fallback">需重新选文件</span>

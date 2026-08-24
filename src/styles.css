@@ -329,8 +329,7 @@ button {
   white-space: nowrap;
 }
 
-.reader-shelf-button,
-.reader-settings-button {
+.reader-shelf-button {
   min-width: 42px;
   min-height: 38px;
   border: 0;
@@ -340,13 +339,6 @@ button {
   color: #20201d;
   font-size: 13px;
   font-weight: 800;
-}
-
-.reader-settings-button {
-  border: 1px solid #b8d8cf;
-  background: #f0faf8;
-  color: #14615c;
-  font-size: 15px;
 }
 
 .reader-toolbar-hidden {
@@ -787,30 +779,6 @@ button {
   gap: 10px;
 }
 
-.reader-settings-sheet {
-  padding-bottom: calc(18px + env(safe-area-inset-bottom));
-}
-
-.reader-settings-sheet fieldset {
-  min-width: 0;
-  margin: 0;
-}
-
-.reader-settings-sheet legend {
-  padding: 0;
-}
-
-.reader-settings-sheet input[type="range"] {
-  width: 100%;
-  accent-color: #14615c;
-}
-
-.reader-settings-sheet output {
-  color: #14615c;
-  font-variant-numeric: tabular-nums;
-  font-weight: 800;
-}
-
 .sheet-actions .blacklist-button {
   grid-column: 1 / -1;
 }
@@ -865,6 +833,72 @@ button {
 
 .setting-row p {
   margin: 4px 0 0;
+}
+
+.reader-preferences-block > p {
+  margin: 6px 0 0;
+  color: #6a665e;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.reader-preference-control {
+  margin-top: 14px;
+}
+
+.reader-preference-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: #3e3b35;
+  font-weight: 700;
+}
+
+.reader-preference-heading output {
+  color: #14615c;
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+}
+
+.reader-preference-slider {
+  display: grid;
+  min-height: 44px;
+  grid-template-columns: 34px minmax(0, 1fr) 34px;
+  align-items: center;
+  gap: 8px;
+  color: #66736c;
+  font-weight: 700;
+  text-align: center;
+}
+
+.reader-preference-slider input[type="range"] {
+  width: 100%;
+  min-height: 44px;
+  margin: 0;
+  accent-color: #14615c;
+}
+
+.reader-preference-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+  border-top: 1px solid #ece4d6;
+  padding-top: 12px;
+}
+
+.reader-preference-footer p {
+  min-width: 180px;
+  flex: 1;
+  margin: 0;
+  font-size: 12px;
+}
+
+.reader-preference-footer button {
+  min-height: 44px;
 }
 
 .tag-list {
@@ -986,11 +1020,6 @@ button {
   background: #fffdf8;
   font-weight: 700;
   cursor: pointer;
-}
-
-.reader-settings-sheet .icon-button {
-  width: 44px;
-  height: 44px;
 }
 
 .density-selector button.density-low {

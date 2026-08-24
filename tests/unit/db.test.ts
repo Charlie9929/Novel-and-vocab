@@ -3,9 +3,12 @@ import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import {
   db,
   clearLocalLearningData,
+  getAllShelfEntries,
+  getReadingProgress,
   getContextCorrections,
   saveContextCorrection,
   saveReplacementRecords,
+  saveReadingProgress,
   saveTranslationFeedback,
 } from "../../src/core/db";
 import type { ReplacementToken } from "../../src/core/types";
@@ -25,6 +28,24 @@ describe("local database v5", () => {
     await saveContextCorrection("选择", "请选择。", "choose");
     const corrections = await getContextCorrections();
     expect([...corrections.values()]).toEqual(["choose"]);
+  });
+
+  it("lists a newly opened book on the shelf even before it has been scrolled", async () => {
+    await saveReadingProgress({
+      fileFingerprint: "novel-new",
+      fileName: "新书.txt",
+      chapterIndex: 0,
+      scrollPercent: 0,
+      updatedAt: 1,
+      layoutVersion: 1,
+    });
+
+    expect(await getReadingProgress("novel-new")).toMatchObject({
+      fileName: "新书.txt",
+      chapterIndex: 0,
+      scrollPercent: 0,
+    });
+    expect((await getAllShelfEntries()).map((entry) => entry.fileFingerprint)).toContain("novel-new");
   });
 
   it("persists a compact translation feedback record with its source sentence", async () => {

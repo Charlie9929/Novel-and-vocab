@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import cet4Entries from "./data/cet4-map.json";
 import { BottomNav, type AppTab } from "./components/BottomNav";
 import { FilePicker, type ShelfEntry } from "./components/FilePicker";
@@ -25,6 +25,7 @@ import {
   saveQuizHistory,
   saveReadingProgress,
   saveReplacementRecords,
+  type ReadingProgressRecord,
   type VocabRecord,
 } from "./core/db";
 import { DEFAULT_DENSITY, DENSITY_VALUES, type DensityLevel } from "./core/density";
@@ -133,6 +134,7 @@ export default function App() {
   const [storageWarning, setStorageWarning] = useState("");
   const [readerPreferences, setReaderPreferences] = useState(DEFAULT_READER_PREFERENCES);
   const [isImmersive, setIsImmersive] = useState(false);
+  const sessionNovelsRef = useRef(new Map<string, LocalNovel>());
 
   const chapters = useMemo(() => (novel ? splitChapters(novel.text) : []), [novel]);
   const currentChapter = chapters[chapterIndex] ?? chapters[0];
@@ -142,11 +144,6 @@ export default function App() {
     if (!currentChapter) return null;
     return replaceChapterTerms(currentChapter, typedCet4Entries, new Set(blacklist), densityValue, corrections);
   }, [blacklist, corrections, currentChapter, densityValue]);
-
-  const reviewDueCount = useMemo(
-    () => vocab.filter((w) => w.sm2.dueAt <= Date.now()).length,
-    [vocab],
-  );
 
   useEffect(() => {
     void refreshLocalState();
@@ -181,7 +178,11 @@ export default function App() {
       const entries: ShelfEntry[] = [];
       for (const progress of shelfEntries) {
         const handle = await getFileHandle(progress.fileFingerprint);
-        entries.push({ progress, hasHandle: !!handle });
+        entries.push({
+          progress,
+          hasHandle: !!handle,
+          sessionNovel: sessionNovelsRef.current.get(progress.fileFingerprint),
+        });
       }
       setShelf(entries);
     } catch (error: unknown) {
@@ -190,6 +191,8 @@ export default function App() {
   }
 
   async function handleNovelLoaded(nextNovel: LocalNovel, nextHandle: FileSystemFileHandle | null) {
+    sessionNovelsRef.current.clear();
+    sessionNovelsRef.current.set(nextNovel.fingerprint, nextNovel);
     setNovel(nextNovel);
     setIsImmersive(false);
 
@@ -214,11 +217,31 @@ export default function App() {
       nextNovel,
       nextChapters.length,
     );
+    const nextParagraphIndex = mappedLocation.layoutChanged ? undefined : location.paragraphIndex;
+    const nextParagraphOffset = mappedLocation.layoutChanged ? undefined : location.paragraphOffset;
     setChapterIndex(mappedLocation.chapterIndex);
     setProgressPercent(mappedLocation.scrollPercent);
-    setParagraphIndex(mappedLocation.layoutChanged ? undefined : location.paragraphIndex);
-    setParagraphOffset(mappedLocation.layoutChanged ? undefined : location.paragraphOffset);
+    setParagraphIndex(nextParagraphIndex);
+    setParagraphOffset(nextParagraphOffset);
     setActiveTab("reader");
+
+    // Remember a successfully opened book immediately. Previously a new book
+    // only entered the shelf after the article emitted a scroll event, so
+    // returning before scrolling produced an empty shelf.
+    try {
+      await saveReadingProgress({
+        fileFingerprint: nextNovel.fingerprint,
+        fileName: nextNovel.fileName,
+        chapterIndex: mappedLocation.chapterIndex,
+        scrollPercent: mappedLocation.scrollPercent,
+        updatedAt: Date.now(),
+        layoutVersion: nextNovel.layout?.version ?? 1,
+        paragraphIndex: nextParagraphIndex,
+        paragraphOffset: nextParagraphOffset,
+      });
+    } catch (error: unknown) {
+      reportStorageIssue(error);
+    }
     await refreshLocalState();
   }
 
@@ -240,9 +263,9 @@ export default function App() {
       paragraphIndex,
       paragraphOffset,
     },
-  ) {
-    if (!novel) return;
-    void saveReadingProgress({
+  ): Promise<void> {
+    if (!novel) return Promise.resolve();
+    const record: ReadingProgressRecord = {
       fileFingerprint: novel.fingerprint,
       fileName: novel.fileName,
       chapterIndex: nextChapterIndex,
@@ -251,7 +274,8 @@ export default function App() {
       layoutVersion: novel.layout?.version ?? 1,
       paragraphIndex: location.paragraphIndex,
       paragraphOffset: location.paragraphOffset,
-    }).catch((error: unknown) => {
+    };
+    return saveReadingProgress(record).catch((error: unknown) => {
       reportStorageIssue(error);
     });
   }
@@ -265,7 +289,7 @@ export default function App() {
     setProgressPercent(location.scrollPercent);
     setParagraphIndex(location.paragraphIndex);
     setParagraphOffset(location.paragraphOffset);
-    persistProgress(chapterIndex, location.scrollPercent, location);
+    void persistProgress(chapterIndex, location.scrollPercent, location);
   }
 
   function goToChapter(nextIndex: number) {
@@ -274,7 +298,7 @@ export default function App() {
     setProgressPercent(0);
     setParagraphIndex(undefined);
     setParagraphOffset(undefined);
-    persistProgress(safeIndex, 0, { scrollPercent: 0 });
+    void persistProgress(safeIndex, 0, { scrollPercent: 0 });
   }
 
   async function handleSaveWord(replacement: ReplacementToken) {
@@ -353,8 +377,10 @@ export default function App() {
     });
   }
 
-  function handleReturnToShelf() {
+  async function handleReturnToShelf() {
     setIsImmersive(false);
+    await persistProgress();
+    await refreshLocalState();
     setNovel(null);
   }
 
@@ -405,16 +431,12 @@ export default function App() {
             layoutVersion: novel.layout?.version,
           }}
           densityLevel={densityLevel}
-          replacementCount={replacedChapter.replacements.length}
-          vocabCount={vocab.length}
-          reviewDueCount={reviewDueCount}
           onSelectWord={(replacement) => {
             setIsImmersive(false);
             setSelectedWord(replacement);
           }}
           onProgressChange={handleProgressChange}
           readerPreferences={readerPreferences}
-          onReaderPreferencesChange={handleReaderPreferencesChange}
           isImmersive={isImmersive}
           onToggleImmersive={() => setIsImmersive((current) => !current)}
           onReturnToShelf={handleReturnToShelf}
@@ -439,9 +461,14 @@ export default function App() {
         <SettingsPanel
           blacklist={blacklist}
           densityLevel={densityLevel}
+          readerPreferences={readerPreferences}
+          replacementCount={replacedChapter.replacements.length}
+          vocabCount={vocab.length}
+          reviewDueCount={vocab.filter((word) => word.sm2.dueAt <= Date.now()).length}
           onRemoveBlacklist={handleRemoveBlacklist}
           onClearData={() => void handleClearData()}
           onSetDensity={(level) => void handleSetDensity(level)}
+          onReaderPreferencesChange={handleReaderPreferencesChange}
         />
       ) : null}
 
