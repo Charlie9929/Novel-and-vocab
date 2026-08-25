@@ -1,0 +1,135 @@
+.background-picker {
+  width: min(760px, 100%);
+  border: 1px solid var(--reader-bg-border, #ece4d6);
+  border-radius: 18px 18px 0 0;
+  padding: 16px 18px calc(18px + env(safe-area-inset-bottom));
+  background: var(--reader-bg-toolbar, #fffdf8);
+  color: var(--reader-bg-text, #20201d);
+  box-shadow: 0 -18px 60px var(--reader-bg-shadow, rgba(24, 24, 21, 0.22));
+}
+
+.background-picker-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.background-picker-eyebrow {
+  display: block;
+  color: var(--reader-bg-muted, #66736c);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.background-picker h3 {
+  margin: 4px 0 0;
+  font-size: 22px;
+}
+
+.background-picker-close {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: var(--reader-bg-accent-soft, #dcece6);
+  color: var(--reader-bg-accent, #14615c);
+  font-size: 25px;
+  line-height: 1;
+}
+
+.background-picker-close:focus-visible,
+.background-picker-option:focus-visible {
+  outline: 3px solid var(--reader-bg-accent, #14615c);
+  outline: 3px solid color-mix(in srgb, var(--reader-bg-accent, #14615c) 42%, transparent);
+  outline-offset: 2px;
+}
+
+.background-picker-description {
+  margin: 10px 0 12px;
+  color: var(--reader-bg-muted, #6a665e);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.background-picker-options {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 2px 2px 6px;
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+}
+
+.background-picker-option {
+  display: grid;
+  flex: 0 0 96px;
+  gap: 5px;
+  min-height: 132px;
+  border: 1px solid var(--reader-bg-border, #ece4d6);
+  border-radius: 12px;
+  padding: 6px;
+  background: var(--reader-bg-toolbar, #fffdf8);
+  color: var(--reader-bg-text, #20201d);
+  text-align: left;
+  scroll-snap-align: start;
+  transition: border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+}
+
+.background-picker-option:active {
+  transform: translateY(1px);
+}
+
+.background-picker-option.selected {
+  border-color: var(--reader-bg-accent, #14615c);
+  box-shadow: 0 0 0 2px var(--reader-bg-accent-soft, #dcece6);
+}
+
+.background-picker-swatch {
+  position: relative;
+  display: block;
+  min-height: 72px;
+  overflow: hidden;
+  border-radius: 8px;
+  background: var(--background-picker-preview, #f1eee6);
+}
+
+.background-picker-check {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: grid;
+  width: 23px;
+  height: 23px;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 50%;
+  background: var(--reader-bg-accent, #14615c);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.background-picker-option-label {
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.background-picker-option-description {
+  overflow: hidden;
+  color: var(--reader-bg-muted, #6a665e);
+  font-size: 11px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .background-picker-option {
+    transition: none;
+  }
+}

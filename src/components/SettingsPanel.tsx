@@ -10,6 +10,8 @@ import {
   normalizeReaderPreferences,
 } from "../core/readerPreferences";
 import type { ReaderPreferences } from "../core/types";
+import type { PageTurnMode } from "../core/types";
+import { BackgroundPicker } from "./BackgroundPicker";
 
 interface SettingsPanelProps {
   blacklist: string[];
@@ -25,6 +27,11 @@ interface SettingsPanelProps {
 }
 
 const DENSITY_OPTIONS: DensityLevel[] = ["low", "medium", "high"];
+const PAGE_TURN_OPTIONS: Array<{ id: PageTurnMode; label: string }> = [
+  { id: "vertical", label: "纵向" },
+  { id: "horizontal", label: "横向" },
+  { id: "simulation", label: "仿真" },
+];
 
 export function SettingsPanel({
   blacklist,
@@ -150,6 +157,38 @@ export function SettingsPanel({
               恢复默认
             </button>
           </div>
+
+          <div className="reader-page-mode-control">
+            <strong>翻页方式</strong>
+            <div className="reader-mode-selector">
+              {PAGE_TURN_OPTIONS.map((option) => (
+                <button
+                  key={option.id}
+                  type="button"
+                  className={safePreferences.pageTurnMode === option.id ? "active" : ""}
+                  aria-pressed={safePreferences.pageTurnMode === option.id}
+                  onClick={() => updateReaderPreferences({ pageTurnMode: option.id })}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="reader-preference-control">
+            <div className="reader-preference-heading">
+              <label htmlFor="reader-auto-speed">自动翻页速度</label>
+              <output htmlFor="reader-auto-speed">{safePreferences.autoSpeed}</output>
+            </div>
+            <div className="reader-preference-slider">
+              <span aria-hidden="true">慢</span>
+              <input id="reader-auto-speed" type="range" min={0} max={100} step={1} value={safePreferences.autoSpeed} onChange={(event) => updateReaderPreferences({ autoSpeed: Number(event.target.value) })} />
+              <span aria-hidden="true">快</span>
+            </div>
+          </div>
+        </div>
+        <div className="setting-block settings-background-block">
+          <BackgroundPicker value={safePreferences.backgroundId} onChange={(backgroundId) => updateReaderPreferences({ backgroundId })} />
         </div>
         <div className="setting-block">
           <strong>黑名单</strong>

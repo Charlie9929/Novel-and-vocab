@@ -43,6 +43,7 @@ import { createQuizQuestions, replaceChapterTerms } from "./core/replacer";
 import type { Sm2State } from "./core/sm2";
 import { splitChapters } from "./core/tokenizer";
 import type {
+  AutoReadingStatus,
   Cet4Entry,
   LocalNovel,
   QuizQuestion,
@@ -134,7 +135,11 @@ export default function App() {
   const [storageWarning, setStorageWarning] = useState("");
   const [readerPreferences, setReaderPreferences] = useState(DEFAULT_READER_PREFERENCES);
   const [isImmersive, setIsImmersive] = useState(false);
+  const [autoStatus, setAutoStatus] = useState<AutoReadingStatus>("idle");
+  const [quizOrigin, setQuizOrigin] = useState<"manual" | "auto" | null>(null);
   const sessionNovelsRef = useRef(new Map<string, LocalNovel>());
+  const progressSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const latestProgressRef = useRef({ chapterIndex: 0, scrollPercent: 0, paragraphIndex: undefined as number | undefined, paragraphOffset: undefined as number | undefined });
 
   const chapters = useMemo(() => (novel ? splitChapters(novel.text) : []), [novel]);
   const currentChapter = chapters[chapterIndex] ?? chapters[0];
@@ -191,10 +196,16 @@ export default function App() {
   }
 
   async function handleNovelLoaded(nextNovel: LocalNovel, nextHandle: FileSystemFileHandle | null) {
+    if (progressSaveTimerRef.current !== null) {
+      clearTimeout(progressSaveTimerRef.current);
+      progressSaveTimerRef.current = null;
+    }
     sessionNovelsRef.current.clear();
     sessionNovelsRef.current.set(nextNovel.fingerprint, nextNovel);
     setNovel(nextNovel);
     setIsImmersive(false);
+    setAutoStatus("idle");
+    setQuizOrigin(null);
 
     if (nextHandle) {
       try {
@@ -223,6 +234,12 @@ export default function App() {
     setProgressPercent(mappedLocation.scrollPercent);
     setParagraphIndex(nextParagraphIndex);
     setParagraphOffset(nextParagraphOffset);
+    latestProgressRef.current = {
+      chapterIndex: mappedLocation.chapterIndex,
+      scrollPercent: mappedLocation.scrollPercent,
+      paragraphIndex: nextParagraphIndex,
+      paragraphOffset: nextParagraphOffset,
+    };
     setActiveTab("reader");
 
     // Remember a successfully opened book immediately. Previously a new book
@@ -289,7 +306,27 @@ export default function App() {
     setProgressPercent(location.scrollPercent);
     setParagraphIndex(location.paragraphIndex);
     setParagraphOffset(location.paragraphOffset);
-    void persistProgress(chapterIndex, location.scrollPercent, location);
+    latestProgressRef.current = {
+      chapterIndex,
+      scrollPercent: location.scrollPercent,
+      paragraphIndex: location.paragraphIndex,
+      paragraphOffset: location.paragraphOffset,
+    };
+    if (progressSaveTimerRef.current !== null) clearTimeout(progressSaveTimerRef.current);
+    progressSaveTimerRef.current = setTimeout(() => {
+      progressSaveTimerRef.current = null;
+      const latest = latestProgressRef.current;
+      void persistProgress(latest.chapterIndex, latest.scrollPercent, latest);
+    }, 450);
+  }
+
+  async function flushProgressPersistence(): Promise<void> {
+    if (progressSaveTimerRef.current !== null) {
+      clearTimeout(progressSaveTimerRef.current);
+      progressSaveTimerRef.current = null;
+    }
+    const latest = latestProgressRef.current;
+    await persistProgress(latest.chapterIndex, latest.scrollPercent, latest);
   }
 
   function goToChapter(nextIndex: number) {
@@ -298,6 +335,11 @@ export default function App() {
     setProgressPercent(0);
     setParagraphIndex(undefined);
     setParagraphOffset(undefined);
+    latestProgressRef.current = { chapterIndex: safeIndex, scrollPercent: 0, paragraphIndex: undefined, paragraphOffset: undefined };
+    if (progressSaveTimerRef.current !== null) {
+      clearTimeout(progressSaveTimerRef.current);
+      progressSaveTimerRef.current = null;
+    }
     void persistProgress(safeIndex, 0, { scrollPercent: 0 });
   }
 
@@ -325,7 +367,13 @@ export default function App() {
     setProgressPercent(0);
     setParagraphIndex(undefined);
     setParagraphOffset(undefined);
+    latestProgressRef.current = { chapterIndex, scrollPercent: 0, paragraphIndex: undefined, paragraphOffset: undefined };
+    if (progressSaveTimerRef.current !== null) {
+      clearTimeout(progressSaveTimerRef.current);
+      progressSaveTimerRef.current = null;
+    }
     setReaderPreferences({ ...DEFAULT_READER_PREFERENCES });
+    setAutoStatus("idle");
     await refreshLocalState();
   }
 
@@ -342,8 +390,16 @@ export default function App() {
     });
   }
 
+  function handleAutoStatusChange(nextStatus: AutoReadingStatus) {
+    if (autoStatus === "running" && nextStatus !== "running") {
+      void flushProgressPersistence();
+    }
+    setAutoStatus(nextStatus);
+  }
+
   function handleTabChange(nextTab: AppTab) {
     if (nextTab !== "reader") setIsImmersive(false);
+    if (nextTab !== "reader" && autoStatus === "running") handleAutoStatusChange("paused");
     setActiveTab(nextTab);
   }
 
@@ -362,24 +418,46 @@ export default function App() {
     void refreshLocalState();
   }
 
-  function openQuiz() {
+  function openQuiz(origin: "manual" | "auto" = "manual") {
     setIsImmersive(false);
+    setQuizOrigin(origin);
+    setAutoStatus(origin === "auto" ? "quiz" : "idle");
     setQuizQuestions(createQuizQuestions(replacedChapter?.replacements ?? []));
   }
 
   async function handleQuizSubmit(correctCount: number) {
     if (!novel || !currentChapter || !quizQuestions) return;
-    await saveQuizHistory({
-      fileFingerprint: novel.fingerprint,
-      chapterIndex: currentChapter.index,
-      questions: quizQuestions,
-      correctCount,
-    });
+    const origin = quizOrigin;
+    try {
+      await saveQuizHistory({
+        fileFingerprint: novel.fingerprint,
+        chapterIndex: currentChapter.index,
+        questions: quizQuestions,
+        correctCount,
+      });
+    } finally {
+      // Automatic exercises are a pacing checkpoint, not a second reading
+      // stop: submitting or closing them advances and resumes the session.
+      if (origin === "auto") handleQuizClose();
+    }
+  }
+
+  function handleQuizClose() {
+    const origin = quizOrigin;
+    setQuizQuestions(null);
+    setQuizOrigin(null);
+    if (origin === "auto" && chapterIndex < chapters.length - 1) {
+      goToChapter(chapterIndex + 1);
+      setAutoStatus("running");
+      return;
+    }
+    setAutoStatus("idle");
   }
 
   async function handleReturnToShelf() {
     setIsImmersive(false);
-    await persistProgress();
+    setAutoStatus("idle");
+    await flushProgressPersistence();
     await refreshLocalState();
     setNovel(null);
   }
@@ -438,9 +516,13 @@ export default function App() {
           onProgressChange={handleProgressChange}
           readerPreferences={readerPreferences}
           isImmersive={isImmersive}
+          autoStatus={autoStatus}
+          onAutoStatusChange={handleAutoStatusChange}
+          onAutoChapterEnd={() => openQuiz("auto")}
+          onReaderPreferencesChange={handleReaderPreferencesChange}
           onToggleImmersive={() => setIsImmersive((current) => !current)}
           onReturnToShelf={handleReturnToShelf}
-          onCompleteChapter={openQuiz}
+          onCompleteChapter={(origin) => openQuiz(origin ?? "manual")}
           onPrevChapter={() => goToChapter(chapterIndex - 1)}
           onNextChapter={() => goToChapter(chapterIndex + 1)}
           onSelectChapter={goToChapter}
@@ -482,7 +564,7 @@ export default function App() {
       {quizQuestions ? (
         <QuizPanel
           questions={quizQuestions}
-          onClose={() => setQuizQuestions(null)}
+          onClose={handleQuizClose}
           onSubmit={(correctCount) => void handleQuizSubmit(correctCount)}
         />
       ) : null}

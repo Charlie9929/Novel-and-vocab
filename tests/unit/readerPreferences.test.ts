@@ -10,7 +10,14 @@ import {
 
 describe("reader preferences", () => {
   it("provides the intended defaults", () => {
-    expect(DEFAULT_READER_PREFERENCES).toEqual({ fontSize: 19, lineHeight: 1.8, contentPadding: 18 });
+    expect(DEFAULT_READER_PREFERENCES).toEqual({
+      fontSize: 19,
+      lineHeight: 1.8,
+      contentPadding: 18,
+      pageTurnMode: "vertical",
+      backgroundId: "silk",
+      autoSpeed: 50,
+    });
     expect(parseReaderPreferences(null)).toEqual(DEFAULT_READER_PREFERENCES);
   });
 
@@ -19,6 +26,9 @@ describe("reader preferences", () => {
       fontSize: 26,
       lineHeight: 1.8,
       contentPadding: 12,
+      pageTurnMode: "vertical",
+      backgroundId: "silk",
+      autoSpeed: 50,
     });
     expect(parseReaderPreferences(JSON.stringify({ fontSize: 15.5, lineHeight: "1.6", contentPadding: 20 }))).toEqual(
       DEFAULT_READER_PREFERENCES,
@@ -32,11 +42,17 @@ describe("reader preferences", () => {
       fontSize: 19,
       lineHeight: 1.4,
       contentPadding: 8,
+      pageTurnMode: "vertical",
+      backgroundId: "silk",
+      autoSpeed: 50,
     });
     expect(normalizeReaderPreferences({ fontSize: 19, lineHeight: 2.4, contentPadding: 40 })).toEqual({
       fontSize: 19,
       lineHeight: 2.4,
       contentPadding: 40,
+      pageTurnMode: "vertical",
+      backgroundId: "silk",
+      autoSpeed: 50,
     });
     expect(normalizeReaderPreferences({ fontSize: 19, lineHeight: 1.45, contentPadding: 9 })).toEqual(
       DEFAULT_READER_PREFERENCES,
@@ -51,7 +67,14 @@ describe("reader preferences", () => {
 
   it("serializes only normalized values", () => {
     expect(serializeReaderPreferences({ fontSize: 100, lineHeight: 1.6, contentPadding: 28 })).toBe(
-      JSON.stringify({ fontSize: 19, lineHeight: 1.6, contentPadding: 28 }),
+      JSON.stringify({
+        fontSize: 19,
+        lineHeight: 1.6,
+        contentPadding: 28,
+        pageTurnMode: "vertical",
+        backgroundId: "silk",
+        autoSpeed: 50,
+      }),
     );
   });
 });

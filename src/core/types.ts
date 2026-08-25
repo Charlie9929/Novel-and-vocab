@@ -1,5 +1,21 @@
 export type PartOfSpeech = "noun" | "verb" | "adjective" | "adverb";
 
+export type PageTurnMode = "vertical" | "horizontal" | "simulation";
+
+export type ReaderBackgroundId =
+  | "silk"
+  | "almond"
+  | "celadon"
+  | "mistRose"
+  | "cloudBlue"
+  | "xuanPaper"
+  | "grid"
+  | "mountain"
+  | "moonlight"
+  | "meteor";
+
+export type AutoReadingStatus = "idle" | "running" | "paused" | "quiz";
+
 export type TranslationFeedbackReason = "meaning" | "partOfSpeech" | "segmentation" | "context";
 
 /** Declarative, browser-only evidence for a word sense. */
@@ -63,6 +79,9 @@ export interface ReaderPreferences {
   fontSize: number;
   lineHeight: number;
   contentPadding: number;
+  pageTurnMode: PageTurnMode;
+  backgroundId: ReaderBackgroundId;
+  autoSpeed: number;
 }
 
 export interface ReadingLocation {

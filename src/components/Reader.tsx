@@ -1,5 +1,14 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { AutoReadingController, type AutoReadingSnapshot } from "../core/autoReading";
 import { densityClassName, type DensityLevel } from "../core/density";
+import {
+  classifyPointerGesture,
+  getPageProgress,
+  pageIndexFromProgress,
+  nextPageIndex,
+  previousPageIndex,
+  type ReaderGesture,
+} from "../core/pagination";
 import {
   captureReadingAnchor,
   getScrollPercent,
@@ -8,24 +17,31 @@ import {
   type ReadingLocationSnapshot,
   type ScrollContainerLike,
 } from "../core/readingLocation";
-import type { Chapter, ReaderPreferences, RenderToken, ReplacementToken } from "../core/types";
+import { getReaderBackgroundStyle } from "../core/readerBackgrounds";
+import type { AutoReadingStatus, Chapter, ReaderPreferences, RenderToken, ReplacementToken } from "../core/types";
+import { BackgroundPicker } from "./BackgroundPicker";
 import { ChapterToc } from "./ChapterToc";
+import { ReaderControls } from "./ReaderControls";
+import { ReaderLayoutSheet } from "./ReaderLayoutSheet";
 
 export interface ReaderProps {
   chapter: Chapter;
   chapters: Chapter[];
   tokens: RenderToken[];
   progressPercent: number;
-  /** New records can provide an anchor; old records only have progressPercent. */
   readingLocation?: ReadingLocationSnapshot;
   densityLevel: DensityLevel;
   readerPreferences: ReaderPreferences;
   isImmersive: boolean;
+  autoStatus: AutoReadingStatus;
+  onAutoStatusChange: (status: AutoReadingStatus) => void;
+  onAutoChapterEnd: () => void;
+  onReaderPreferencesChange: (preferences: ReaderPreferences) => void;
   onToggleImmersive: () => void;
   onReturnToShelf: () => void;
   onSelectWord: (replacement: ReplacementToken) => void;
   onProgressChange: (scrollPercent: number, paragraphIndex?: number, paragraphOffset?: number) => void;
-  onCompleteChapter: () => void;
+  onCompleteChapter: (origin?: "manual" | "auto") => void;
   onPrevChapter: () => void;
   onNextChapter: () => void;
   onSelectChapter: (chapterIndex: number) => void;
@@ -44,6 +60,10 @@ export function Reader({
   densityLevel,
   readerPreferences,
   isImmersive,
+  autoStatus,
+  onAutoStatusChange,
+  onAutoChapterEnd,
+  onReaderPreferencesChange,
   onToggleImmersive,
   onReturnToShelf,
   onSelectWord,
@@ -54,19 +74,52 @@ export function Reader({
   onSelectChapter,
 }: ReaderProps) {
   const articleRef = useRef<HTMLElement | null>(null);
+  const stripRef = useRef<HTMLDivElement | null>(null);
   const contentEndRef = useRef<HTMLDivElement | null>(null);
-  const completedChapterRef = useRef<string | null>(null);
+  const completedChapterRef = useRef(false);
   const pendingLayoutLocationRef = useRef<PendingLayoutLocation | null>(null);
-  const didDragRef = useRef(false);
-  const pointerDownRef = useRef<{ x: number; y: number } | null>(null);
+  const pointerDownRef = useRef<{ x: number; y: number; time: number } | null>(null);
+  const pageIndexRef = useRef(0);
+  const pageCountRef = useRef(1);
+  const modeRef = useRef(readerPreferences.pageTurnMode);
+  const autoStatusRef = useRef(autoStatus);
+  const callbacksRef = useRef({
+    onProgressChange,
+    onAutoStatusChange,
+    onAutoChapterEnd,
+    onCompleteChapter,
+  });
+  const autoControllerRef = useRef<AutoReadingController | null>(null);
   const [isTocOpen, setIsTocOpen] = useState(false);
+  const [isBackgroundOpen, setIsBackgroundOpen] = useState(false);
+  const [isLayoutOpen, setIsLayoutOpen] = useState(false);
+  const [pageCount, setPageCount] = useState(1);
+  const [pageIndex, setPageIndex] = useState(0);
+  const [pageWidth, setPageWidth] = useState(0);
+  const [isSimulationTurning, setIsSimulationTurning] = useState(false);
   const paragraphs = useMemo(() => groupTokensIntoParagraphs(tokens), [tokens]);
   const densityClass = densityClassName(densityLevel);
+  const mode = readerPreferences.pageTurnMode;
+  const isPaged = mode !== "vertical";
+  const backgroundStyle = getReaderBackgroundStyle(readerPreferences.backgroundId);
+
+  pageIndexRef.current = pageIndex;
+  pageCountRef.current = pageCount;
+  modeRef.current = mode;
+  autoStatusRef.current = autoStatus;
+  callbacksRef.current = {
+    onProgressChange,
+    onAutoStatusChange,
+    onAutoChapterEnd,
+    onCompleteChapter,
+  };
 
   const articleStyle = {
+    ...backgroundStyle,
     "--reader-font-size": `${readerPreferences.fontSize}px`,
     "--reader-line-height": readerPreferences.lineHeight,
     "--reader-content-padding": `${readerPreferences.contentPadding}px`,
+    "--reader-page-width": `${pageWidth}px`,
   } as CSSProperties;
 
   function asScrollContainer(article: HTMLElement): ScrollContainerLike {
@@ -102,6 +155,13 @@ export function Reader({
   function captureCurrentLocation(): PendingLayoutLocation | null {
     const article = articleRef.current;
     if (!article) return null;
+    if (isPaged) {
+      return {
+        scrollPercent: pageCountRef.current > 1
+          ? getPageProgress(pageIndexRef.current, pageCountRef.current)
+          : progressPercent,
+      };
+    }
     const container = asScrollContainer(article);
     const anchor = captureReadingAnchor(container, getArticleParagraphs(article));
     return {
@@ -124,70 +184,182 @@ export function Reader({
     onToggleImmersive();
   }
 
+  function pauseAutoForInteraction() {
+    if (autoStatus === "running") onAutoStatusChange("paused");
+  }
+
+  function handleReaderPreferencesChange(nextPreferences: ReaderPreferences) {
+    pendingLayoutLocationRef.current = captureCurrentLocation();
+    onReaderPreferencesChange(nextPreferences);
+  }
+
   function openToc() {
+    pauseAutoForInteraction();
     showToolbar();
     setIsTocOpen(true);
   }
 
   function openChapterExercise() {
+    pauseAutoForInteraction();
     showToolbar();
-    onCompleteChapter();
+    onCompleteChapter("manual");
   }
 
   function handleSelectWord(replacement: ReplacementToken) {
+    pauseAutoForInteraction();
     showToolbar();
     onSelectWord(replacement);
   }
 
+  function completeChapter(origin: "manual" | "auto") {
+    if (completedChapterRef.current) return;
+    completedChapterRef.current = true;
+    if (origin === "auto") {
+      callbacksRef.current.onAutoStatusChange("quiz");
+      callbacksRef.current.onAutoChapterEnd();
+    } else {
+      callbacksRef.current.onCompleteChapter(origin);
+    }
+  }
+
+  function emitPageProgress(nextIndex: number, nextCount = pageCountRef.current) {
+    const safeIndex = Math.max(0, Math.min(Math.max(1, nextCount) - 1, nextIndex));
+    setPageIndex(safeIndex);
+    pageIndexRef.current = safeIndex;
+    if (modeRef.current === "simulation") {
+      setIsSimulationTurning(true);
+      window.setTimeout(() => setIsSimulationTurning(false), 360);
+    }
+    callbacksRef.current.onProgressChange(getPageProgress(safeIndex, nextCount));
+  }
+
+  function advancePage(origin: "manual" | "auto" = "manual"): boolean {
+    if (modeRef.current === "vertical") return false;
+    const current = pageIndexRef.current;
+    if (current >= pageCountRef.current - 1) {
+      completeChapter(origin);
+      return false;
+    }
+    emitPageProgress(nextPageIndex(current, pageCountRef.current));
+    return true;
+  }
+
+  function retreatPage() {
+    if (!isPaged) return;
+    emitPageProgress(previousPageIndex(pageIndexRef.current, pageCountRef.current));
+  }
+
   function handleScroll() {
     const article = articleRef.current;
-    if (!article) return;
+    if (!article || modeRef.current !== "vertical") return;
     const container = asScrollContainer(article);
     const percent = Math.round(getScrollPercent(locationContainer(article)));
     const anchor = captureReadingAnchor(container, getArticleParagraphs(article));
-    onProgressChange(percent, anchor?.paragraphIndex, anchor?.paragraphOffset);
-    if (percent >= 96 && completedChapterRef.current !== chapter.id) {
-      completedChapterRef.current = chapter.id;
-      onCompleteChapter();
-    }
+    callbacksRef.current.onProgressChange(percent, anchor?.paragraphIndex, anchor?.paragraphOffset);
+    const maxScroll = contentMaxScroll(article);
+    if (article.scrollTop >= Math.max(0, maxScroll - 2)) completeChapter(autoStatusRef.current === "running" ? "auto" : "manual");
   }
 
   function handleArticlePointerDown(event: React.PointerEvent<HTMLElement>) {
-    pointerDownRef.current = { x: event.clientX, y: event.clientY };
-    didDragRef.current = false;
+    pointerDownRef.current = { x: event.clientX, y: event.clientY, time: Date.now() };
   }
 
-  function handleArticlePointerMove(event: React.PointerEvent<HTMLElement>) {
+  function handlePagedGesture(gesture: ReaderGesture, event: React.PointerEvent<HTMLElement>) {
+    if (!isPaged) return false;
+    if (gesture === "swipe-left") {
+      pauseAutoForInteraction();
+      advancePage();
+      return true;
+    }
+    if (gesture === "swipe-right") {
+      pauseAutoForInteraction();
+      retreatPage();
+      return true;
+    }
+    if (gesture !== "tap") return false;
+    const rect = articleRef.current?.getBoundingClientRect();
+    if (!rect) return false;
+    const x = event.clientX - rect.left;
+    if (x < rect.width * 0.3) {
+      pauseAutoForInteraction();
+      retreatPage();
+    } else if (x > rect.width * 0.7) {
+      pauseAutoForInteraction();
+      advancePage();
+    } else if (autoStatusRef.current === "running") {
+      callbacksRef.current.onAutoStatusChange("paused");
+      showToolbar();
+    } else {
+      toggleImmersive();
+    }
+    return true;
+  }
+
+  function handleArticlePointerUp(event: React.PointerEvent<HTMLElement>) {
     const start = pointerDownRef.current;
+    pointerDownRef.current = null;
     if (!start) return;
-    if (Math.hypot(event.clientX - start.x, event.clientY - start.y) > 6) didDragRef.current = true;
-  }
-
-  function handleArticleClick(event: MouseEvent<HTMLElement>) {
-    const target = event.target;
-    if (target instanceof Element && target.closest("button, a, input, textarea, select")) return;
-    if (didDragRef.current) {
-      didDragRef.current = false;
-      pointerDownRef.current = null;
+    if (event.target instanceof Element && event.target.closest("button, a, input, textarea, select")) return;
+    if (window.getSelection()?.toString().trim()) return;
+    const gesture = classifyPointerGesture({ startX: start.x, startY: start.y, endX: event.clientX, endY: event.clientY, durationMs: Date.now() - start.time });
+    if (handlePagedGesture(gesture, event)) return;
+    if (gesture !== "tap") return;
+    if (autoStatusRef.current === "running") {
+      callbacksRef.current.onAutoStatusChange("paused");
+      showToolbar();
       return;
     }
-    pointerDownRef.current = null;
-    if (window.getSelection()?.toString().trim()) return;
     toggleImmersive();
   }
+
+  function measurePages() {
+    if (!isPaged) return;
+    const article = articleRef.current;
+    const strip = stripRef.current;
+    if (!article || !strip || article.clientWidth <= 0) return;
+    const width = article.clientWidth;
+    const measuredCount = Math.max(1, Math.ceil(strip.scrollWidth / width));
+    const oldProgress = pageCountRef.current > 1 ? getPageProgress(pageIndexRef.current, pageCountRef.current) : progressPercent;
+    setPageWidth(width);
+    setPageCount(measuredCount);
+    pageCountRef.current = measuredCount;
+    const restored = pageIndexFromProgress(oldProgress, measuredCount);
+    setPageIndex(restored);
+    pageIndexRef.current = restored;
+  }
+
+  useEffect(() => {
+    if (!isPaged) return;
+    const article = articleRef.current;
+    if (!article) return;
+    const observer = typeof ResizeObserver === "function" ? new ResizeObserver(() => measurePages()) : null;
+    observer?.observe(article);
+    const frame = requestAnimationFrame(measurePages);
+    return () => {
+      observer?.disconnect();
+      cancelAnimationFrame(frame);
+    };
+  }, [isPaged, readerPreferences.fontSize, readerPreferences.lineHeight, readerPreferences.contentPadding, tokens]);
 
   useEffect(() => {
     const article = articleRef.current;
     if (!article) return;
-    // A chapter change must not inherit the previous chapter's scrollTop.
+    completedChapterRef.current = false;
     article.scrollTop = 0;
+    setPageIndex(0);
+    pageIndexRef.current = 0;
     const frame = requestAnimationFrame(() => {
       const location = readingLocation ?? { scrollPercent: progressPercent };
-      restoreReadingLocation(locationContainer(article), getArticleParagraphs(article), location);
+      if (isPaged) {
+        measurePages();
+        const restored = pageIndexFromProgress(location.scrollPercent, pageCountRef.current);
+        setPageIndex(restored);
+        pageIndexRef.current = restored;
+      } else {
+        restoreReadingLocation(locationContainer(article), getArticleParagraphs(article), location);
+      }
     });
-    completedChapterRef.current = progressPercent >= 96 ? chapter.id : null;
     return () => cancelAnimationFrame(frame);
-    // Restore only when a chapter is opened; progress updates must not fight scrolling.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chapter.id]);
 
@@ -197,103 +369,133 @@ export function Reader({
     if (!pending || !article) return;
     pendingLayoutLocationRef.current = null;
     const frame = requestAnimationFrame(() => {
-      restoreReadingLocation(locationContainer(article), getArticleParagraphs(article), pending);
+      if (isPaged) {
+        measurePages();
+        const restored = pageIndexFromProgress(pending.scrollPercent, pageCountRef.current);
+        setPageIndex(restored);
+        pageIndexRef.current = restored;
+      } else {
+        restoreReadingLocation(locationContainer(article), getArticleParagraphs(article), pending);
+      }
     });
     return () => cancelAnimationFrame(frame);
-  }, [isImmersive, readerPreferences.fontSize, readerPreferences.lineHeight, readerPreferences.contentPadding]);
+  }, [isImmersive, mode, readerPreferences.fontSize, readerPreferences.lineHeight, readerPreferences.contentPadding]);
+
+  useEffect(() => {
+    const controller = new AutoReadingController({
+      mode,
+      speed: readerPreferences.autoSpeed,
+      vertical: {
+        getViewportHeight: () => articleRef.current?.clientHeight ?? 0,
+        scrollBy: (pixels) => {
+          const article = articleRef.current;
+          if (!article) return;
+          article.scrollTop += pixels;
+          handleScroll();
+        },
+      },
+      paged: { advancePage: () => advancePage("auto") },
+      onStateChange: (snapshot: AutoReadingSnapshot) => callbacksRef.current.onAutoStatusChange(snapshot.status),
+    });
+    autoControllerRef.current = controller;
+    return () => {
+      controller.dispose();
+      autoControllerRef.current = null;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chapter.id]);
+
+  useEffect(() => {
+    const controller = autoControllerRef.current;
+    if (!controller) return;
+    controller.setMode(mode);
+    controller.setSpeed(readerPreferences.autoSpeed);
+    if (autoStatus === "running") controller.start();
+    else if (autoStatus === "paused") controller.pause();
+    else if (autoStatus === "idle" || autoStatus === "quiz") controller.stop();
+  }, [autoStatus, mode, readerPreferences.autoSpeed]);
 
   return (
-    <section className={`reader-view${isImmersive ? " reader-view-immersive" : ""}`}>
+    <section className={`reader-view reader-background-${readerPreferences.backgroundId}${isImmersive ? " reader-view-immersive" : ""}`} style={backgroundStyle}>
       <header className={`reader-header reader-toolbar${isImmersive ? " reader-toolbar-hidden" : ""}`}>
-        <button className="reader-shelf-button" type="button" onClick={onReturnToShelf}>
-          书架
-        </button>
+        <button className="reader-shelf-button" type="button" onClick={onReturnToShelf}>书架</button>
         <div className="reader-header-title">
-          <span className="eyebrow">{chapter.index + 1} / {chapters.length}</span>
+          <span className="eyebrow">{chapter.index + 1} / {chapters.length}{isPaged ? ` · ${pageIndex + 1}/${pageCount} 页` : ""}</span>
           <h2 title={chapter.title}>{chapter.title}</h2>
         </div>
         <div className="reader-header-actions">
-          <button
-            className="reader-toc-button"
-            type="button"
-            aria-label={`打开目录，共 ${chapters.length} 章`}
-            onClick={openToc}
-          >
-            目录
-          </button>
+          <button className="reader-toc-button" type="button" aria-label={`打开目录，共 ${chapters.length} 章`} onClick={openToc}>目录</button>
         </div>
       </header>
-      <div className="progress-track" aria-hidden="true">
-        <span style={{ width: `${progressPercent}%` }} />
-      </div>
+      <div className="progress-track" aria-hidden="true"><span style={{ width: `${progressPercent}%` }} /></div>
       <article
         ref={articleRef}
-        className="reader-article"
+        className={`reader-article reader-article-${mode}${isSimulationTurning ? " reader-simulation-turning" : ""}`}
         style={articleStyle}
         onScroll={handleScroll}
-        onClick={handleArticleClick}
         onPointerDown={handleArticlePointerDown}
-        onPointerMove={handleArticlePointerMove}
+        onPointerUp={handleArticlePointerUp}
       >
-        {paragraphs.map((paragraph, paragraphIndex) => (
-          <p key={`${chapter.id}-${paragraphIndex}`}>
-            {paragraph.map((token, tokenIndex) =>
-              token.kind === "text" ? (
+        <div ref={stripRef} className={isPaged ? `reader-page-strip reader-page-strip-${mode}` : "reader-content"} style={isPaged ? { transform: `translate3d(-${pageIndex * pageWidth}px, 0, 0)` } : undefined}>
+          {paragraphs.map((paragraph, paragraphIndex) => (
+            <p key={`${chapter.id}-${paragraphIndex}`}>
+              {paragraph.map((token, tokenIndex) => token.kind === "text" ? (
                 <span key={`${paragraphIndex}-${tokenIndex}`}>{token.value}</span>
               ) : (
-                <button
-                  className={`inline-word ${densityClass}`}
-                  key={token.replacement.id}
-                  type="button"
-                  onClick={() => handleSelectWord(token.replacement)}
-                >
-                  {token.value}
-                </button>
-              ),
-            )}
-          </p>
-        ))}
-        <div ref={contentEndRef} aria-hidden="true" />
-        <footer className="chapter-controls reader-chapter-controls">
-          <button type="button" onClick={() => { showToolbar(); onPrevChapter(); }} disabled={chapter.index === 0}>
-            上一章
-          </button>
-          <button type="button" onClick={openChapterExercise}>
-            章节练习
-          </button>
-          <button type="button" onClick={() => { showToolbar(); onNextChapter(); }} disabled={chapter.index >= chapters.length - 1}>
-            下一章
-          </button>
-        </footer>
+                <button className={`inline-word ${densityClass}`} key={token.replacement.id} type="button" onClick={() => handleSelectWord(token.replacement)}>{token.value}</button>
+              ))}
+            </p>
+          ))}
+          <div ref={contentEndRef} aria-hidden="true" />
+          <footer className="chapter-controls reader-chapter-controls">
+            <button type="button" onClick={() => { pauseAutoForInteraction(); showToolbar(); onPrevChapter(); }} disabled={chapter.index === 0}>上一章</button>
+            <button type="button" onClick={openChapterExercise}>章节练习</button>
+            <button type="button" onClick={() => { pauseAutoForInteraction(); showToolbar(); onNextChapter(); }} disabled={chapter.index >= chapters.length - 1}>下一章</button>
+          </footer>
+        </div>
       </article>
-      {isTocOpen ? (
-        <ChapterToc
-          chapters={chapters}
-          activeIndex={chapter.index}
-          activeProgress={progressPercent}
-          onSelect={onSelectChapter}
-          onClose={() => setIsTocOpen(false)}
-        />
+
+      <ReaderControls
+        status={autoStatus}
+        pageTurnMode={mode}
+        autoSpeed={readerPreferences.autoSpeed}
+        onStartAuto={() => {
+          pendingLayoutLocationRef.current = captureCurrentLocation();
+          if (!isImmersive) onToggleImmersive();
+          onAutoStatusChange("running");
+        }}
+        onResumeAuto={() => onAutoStatusChange("running")}
+        onStopAuto={() => onAutoStatusChange("idle")}
+        onAutoSpeedChange={(autoSpeed) => onReaderPreferencesChange({ ...readerPreferences, autoSpeed })}
+        onOpenBackground={() => { pauseAutoForInteraction(); showToolbar(); setIsBackgroundOpen(true); }}
+        onOpenLayout={() => { pauseAutoForInteraction(); showToolbar(); setIsLayoutOpen(true); }}
+      />
+
+      {isTocOpen ? <ChapterToc chapters={chapters} activeIndex={chapter.index} activeProgress={progressPercent} onSelect={onSelectChapter} onClose={() => setIsTocOpen(false)} /> : null}
+      {isBackgroundOpen ? (
+        <div className="sheet-backdrop" role="presentation" onClick={() => setIsBackgroundOpen(false)}>
+          <div className="background-sheet-wrap" onClick={(event) => event.stopPropagation()}>
+            <BackgroundPicker value={readerPreferences.backgroundId} onChange={(backgroundId) => onReaderPreferencesChange({ ...readerPreferences, backgroundId })} onClose={() => setIsBackgroundOpen(false)} />
+          </div>
+        </div>
       ) : null}
+      {isLayoutOpen ? <ReaderLayoutSheet preferences={readerPreferences} onChange={handleReaderPreferencesChange} onClose={() => setIsLayoutOpen(false)} /> : null}
     </section>
   );
 }
 
 function groupTokensIntoParagraphs(tokens: RenderToken[]): RenderToken[][] {
   const paragraphs: RenderToken[][] = [[]];
-
   for (const token of tokens) {
     if (token.kind === "replacement") {
       paragraphs[paragraphs.length - 1].push(token);
       continue;
     }
-
     const parts = token.value.split(/\n{2,}/);
     parts.forEach((part, index) => {
       if (index > 0) paragraphs.push([]);
       if (part) paragraphs[paragraphs.length - 1].push({ kind: "text", value: part });
     });
   }
-
   return paragraphs.filter((paragraph) => paragraph.length > 0);
 }
