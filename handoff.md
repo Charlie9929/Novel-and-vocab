@@ -106,4 +106,4 @@ npm run quality:novels           # 上述精度/覆盖率硬门槛通过
 
 ## 本轮发布状态
 
-提交 `0a81de5` 已推送到 `main`。Cloudflare Pages 已完成部署；线上 `https://wordflow-dcx.pages.dev/` 使用 `index-BA40NrN0.js` / `index-C93eC8eA.css`，首页返回 HTTP 200，设置页统一承载自动翻页、背景和排版入口，横向/仿真分页已更新，`xuan-paper.webp` 可正常加载。
+提交 `ae3f07e` 已推送到 `main`。Cloudflare Pages 已完成部署；线上 `https://wordflow-dcx.pages.dev/` 使用 `index-C3onQJs0.js` / `index-BgPdif63.css`，首页返回 HTTP 200，横向/仿真分页已改为固定页宽显式列布局，`xuan-paper.webp` 可正常加载。
