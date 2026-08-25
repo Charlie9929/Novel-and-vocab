@@ -116,6 +116,7 @@ export function Reader({
     "--reader-line-height": readerPreferences.lineHeight,
     "--reader-content-padding": `${readerPreferences.contentPadding}px`,
     "--reader-page-width": pageWidth > 0 ? `${pageWidth}px` : "100vw",
+    "--reader-page-count": pageCount,
   } as CSSProperties;
 
   function asScrollContainer(article: HTMLElement): ScrollContainerLike {
@@ -324,11 +325,23 @@ export function Reader({
     const strip = stripRef.current;
     if (!article || !strip || article.clientWidth <= 0) return;
     const width = article.clientWidth;
-    const measuredCount = Math.max(1, Math.ceil(Math.max(strip.scrollWidth, article.scrollWidth) / width - 0.001));
+    const height = article.clientHeight;
+    if (height <= 0) return;
+    const measuredCount = Math.min(
+      5000,
+      Math.max(
+        1,
+        Math.ceil(strip.scrollHeight / height - 0.001),
+        Math.ceil(strip.scrollWidth / width - 0.001),
+      ),
+    );
     const oldProgress = pageCountRef.current > 1 ? getPageProgress(pageIndexRef.current, pageCountRef.current) : progressPercent;
     setPageWidth(width);
-    setPageCount(measuredCount);
-    pageCountRef.current = measuredCount;
+    if (measuredCount !== pageCountRef.current) {
+      setPageCount(measuredCount);
+      pageCountRef.current = measuredCount;
+      requestAnimationFrame(measurePages);
+    }
     const restored = pageIndexFromProgress(oldProgress, measuredCount);
     setPageIndex(restored);
     pageIndexRef.current = restored;

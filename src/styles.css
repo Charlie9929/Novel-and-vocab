@@ -431,10 +431,11 @@ button {
 
 .reader-page-strip {
   height: 100%;
-  width: 100%;
-  min-width: 100%;
-  column-width: calc(var(--reader-page-width, 100vw) - (2 * var(--reader-content-padding, 18px)));
-  column-gap: 0;
+  width: calc(var(--reader-page-width, 100vw) * var(--reader-page-count, 1));
+  min-width: calc(var(--reader-page-width, 100vw) * var(--reader-page-count, 1));
+  column-count: var(--reader-page-count, 1);
+  column-width: auto;
+  column-gap: calc(2 * var(--reader-content-padding, 18px));
   column-fill: auto;
   padding: 12px var(--reader-content-padding, 18px) 24px;
   background: var(--reader-bg, #fffdf8);
