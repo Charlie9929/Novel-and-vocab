@@ -7,23 +7,18 @@ import { ReaderLayoutSheet } from "../../src/components/ReaderLayoutSheet";
 describe("reader controls", () => {
   const noop = () => undefined;
 
-  it("renders the Jinjiang-style action bar when idle", () => {
+  it("does not duplicate settings controls in the reader when idle", () => {
     const markup = renderToStaticMarkup(
       <ReaderControls
         status="idle"
         pageTurnMode="vertical"
         autoSpeed={50}
-        onStartAuto={noop}
         onResumeAuto={noop}
         onStopAuto={noop}
         onAutoSpeedChange={noop}
-        onOpenBackground={noop}
-        onOpenLayout={noop}
       />,
     );
-    expect(markup).toContain("自动翻页");
-    expect(markup).toContain("背景");
-    expect(markup).toContain("Aa 排版");
+    expect(markup).toBe("");
   });
 
   it("renders pause controls with a bounded speed slider", () => {
@@ -32,12 +27,9 @@ describe("reader controls", () => {
         status="paused"
         pageTurnMode="simulation"
         autoSpeed={50}
-        onStartAuto={noop}
         onResumeAuto={noop}
         onStopAuto={noop}
         onAutoSpeedChange={noop}
-        onOpenBackground={noop}
-        onOpenLayout={noop}
       />,
     );
     expect(markup).toContain("结束自动翻页");

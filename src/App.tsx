@@ -397,6 +397,18 @@ export default function App() {
     setAutoStatus(nextStatus);
   }
 
+  function startAutoReadingFromSettings() {
+    setIsImmersive(true);
+    setActiveTab("reader");
+    setAutoStatus("running");
+  }
+
+  function resumeAutoReadingFromSettings() {
+    setIsImmersive(true);
+    setActiveTab("reader");
+    setAutoStatus("running");
+  }
+
   function handleTabChange(nextTab: AppTab) {
     if (nextTab !== "reader") setIsImmersive(false);
     if (nextTab !== "reader" && autoStatus === "running") handleAutoStatusChange("paused");
@@ -544,6 +556,7 @@ export default function App() {
           blacklist={blacklist}
           densityLevel={densityLevel}
           readerPreferences={readerPreferences}
+          autoStatus={autoStatus}
           replacementCount={replacedChapter.replacements.length}
           vocabCount={vocab.length}
           reviewDueCount={vocab.filter((word) => word.sm2.dueAt <= Date.now()).length}
@@ -551,6 +564,9 @@ export default function App() {
           onClearData={() => void handleClearData()}
           onSetDensity={(level) => void handleSetDensity(level)}
           onReaderPreferencesChange={handleReaderPreferencesChange}
+          onStartAutoReading={startAutoReadingFromSettings}
+          onResumeAutoReading={resumeAutoReadingFromSettings}
+          onStopAutoReading={() => handleAutoStatusChange("idle")}
         />
       ) : null}
 

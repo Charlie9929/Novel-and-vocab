@@ -9,7 +9,7 @@ import {
   READER_LINE_HEIGHT_OPTIONS,
   normalizeReaderPreferences,
 } from "../core/readerPreferences";
-import type { ReaderPreferences } from "../core/types";
+import type { AutoReadingStatus, ReaderPreferences } from "../core/types";
 import type { PageTurnMode } from "../core/types";
 import { BackgroundPicker } from "./BackgroundPicker";
 
@@ -17,6 +17,7 @@ interface SettingsPanelProps {
   blacklist: string[];
   densityLevel: DensityLevel;
   readerPreferences: ReaderPreferences;
+  autoStatus: AutoReadingStatus;
   replacementCount: number;
   vocabCount: number;
   reviewDueCount: number;
@@ -24,6 +25,9 @@ interface SettingsPanelProps {
   onClearData: () => void;
   onSetDensity: (level: DensityLevel) => void;
   onReaderPreferencesChange: (preferences: ReaderPreferences) => void;
+  onStartAutoReading: () => void;
+  onResumeAutoReading: () => void;
+  onStopAutoReading: () => void;
 }
 
 const DENSITY_OPTIONS: DensityLevel[] = ["low", "medium", "high"];
@@ -37,6 +41,7 @@ export function SettingsPanel({
   blacklist,
   densityLevel,
   readerPreferences,
+  autoStatus,
   replacementCount,
   vocabCount,
   reviewDueCount,
@@ -44,6 +49,9 @@ export function SettingsPanel({
   onClearData,
   onSetDensity,
   onReaderPreferencesChange,
+  onStartAutoReading,
+  onResumeAutoReading,
+  onStopAutoReading,
 }: SettingsPanelProps) {
   const safePreferences = normalizeReaderPreferences(readerPreferences);
   const lineHeightIndex = READER_LINE_HEIGHT_OPTIONS.indexOf(safePreferences.lineHeight as typeof READER_LINE_HEIGHT_OPTIONS[number]);
@@ -186,6 +194,26 @@ export function SettingsPanel({
               <span aria-hidden="true">快</span>
             </div>
           </div>
+
+          <div className="reader-auto-settings">
+            <div className="reader-preference-heading">
+              <strong>自动翻页</strong>
+              <span className="reader-auto-status-label">{autoStatusLabel(autoStatus)}</span>
+            </div>
+            <p className="muted">从阅读页当前进度开始，使用上面的翻页方式自动推进。</p>
+            <div className="reader-auto-settings-actions">
+              {autoStatus === "paused" ? (
+                <button className="primary-button" type="button" onClick={onResumeAutoReading}>返回阅读并继续</button>
+              ) : autoStatus === "running" ? (
+                <button className="secondary-button" type="button" onClick={onStopAutoReading}>结束自动翻页</button>
+              ) : (
+                <button className="primary-button" type="button" onClick={onStartAutoReading}>进入阅读并开始</button>
+              )}
+              {autoStatus === "paused" ? (
+                <button className="secondary-button" type="button" onClick={onStopAutoReading}>结束自动翻页</button>
+              ) : null}
+            </div>
+          </div>
         </div>
         <div className="setting-block settings-background-block">
           <BackgroundPicker value={safePreferences.backgroundId} onChange={(backgroundId) => updateReaderPreferences({ backgroundId })} />
@@ -210,4 +238,11 @@ export function SettingsPanel({
       </div>
     </section>
   );
+}
+
+function autoStatusLabel(status: AutoReadingStatus): string {
+  if (status === "running") return "运行中";
+  if (status === "paused") return "已暂停";
+  if (status === "quiz") return "章节练习中";
+  return "未开启";
 }

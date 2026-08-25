@@ -19,10 +19,8 @@ import {
 } from "../core/readingLocation";
 import { getReaderBackgroundStyle } from "../core/readerBackgrounds";
 import type { AutoReadingStatus, Chapter, ReaderPreferences, RenderToken, ReplacementToken } from "../core/types";
-import { BackgroundPicker } from "./BackgroundPicker";
 import { ChapterToc } from "./ChapterToc";
 import { ReaderControls } from "./ReaderControls";
-import { ReaderLayoutSheet } from "./ReaderLayoutSheet";
 
 export interface ReaderProps {
   chapter: Chapter;
@@ -91,8 +89,6 @@ export function Reader({
   });
   const autoControllerRef = useRef<AutoReadingController | null>(null);
   const [isTocOpen, setIsTocOpen] = useState(false);
-  const [isBackgroundOpen, setIsBackgroundOpen] = useState(false);
-  const [isLayoutOpen, setIsLayoutOpen] = useState(false);
   const [pageCount, setPageCount] = useState(1);
   const [pageIndex, setPageIndex] = useState(0);
   const [pageWidth, setPageWidth] = useState(0);
@@ -119,7 +115,7 @@ export function Reader({
     "--reader-font-size": `${readerPreferences.fontSize}px`,
     "--reader-line-height": readerPreferences.lineHeight,
     "--reader-content-padding": `${readerPreferences.contentPadding}px`,
-    "--reader-page-width": `${pageWidth}px`,
+    "--reader-page-width": pageWidth > 0 ? `${pageWidth}px` : "100vw",
   } as CSSProperties;
 
   function asScrollContainer(article: HTMLElement): ScrollContainerLike {
@@ -188,11 +184,6 @@ export function Reader({
     if (autoStatus === "running") onAutoStatusChange("paused");
   }
 
-  function handleReaderPreferencesChange(nextPreferences: ReaderPreferences) {
-    pendingLayoutLocationRef.current = captureCurrentLocation();
-    onReaderPreferencesChange(nextPreferences);
-  }
-
   function openToc() {
     pauseAutoForInteraction();
     showToolbar();
@@ -226,6 +217,7 @@ export function Reader({
     const safeIndex = Math.max(0, Math.min(Math.max(1, nextCount) - 1, nextIndex));
     setPageIndex(safeIndex);
     pageIndexRef.current = safeIndex;
+    syncPagedScroll(safeIndex, "smooth");
     if (modeRef.current === "simulation") {
       setIsSimulationTurning(true);
       window.setTimeout(() => setIsSimulationTurning(false), 360);
@@ -247,6 +239,20 @@ export function Reader({
   function retreatPage() {
     if (!isPaged) return;
     emitPageProgress(previousPageIndex(pageIndexRef.current, pageCountRef.current));
+  }
+
+  function syncPagedScroll(nextIndex: number, behavior: ScrollBehavior = "auto") {
+    const article = articleRef.current;
+    if (!article || !isPaged) return;
+    const width = pageWidth > 0 ? pageWidth : article.clientWidth;
+    if (width <= 0) return;
+    const left = Math.max(0, nextIndex * width);
+    if (typeof article.scrollTo === "function") {
+      article.scrollTo({ left, top: 0, behavior });
+    } else {
+      article.scrollLeft = left;
+      article.scrollTop = 0;
+    }
   }
 
   function handleScroll() {
@@ -318,7 +324,7 @@ export function Reader({
     const strip = stripRef.current;
     if (!article || !strip || article.clientWidth <= 0) return;
     const width = article.clientWidth;
-    const measuredCount = Math.max(1, Math.ceil(strip.scrollWidth / width));
+    const measuredCount = Math.max(1, Math.ceil(Math.max(strip.scrollWidth, article.scrollWidth) / width - 0.001));
     const oldProgress = pageCountRef.current > 1 ? getPageProgress(pageIndexRef.current, pageCountRef.current) : progressPercent;
     setPageWidth(width);
     setPageCount(measuredCount);
@@ -326,6 +332,7 @@ export function Reader({
     const restored = pageIndexFromProgress(oldProgress, measuredCount);
     setPageIndex(restored);
     pageIndexRef.current = restored;
+    requestAnimationFrame(() => syncPagedScroll(restored));
   }
 
   useEffect(() => {
@@ -355,6 +362,7 @@ export function Reader({
         const restored = pageIndexFromProgress(location.scrollPercent, pageCountRef.current);
         setPageIndex(restored);
         pageIndexRef.current = restored;
+        requestAnimationFrame(() => syncPagedScroll(restored));
       } else {
         restoreReadingLocation(locationContainer(article), getArticleParagraphs(article), location);
       }
@@ -374,6 +382,7 @@ export function Reader({
         const restored = pageIndexFromProgress(pending.scrollPercent, pageCountRef.current);
         setPageIndex(restored);
         pageIndexRef.current = restored;
+        requestAnimationFrame(() => syncPagedScroll(restored));
       } else {
         restoreReadingLocation(locationContainer(article), getArticleParagraphs(article), pending);
       }
@@ -436,7 +445,7 @@ export function Reader({
         onPointerDown={handleArticlePointerDown}
         onPointerUp={handleArticlePointerUp}
       >
-        <div ref={stripRef} className={isPaged ? `reader-page-strip reader-page-strip-${mode}` : "reader-content"} style={isPaged ? { transform: `translate3d(-${pageIndex * pageWidth}px, 0, 0)` } : undefined}>
+        <div ref={stripRef} className={isPaged ? `reader-page-strip reader-page-strip-${mode}` : "reader-content"}>
           {paragraphs.map((paragraph, paragraphIndex) => (
             <p key={`${chapter.id}-${paragraphIndex}`}>
               {paragraph.map((token, tokenIndex) => token.kind === "text" ? (
@@ -459,27 +468,12 @@ export function Reader({
         status={autoStatus}
         pageTurnMode={mode}
         autoSpeed={readerPreferences.autoSpeed}
-        onStartAuto={() => {
-          pendingLayoutLocationRef.current = captureCurrentLocation();
-          if (!isImmersive) onToggleImmersive();
-          onAutoStatusChange("running");
-        }}
         onResumeAuto={() => onAutoStatusChange("running")}
         onStopAuto={() => onAutoStatusChange("idle")}
         onAutoSpeedChange={(autoSpeed) => onReaderPreferencesChange({ ...readerPreferences, autoSpeed })}
-        onOpenBackground={() => { pauseAutoForInteraction(); showToolbar(); setIsBackgroundOpen(true); }}
-        onOpenLayout={() => { pauseAutoForInteraction(); showToolbar(); setIsLayoutOpen(true); }}
       />
 
       {isTocOpen ? <ChapterToc chapters={chapters} activeIndex={chapter.index} activeProgress={progressPercent} onSelect={onSelectChapter} onClose={() => setIsTocOpen(false)} /> : null}
-      {isBackgroundOpen ? (
-        <div className="sheet-backdrop" role="presentation" onClick={() => setIsBackgroundOpen(false)}>
-          <div className="background-sheet-wrap" onClick={(event) => event.stopPropagation()}>
-            <BackgroundPicker value={readerPreferences.backgroundId} onChange={(backgroundId) => onReaderPreferencesChange({ ...readerPreferences, backgroundId })} onClose={() => setIsBackgroundOpen(false)} />
-          </div>
-        </div>
-      ) : null}
-      {isLayoutOpen ? <ReaderLayoutSheet preferences={readerPreferences} onChange={handleReaderPreferencesChange} onClose={() => setIsLayoutOpen(false)} /> : null}
     </section>
   );
 }
