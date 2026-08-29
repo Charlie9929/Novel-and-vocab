@@ -625,7 +625,7 @@ DeepSeek 当前模型与 API 参考：
 
 ### 本次 GitHub 推送与线上部署记录（2026-08-29）
 
-- 用户已明确授权推送和部署。应用代码提交已推送到 GitHub `main`：[`7b022459c1f104e51bf9ac18cfb27f3dcb31f5f2`](https://github.com/Charlie9929/Novel-and-vocab/commit/7b022459c1f104e51bf9ac18cfb27f3dcb31f5f2)；随后追加本部署记录，最终 `main` 头为 [`63c2dad4e1d875c9c1e4f9da55eccf8c358ecec9`](https://github.com/Charlie9929/Novel-and-vocab/commit/63c2dad4e1d875c9c1e4f9da55eccf8c358ecec9)。
+- 用户已明确授权推送和部署。应用代码提交已推送到 GitHub `main`：[`7b022459c1f104e51bf9ac18cfb27f3dcb31f5f2`](https://github.com/Charlie9929/Novel-and-vocab/commit/7b022459c1f104e51bf9ac18cfb27f3dcb31f5f2)；随后追加部署记录提交 [`63c2dad4e1d875c9c1e4f9da55eccf8c358ecec9`](https://github.com/Charlie9929/Novel-and-vocab/commit/63c2dad4e1d875c9c1e4f9da55eccf8c358ecec9)。之后仅对本节文字做过无功能修订，线上代码未改变。
 - 既有 Cloudflare Pages 项目已因 `main` 推送自动构建并上线：[`https://wordflow-dcx.pages.dev/`](https://wordflow-dcx.pages.dev/)。线上首页引用本次构建的 `index-CjMhJwDX.js` / `index-gKY_UCoA.css`；CET6、IELTS、TOEFL 的词库资源均返回 HTTP 200，并与本地 `dist` 构建文件一致。
 - 发布前本地检查：`npm test -- --reporter=dot` 为 **134 passed / 1 skipped**；`npm run build` 成功；候选、标签、词库契约审计和非素材目录 diff 检查通过。
 - 诚实保留质量边界：严格词库审计仍只阻塞 CET6、IELTS、TOEFL 的 independent quality gate，三库 `releaseReady=false`。因此本次上线的是多词库阅读器和当前已接入的词库资源，不代表三套新词库已经通过最终独立精度/覆盖率发布门槛；CET4 继续沿用已发布基线。
