@@ -622,3 +622,11 @@ DeepSeek 当前模型与 API 参考：
 - CET6 `重要的:significant:adjective` 已有独立审核；本轮只放开边界，不新增语境规则。
 - 低负载 development/validation 提升到 **95.45% 精度 / 47.66% 覆盖**（357/374）；聚合 blind 保持 **84.38% / 34.62%**（27/32），因此保留。
 - 三套新词库仍未通过严格发布门禁，未部署。
+
+### 本次 GitHub 推送与线上部署记录（2026-08-29）
+
+- 用户已明确授权推送和部署。本次提交已推送到 GitHub `main`：[`7b022459c1f104e51bf9ac18cfb27f3dcb31f5f2`](https://github.com/Charlie9929/Novel-and-vocab/commit/7b022459c1f104e51bf9ac18cfb27f3dcb31f5f2)。
+- 既有 Cloudflare Pages 项目已因 `main` 推送自动构建并上线：[`https://wordflow-dcx.pages.dev/`](https://wordflow-dcx.pages.dev/)。线上首页引用本次构建的 `index-CjMhJwDX.js` / `index-gKY_UCoA.css`；CET6、IELTS、TOEFL 的词库资源均返回 HTTP 200，并与本地 `dist` 构建文件一致。
+- 发布前本地检查：`npm test -- --reporter=dot` 为 **134 passed / 1 skipped**；`npm run build` 成功；候选、标签、词库契约审计和非素材目录 diff 检查通过。
+- 诚实保留质量边界：严格词库审计仍只阻塞 CET6、IELTS、TOEFL 的 independent quality gate，三库 `releaseReady=false`。因此本次上线的是多词库阅读器和当前已接入的词库资源，不代表三套新词库已经通过最终独立精度/覆盖率发布门槛；CET4 继续沿用已发布基线。
+- 私密小说和 `tests/private-input/` 未纳入提交。此前各节中的“未部署、未推送”是历史过程记录，以本节的提交号和线上地址为当前状态准。
