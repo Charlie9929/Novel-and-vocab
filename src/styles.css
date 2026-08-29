@@ -267,6 +267,23 @@ button {
   font-weight: 700;
 }
 
+.danger-confirmation {
+  display: grid;
+  gap: 8px;
+  border: 1px solid #f0c7b2;
+  border-radius: 8px;
+  padding: 14px;
+  background: #fff6f1;
+  color: #8a3b1f;
+}
+
+.danger-confirmation p {
+  margin: 0;
+  color: #8a3b1f;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
 .top-bar {
   display: flex;
   align-items: center;
@@ -869,11 +886,11 @@ button {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 18px 18px 96px;
+  padding: 32px clamp(24px, 5vw, 64px) 112px;
 }
 
 .panel-header {
-  margin-bottom: 16px;
+  margin-bottom: 24px;
 }
 
 .panel-header h2 {
@@ -885,6 +902,19 @@ button {
 .quiz-list {
   display: grid;
   gap: 12px;
+}
+
+.settings-list {
+  gap: 20px;
+}
+
+.settings-list > .setting-block:not(.settings-background-block) {
+  border-radius: 14px;
+  padding: 22px;
+}
+
+.reader-shell > .vocabulary-picker {
+  padding: 24px clamp(24px, 5vw, 64px) 0;
 }
 
 .vocab-card h3 {
@@ -1029,6 +1059,13 @@ button {
 .error-text {
   color: #8d2d2d;
   font-weight: 700;
+}
+
+.vocabulary-loading {
+  width: min(100%, 38rem);
+  margin: 1rem auto;
+  color: #66736c;
+  text-align: center;
 }
 
 /* ---- word phonetic ---- */
@@ -1487,5 +1524,19 @@ button {
   .reader-article-vertical .reader-content {
     width: min(900px, 100%);
     margin: 0 auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .panel-view {
+    padding-inline: 16px;
+  }
+
+  .settings-list > .setting-block:not(.settings-background-block) {
+    padding: 18px;
+  }
+
+  .reader-shell > .vocabulary-picker {
+    padding-inline: 16px;
   }
 }

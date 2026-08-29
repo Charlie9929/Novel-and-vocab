@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "dataset": "toefl",
+  "status": "available",
+  "rawEntryCount": 6780,
+  "normalizedEntryCount": 6780,
+  "duplicateLexicalTupleCount": 0,
+  "sourcePolicy": "WordTyper/ECDICT MIT source converted by scripts/convert-wordtyper-vocab.mjs; 179 rows without a reader-compatible phonetic/POS mapping were excluded",
+  "generatedBy": "scripts/convert-wordtyper-vocab.mjs",
+  "assetSha256": "1a78fcefef8096c45801fe9deec11e8c23f93ef5a414f644e1682d49ea60fdd2"
+}

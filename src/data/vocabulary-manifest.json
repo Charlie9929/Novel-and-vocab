@@ -1,0 +1,145 @@
+{
+  "schemaVersion": 1,
+  "contractVersion": 1,
+  "sourcePolicy": "Only locally present, provenance-audited data may be loaded. Missing imports are represented explicitly; no commercial word-book extraction is permitted.",
+  "datasets": [
+    {
+      "vocabularyId": "cet4",
+      "displayName": "CET4",
+      "description": "项目现有 CET4 本地种子词表（保留兼容性；来源许可证待核验）",
+      "entryFile": "./cet4-map.json",
+      "entryCount": 3806,
+      "rawEntryCount": 3807,
+      "status": "available",
+      "coverage": "partial",
+      "coverageNote": "现有项目种子映射，不宣称覆盖完整 CET4 大纲。",
+      "releaseReady": true,
+      "ipaVariant": "american",
+      "sourceIds": [
+        "cet4-neea-reference"
+      ],
+      "importReport": "./import-reports/cet4-map.report.json"
+    },
+    {
+      "vocabularyId": "cet6",
+      "displayName": "CET6",
+      "description": "WordTyper/ECDICT 派生的 CET6 核心词库",
+      "entryFile": "./cet6-map.json",
+      "entryCount": 5294,
+      "rawEntryCount": 5294,
+      "status": "available",
+      "coverage": "full",
+      "coverageNote": "已导入 5,294 条满足阅读器词性、中文词块与音标契约的 CET6 核心词条；不宣称官方考试授权。",
+      "releaseReady": false,
+      "ipaVariant": "american",
+      "sourceIds": [
+        "wordtyper-cet6"
+      ],
+      "importReport": "./import-reports/cet6-map.report.json"
+    },
+    {
+      "vocabularyId": "ielts",
+      "displayName": "雅思",
+      "description": "WordTyper/ECDICT 派生的雅思核心词库",
+      "entryFile": "./ielts-map.json",
+      "entryCount": 4690,
+      "rawEntryCount": 4690,
+      "status": "available",
+      "coverage": "full",
+      "coverageNote": "已导入 4,690 条满足阅读器契约的 IELTS 核心词条；不宣称官方考试授权。",
+      "releaseReady": false,
+      "ipaVariant": "british",
+      "sourceIds": [
+        "wordtyper-ielts-core"
+      ],
+      "importReport": "./import-reports/ielts-map.report.json"
+    },
+    {
+      "vocabularyId": "toefl",
+      "displayName": "托福",
+      "description": "WordTyper/ECDICT 派生的托福核心词库",
+      "entryFile": "./toefl-map.json",
+      "entryCount": 6780,
+      "rawEntryCount": 6780,
+      "status": "available",
+      "coverage": "full",
+      "coverageNote": "已导入 6,780 条满足阅读器契约的 TOEFL 核心词条；不宣称官方考试授权。",
+      "releaseReady": false,
+      "ipaVariant": "american",
+      "sourceIds": [
+        "wordtyper-toefl"
+      ],
+      "importReport": "./import-reports/toefl-map.report.json"
+    }
+  ],
+  "sources": [
+    {
+      "sourceId": "cet4-neea-reference",
+      "vocabularyId": "cet4",
+      "name": "CET 大纲公开参考页（现有本地种子映射的参考来源）",
+      "url": "https://cet.neea.edu.cn/html1/folder/16113/1588-1.htm",
+      "version": "reference-version-not-recorded",
+      "licenseStatus": "unverified",
+      "licenseName": null,
+      "licenseUrl": null,
+      "licenseSnapshotPath": null,
+      "originalFilePath": "./cet4-map.json",
+      "originalFileUrl": null,
+      "originalFileSha256": "9dfc83de9690ebc2ef5a6df7343115d06003104f7456fef31f83092c8844c3d8",
+      "importReportPath": "./import-reports/cet4-map.report.json",
+      "status": "reference-only",
+      "notes": "该仓库已有映射保留兼容性；没有把它宣称为官方可再分发原始词表。发布前必须补齐许可证快照和准确来源版本。"
+    },
+    {
+      "sourceId": "wordtyper-cet6",
+      "vocabularyId": "cet6",
+      "name": "WordTyper vocabularies / ECDICT-derived CET6",
+      "url": "https://github.com/grhliu/wordtyper-vocabularies",
+      "version": "2026-07-27 / main commit b5790caf",
+      "licenseStatus": "verified",
+      "licenseName": "MIT",
+      "licenseUrl": "https://opensource.org/license/mit/",
+      "licenseSnapshotPath": "./license-snapshots/wordtyper-ecdict-mit.json",
+      "originalFilePath": null,
+      "originalFileUrl": "https://raw.githubusercontent.com/grhliu/wordtyper-vocabularies/b5790cafcad1795873410e984c834ef1ddac20ac/vocabularies/cet6.json",
+      "originalFileSha256": "216de305c1838b7dd5d473d80e5606838abdc8d2780509893bf623d37ad60dd5",
+      "importReportPath": "./import-reports/cet6-map.report.json",
+      "status": "imported",
+      "notes": "使用 convert-wordtyper-vocab.mjs 转换；拒绝缺少音标或阅读器支持词性的源行。考试名称仅为检索标签，不代表官方授权。"
+    },
+    {
+      "sourceId": "wordtyper-ielts-core",
+      "vocabularyId": "ielts",
+      "name": "WordTyper vocabularies / ECDICT-derived IELTS core",
+      "url": "https://github.com/grhliu/wordtyper-vocabularies",
+      "version": "2026-07-27 / main commit b5790caf",
+      "licenseStatus": "verified",
+      "licenseName": "MIT",
+      "licenseUrl": "https://opensource.org/license/mit/",
+      "licenseSnapshotPath": "./license-snapshots/wordtyper-ecdict-mit.json",
+      "originalFilePath": null,
+      "originalFileUrl": "https://raw.githubusercontent.com/grhliu/wordtyper-vocabularies/b5790cafcad1795873410e984c834ef1ddac20ac/vocabularies/ielts_core.json",
+      "originalFileSha256": "faf6705f919ae9a6cd6270bdcf6ce47bab314f8d91a74dae6b6d7bac0c76bf3c",
+      "importReportPath": "./import-reports/ielts-map.report.json",
+      "status": "imported",
+      "notes": "使用 convert-wordtyper-vocab.mjs 转换；拒绝缺少音标或阅读器支持词性的源行。考试名称仅为检索标签，不代表官方授权。"
+    },
+    {
+      "sourceId": "wordtyper-toefl",
+      "vocabularyId": "toefl",
+      "name": "WordTyper vocabularies / ECDICT-derived TOEFL core",
+      "url": "https://github.com/grhliu/wordtyper-vocabularies",
+      "version": "2026-07-27 / main commit b5790caf",
+      "licenseStatus": "verified",
+      "licenseName": "MIT",
+      "licenseUrl": "https://opensource.org/license/mit/",
+      "licenseSnapshotPath": "./license-snapshots/wordtyper-ecdict-mit.json",
+      "originalFilePath": null,
+      "originalFileUrl": "https://raw.githubusercontent.com/grhliu/wordtyper-vocabularies/b5790cafcad1795873410e984c834ef1ddac20ac/vocabularies/toefl.json",
+      "originalFileSha256": "f35697c6b396caadce35d8741b9a1dd50651d40d21bf7dee8d965f3ede2d937c",
+      "importReportPath": "./import-reports/toefl-map.report.json",
+      "status": "imported",
+      "notes": "使用 convert-wordtyper-vocab.mjs 转换；拒绝缺少音标或阅读器支持词性的源行。考试名称仅为检索标签，不代表官方授权。"
+    }
+  ]
+}

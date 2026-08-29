@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { AutoReadingController, type AutoReadingSnapshot } from "../core/autoReading";
-import { densityClassName, type DensityLevel } from "../core/density";
+import { DENSITY_DISPLAY_LABELS, densityClassName, type DensityLevel } from "../core/density";
 import {
   classifyPointerGesture,
   getPageProgress,
@@ -29,6 +29,9 @@ export interface ReaderProps {
   progressPercent: number;
   readingLocation?: ReadingLocationSnapshot;
   densityLevel: DensityLevel;
+  replacementCount: number;
+  vocabCount: number;
+  reviewDueCount: number;
   readerPreferences: ReaderPreferences;
   isImmersive: boolean;
   autoStatus: AutoReadingStatus;
@@ -56,6 +59,9 @@ export function Reader({
   progressPercent,
   readingLocation,
   densityLevel,
+  replacementCount,
+  vocabCount,
+  reviewDueCount,
   readerPreferences,
   isImmersive,
   autoStatus,
@@ -450,6 +456,12 @@ export function Reader({
         </div>
       </header>
       <div className="progress-track" aria-hidden="true"><span style={{ width: `${progressPercent}%` }} /></div>
+      <div className={`stats-strip ${densityClass}`} aria-label="本章学习统计">
+        <span>{DENSITY_DISPLAY_LABELS[densityLevel]}</span>
+        <span>本章替换 {replacementCount}</span>
+        <span>生词本 {vocabCount}</span>
+        <span>待复习 {reviewDueCount}</span>
+      </div>
       <article
         ref={articleRef}
         className={`reader-article reader-article-${mode}${isSimulationTurning ? " reader-simulation-turning" : ""}`}

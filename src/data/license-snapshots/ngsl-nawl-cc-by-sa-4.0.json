@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "source": "nltk-data-hub/words (ngsl, nawl configurations)",
+  "publisher": "nltk-data-hub",
+  "license": "CC BY-SA 4.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+  "sourceNoticeUrl": "https://huggingface.co/datasets/nltk-data-hub/words",
+  "retrievedOn": "2026-08-27",
+  "notice": "The dataset card lists NGSL 1.2 and NAWL 1.2 configurations as CC-BY-SA 4.0. Keep the pinned revision and hash in the vocabulary manifest."
+}

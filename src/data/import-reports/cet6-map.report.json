@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "dataset": "cet6",
+  "status": "available",
+  "rawEntryCount": 5294,
+  "normalizedEntryCount": 5294,
+  "duplicateLexicalTupleCount": 0,
+  "sourcePolicy": "WordTyper/ECDICT MIT source converted by scripts/convert-wordtyper-vocab.mjs; 77 rows without a reader-compatible phonetic/POS mapping were excluded",
+  "generatedBy": "scripts/convert-wordtyper-vocab.mjs",
+  "assetSha256": "65de42acfc98aaa1ed58c641d586d7f19db6fb9bd346d050ea7030a8b2c8f4dc"
+}

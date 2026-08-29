@@ -72,6 +72,12 @@ describe("precision-first chapter replacement", () => {
     expect(result.tokens).toEqual([{ kind: "text", value: "这是一个选择。" }]);
   });
 
+  it("treats zero or invalid density as no replacements", () => {
+    const chapter = { id: "density-edge", title: "第一章", index: 0, text: "系统已经启动。" };
+    expect(replaceChapterTerms(chapter, entries as Cet4Entry[], new Set(), 0).replacements).toHaveLength(0);
+    expect(replaceChapterTerms(chapter, entries as Cet4Entry[], new Set(), Number.NaN).replacements).toHaveLength(0);
+  });
+
   it("keeps a reviewed, unambiguous candidate eligible", () => {
     const result = replaceChapterTerms({ id: "c", title: "第一章", index: 0, text: "他注意到门开了。" }, [
       { zh: "注意到", en: "notice", meaning: "注意到", partOfSpeech: "verb" },
@@ -134,7 +140,7 @@ describe("precision-first chapter replacement", () => {
     expect(result.replacements.filter((item) => item.candidateId === "系统:system:noun")).toHaveLength(2);
   });
 
-  it("keeps the two-per-chapter limit when a correction changes the English translation", () => {
+  it("does not let a correction introduce an unapproved candidate", () => {
     const correctionEntries: Cet4Entry[] = [
       { zh: "选择", en: "choice", meaning: "选择", partOfSpeech: "noun" },
       { zh: "选择", en: "choose", meaning: "选择", partOfSpeech: "verb" },
@@ -147,7 +153,9 @@ describe("precision-first chapter replacement", () => {
     ]);
     const result = replaceChapterTerms({ id: "c", title: "第一章", index: 0, text }, correctionEntries, new Set(), 1, corrections);
 
-    expect(result.replacements.filter((item) => item.zh === "选择")).toHaveLength(2);
+    const replacements = result.replacements.filter((item) => item.zh === "选择");
+    expect(replacements).toHaveLength(1);
+    expect(replacements[0]?.en).toBe("choose");
   });
 
   it("uses one nested safe pool for low, medium, and high", () => {

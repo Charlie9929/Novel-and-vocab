@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "rule": "exact candidateId (zh:en:partOfSpeech) in CET4 approved pool and target map",
+  "cet4ApprovedCount": 1292,
+  "datasets": {
+    "cet4": {
+      "uniqueCandidates": 3806,
+      "reusableFromCet4": 1292,
+      "reusableSingleSense": null,
+      "remainingUnique": null
+    },
+    "cet6": {
+      "uniqueCandidates": 5294,
+      "reusableFromCet4": 375,
+      "reusableSingleSense": 275,
+      "remainingUnique": 4919
+    },
+    "ielts": {
+      "uniqueCandidates": 4690,
+      "reusableFromCet4": 301,
+      "reusableSingleSense": 234,
+      "remainingUnique": 4389
+    },
+    "toefl": {
+      "uniqueCandidates": 6780,
+      "reusableFromCet4": 226,
+      "reusableSingleSense": 150,
+      "remainingUnique": 6554
+    }
+  },
+  "crossImportedPackOverlap": {
+    "atLeastTwoPacks": 4767,
+    "allThreePacks": 2174
+  },
+  "output": "src/data/shared-vocabulary-candidates.ts"
+}

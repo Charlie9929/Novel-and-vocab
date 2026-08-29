@@ -27,8 +27,13 @@ describe("context corrections", () => {
 
   it("uses correction, context hint, then deterministic priority", () => {
     expect(selectCandidate(candidates, undefined, contextAt("请选择。", 1, 2)).entry.en).toBe("choose");
-    expect(selectCandidate(candidates, "choice", contextAt("请选择。", 1, 2)).reason).toBe("correction");
+    expect(selectCandidate(candidates, "choice", contextAt("请选择。", 1, 2), () => true).reason).toBe("correction");
     expect(selectCandidate(candidates, undefined, contextAt("这是一个选择。", 4, 2)).entry.en).toBe("choice");
+  });
+
+  it("does not let an unapproved correction bypass the candidate policy", () => {
+    const selection = selectCandidate(candidates, "choice", contextAt("请选择。", 1, 2), () => false);
+    expect(selection.reason).not.toBe("correction");
   });
 
   it("does not use a context-only candidate when its hint is absent", () => {
@@ -45,7 +50,22 @@ describe("context corrections", () => {
     ];
 
     expect(selectCandidate(contextOnlyFirst, undefined, contextAt("目前机器正常", 0, 2)).entry.en).toBe("currently");
-    expect(selectCandidate(contextOnlyFirst, undefined, contextAt("目前情况稳定", 0, 2)).entry.en).toBe("current");
+    expect(selectCandidate(contextOnlyFirst, undefined, contextAt("目前情况稳定", 0, 2), () => true).entry.en).toBe("current");
+  });
+
+  it("can restrict imported-pack selection to approved candidates", () => {
+    const mixed: Cet4Entry[] = [
+      { zh: "选择", en: "choice", meaning: "选择", partOfSpeech: "noun", priority: 10 },
+      { zh: "选择", en: "choose", meaning: "选择", partOfSpeech: "verb", priority: 20, contextHints: ["请选择"] },
+    ];
+    const selection = selectCandidate(
+      mixed,
+      undefined,
+      contextAt("请选择。", 1, 2),
+      (candidateId) => candidateId === "选择:choice:noun",
+      true,
+    );
+    expect(selection.entry.en).toBe("choice");
   });
 
   it("abstains when several local hints conflict", () => {

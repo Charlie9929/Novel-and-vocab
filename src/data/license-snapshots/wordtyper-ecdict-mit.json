@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "source": "grhliu/wordtyper-vocabularies",
+  "upstream": "skywind3000/ECDICT",
+  "license": "MIT",
+  "licenseUrl": "https://opensource.org/license/mit/",
+  "sourceNoticeUrl": "https://github.com/grhliu/wordtyper-vocabularies/blob/main/NOTICE.md",
+  "retrievedOn": "2026-08-27",
+  "notice": "The upstream notice states that the vocabulary JSON files are generated from ECDICT and distributed under the MIT License. The exam names are descriptive only and are not official exam endorsements."
+}

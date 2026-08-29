@@ -1,5 +1,13 @@
 export type PartOfSpeech = "noun" | "verb" | "adjective" | "adverb";
 
+/** The four vocabulary scopes supported by the first public release. */
+export type VocabularyId = "cet4" | "cet6" | "ielts" | "toefl";
+
+export const DEFAULT_VOCABULARY_ID: VocabularyId = "cet4";
+
+/** Where a book's text comes from.  AI books are a second-phase source. */
+export type NovelSource = "builtin-ai" | "local";
+
 export type PageTurnMode = "vertical" | "horizontal" | "simulation";
 
 export type ReaderBackgroundId =
@@ -37,7 +45,14 @@ export interface LocalContextWindow {
   right: string;
 }
 
-export interface Cet4Entry {
+/**
+ * A vocabulary entry shared by all vocabulary packs.
+ *
+ * `vocabularyId` is optional on the in-memory entry because the tokenizer's
+ * current data files are loaded as a pack (the surrounding loader supplies
+ * the scope). Persisted records always carry the scope in IndexedDB.
+ */
+export interface VocabularyEntry {
   zh: string;
   en: string;
   meaning: string;
@@ -48,7 +63,13 @@ export interface Cet4Entry {
   contextRules?: LocalContextRule[];
   /** Legacy contains-only hints; treated as local rules for compatibility. */
   contextHints?: string[];
+  vocabularyId?: VocabularyId;
+  /** Lemma for inflected vocabulary sources; defaults to `en` for CET4. */
+  lemma?: string;
 }
+
+/** Backwards-compatible name for the original CET4 entry shape. */
+export interface Cet4Entry extends VocabularyEntry {}
 
 /** A stable local identifier. It deliberately contains no novel text. */
 export function candidateIdFor(entry: Pick<Cet4Entry, "zh" | "en" | "partOfSpeech">): string {

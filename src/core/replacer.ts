@@ -1,7 +1,11 @@
-import type { Cet4Entry, Chapter, MatchedTerm, QuizQuestion, ReplacedChapter, RenderToken, ReplacementToken } from "./types";
+import type { Cet4Entry, Chapter, MatchedTerm, QuizQuestion, ReplacedChapter, RenderToken, ReplacementToken, VocabularyId } from "./types";
 import { findTerms } from "./tokenizer";
-import { APPROVED_CANDIDATE_IDS } from "../data/approved-candidates";
-import { candidateMode, FLOATING_BOUNDARY_TERMS } from "../data/candidate-policy";
+import { FLOATING_BOUNDARY_TERMS } from "../data/candidate-policy";
+import {
+  candidateModeForVocabulary,
+  isCandidateApprovedForVocabulary,
+  isFloatingBoundaryCandidateApprovedForVocabulary,
+} from "../data/vocabulary-candidates";
 
 const MAX_REPLACEMENTS_PER_SENTENCE = 2;
 const MAX_REPLACEMENTS_PER_CHINESE_TERM = 2;
@@ -18,11 +22,12 @@ export function replaceChapterTerms(
   blacklist: Set<string>,
   density = 2 / 3,
   corrections: ReadonlyMap<string, string> = new Map(),
+  vocabularyId: VocabularyId = "cet4",
 ): ReplacedChapter {
-  const eligible = findTerms(chapter.text, entries, blacklist, [chapter.title], corrections);
+  const eligible = findTerms(chapter.text, entries, blacklist, [chapter.title], corrections, vocabularyId);
   // Precision is the product requirement. Density controls how many safe
   // candidates are shown; it can never promote an ambiguous candidate.
-  const renderable = eligible.filter(isReplacementSafe);
+  const renderable = eligible.filter((match) => isReplacementSafe(match, vocabularyId));
   const selected = selectStableReplacements(chapter, renderable, density);
   const selectedByStart = new Map(selected.map((item) => [item.start, item]));
   const tokens: RenderToken[] = [];
@@ -51,16 +56,19 @@ export function replaceChapterTerms(
 }
 
 /** Shared eligibility gate for the reader and the private quality evaluator. */
-export function isReplacementSafe(match: MatchedTerm): boolean {
+export function isReplacementSafe(match: MatchedTerm, vocabularyId: VocabularyId = "cet4"): boolean {
   return match.confidence === "high"
     && (match.boundaryConfidence <= 1
       || match.contextEvidence === true
-      || (match.boundaryConfidence === 2 && FLOATING_BOUNDARY_TERMS.has(match.zh)))
-    && candidateMode(match.candidateId) !== "blocked"
-    // A context rule chooses a sense, but it does not by itself make that
-    // sense production-approved. Rules are promoted only after the exact
-    // candidate has development/validation evidence in the allowlist.
-    && (match.selectionReason === "correction" || APPROVED_CANDIDATE_IDS.has(match.candidateId));
+      || (match.boundaryConfidence === 2 && (
+        FLOATING_BOUNDARY_TERMS.has(match.zh)
+        || isFloatingBoundaryCandidateApprovedForVocabulary(vocabularyId, match.candidateId)
+      )))
+    && candidateModeForVocabulary(vocabularyId, match.candidateId) !== "blocked"
+    // A context rule or manual correction chooses a sense, but neither can
+    // mint a production candidate. Rules and corrections are accepted only
+    // after the exact candidate has evidence in this vocabulary's allowlist.
+    && isCandidateApprovedForVocabulary(vocabularyId, match.candidateId);
 }
 
 export function createQuizQuestions(replacements: ReplacementToken[], count = 5): QuizQuestion[] {
@@ -84,7 +92,9 @@ export function createQuizQuestions(replacements: ReplacementToken[], count = 5)
 function selectStableReplacements(chapter: Chapter, matches: MatchedTerm[], density: number): ReplacementToken[] {
   if (matches.length === 0) return [];
   const maximal = buildMaximalSafeSelection(chapter, matches);
-  const targetCount = Math.max(1, Math.round(maximal.length * density));
+  const normalizedDensity = Number.isFinite(density) ? Math.min(1, Math.max(0, density)) : 0;
+  if (normalizedDensity === 0) return [];
+  const targetCount = Math.min(maximal.length, Math.max(1, Math.round(maximal.length * normalizedDensity)));
   return maximal.slice(0, targetCount).map((match) => ({
     ...match,
     kind: "replacement",

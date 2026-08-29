@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { DensityLevel } from "../core/density";
 import { DENSITY_LABELS, densityClassName } from "../core/density";
 import {
@@ -53,6 +54,7 @@ export function SettingsPanel({
   onResumeAutoReading,
   onStopAutoReading,
 }: SettingsPanelProps) {
+  const [isClearAllConfirming, setIsClearAllConfirming] = useState(false);
   const safePreferences = normalizeReaderPreferences(readerPreferences);
   const lineHeightIndex = READER_LINE_HEIGHT_OPTIONS.indexOf(safePreferences.lineHeight as typeof READER_LINE_HEIGHT_OPTIONS[number]);
   const contentPaddingIndex = READER_CONTENT_PADDING_OPTIONS.indexOf(
@@ -232,9 +234,31 @@ export function SettingsPanel({
             </div>
           )}
         </div>
-        <button className="danger-button" type="button" onClick={onClearData}>
-          清空本地学习数据
-        </button>
+        {isClearAllConfirming ? (
+          <div className="danger-confirmation" role="alert">
+            <strong>确认清除全部学习数据？</strong>
+            <p>将删除四个词库的阅读进度、生词、黑名单、复习和纠错记录；阅读排版设置与本地文件权限会保留。</p>
+            <div className="reader-auto-settings-actions">
+              <button
+                className="danger-button"
+                type="button"
+                onClick={() => {
+                  setIsClearAllConfirming(false);
+                  onClearData();
+                }}
+              >
+                确认清除全部数据
+              </button>
+              <button className="secondary-button" type="button" onClick={() => setIsClearAllConfirming(false)}>
+                取消
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button className="danger-button" type="button" onClick={() => setIsClearAllConfirming(true)}>
+            清除全部学习数据
+          </button>
+        )}
       </div>
     </section>
   );

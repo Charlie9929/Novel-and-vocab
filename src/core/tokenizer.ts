@@ -5,10 +5,16 @@ import {
   type LocalContextWindow,
   type MatchedTerm,
   type SentenceSpan,
+  type VocabularyId,
 } from "./types";
 import { correctionKey, selectCandidate } from "./corrections";
 import { applyCuratedEntryOverrides } from "../data/curated-overrides";
-import { candidateMode, hasContextualEvidence } from "../data/candidate-policy";
+import {
+  hasContextualEvidenceForVocabulary,
+  candidateModeForVocabulary,
+  contextRulesForVocabularyCandidate,
+  isCandidateApprovedForVocabulary,
+} from "../data/vocabulary-candidates";
 
 const CHAPTER_HEADING =
   /(^|\n)((?:第[ \t]*[零一二三四五六七八九十百千万\d]+[ \t]*[章节回卷部篇]|序章|序幕|楔子|引子|尾声|后记|番外(?:[零一二三四五六七八九十百千万\d]+)?(?:篇|章)?)[^\n]{0,80})/g;
@@ -57,6 +63,22 @@ const BLOCKED_TERMS = new Set([
   "直升",
 ]);
 const ALLOWED_TERMS_WITH_FRAGMENT_PREFIX = new Set(["使用", "使命", "使劲", "使动"]);
+
+// A chapter-quality run can call findTerms thousands of times with the same
+// vocabulary array. Cache only immutable-by-convention derived structures;
+// blacklist filtering still gets a fresh map whenever the caller supplies
+// exclusions.
+const curatedEntriesCache = new WeakMap<Cet4Entry[], Cet4Entry[]>();
+const vocabularyContextEntriesCache = new Map<VocabularyId, WeakMap<Cet4Entry[], Cet4Entry[]>>();
+const dictionaryCache = new WeakMap<Cet4Entry[], Map<string, Cet4Entry[]>>();
+const dictionaryScanIndexCache = new WeakMap<Map<string, Cet4Entry[]>, DictionaryScanIndex>();
+
+interface DictionaryScanIndex {
+  firstCharacters: ReadonlySet<string>;
+  lengthsByFirstCharacter: ReadonlyMap<string, readonly number[]>;
+  prefixes: ReadonlySet<string>;
+  maxLength: number;
+}
 
 // These compounds are common in novels but are not themselves a useful
 // single-word learning target. Keep a valid dictionary prefix from leaking
@@ -234,9 +256,12 @@ export function findTerms(
   blacklist: Set<string>,
   extraProtectedTerms: string[] = [],
   corrections: ReadonlyMap<string, string> = new Map(),
+  vocabularyId: VocabularyId = "cet4",
 ): MatchedTerm[] {
-  const curatedEntries = applyCuratedEntryOverrides(entries);
-  const dict = buildDictMap(curatedEntries.filter((e) => !isBlockedTerm(e.zh) && !blacklist.has(e.zh) && !blacklist.has(e.en)));
+  const curatedEntries = getCuratedEntries(entries, vocabularyId);
+  const dict = blacklist.size === 0
+    ? getCachedDict(curatedEntries)
+    : buildDictMap(curatedEntries.filter((e) => !blacklist.has(e.zh) && !blacklist.has(e.en)));
   const sentences = splitSentences(text);
   const protectedRanges = buildProtectedRanges(text, extraProtectedTerms);
   const protectedCompoundRanges = buildProtectedCompoundRanges(text);
@@ -252,27 +277,98 @@ export function findTerms(
       protectedRanges,
       protectedCompoundRanges,
       corrections,
+      vocabularyId,
     );
     // Browser segmentation can return a coarse span such as “很简单” or split
     // a useful compound such as “意大利人”. Merge the native result with the
     // scanner so one browser's segmentation does not decide correctness.
-    const uncertainScanStarts = buildUncertainScanStarts(segments, dict);
+    const scanIndex = getDictionaryScanIndex(dict);
+    const uncertainScanStarts = buildUncertainScanStarts(segments, dict, scanIndex);
     const scannedMatches = findTermsViaScan(
       text,
       dict,
+      scanIndex,
       sentences,
       protectedRanges,
       protectedCompoundRanges,
       corrections,
       segments,
       uncertainScanStarts,
+      vocabularyId,
     );
     const mergedMatches = resolveOverlaps([...segmentedMatches, ...scannedMatches], text.length);
     if (mergedMatches.length > 0 || text.length === 0) return mergedMatches;
   }
 
   // ---- path B: character-scan fallback ----
-  return findTermsViaScan(text, dict, sentences, protectedRanges, protectedCompoundRanges, corrections, segments);
+  return findTermsViaScan(text, dict, getDictionaryScanIndex(dict), sentences, protectedRanges, protectedCompoundRanges, corrections, segments, undefined, vocabularyId);
+}
+
+function getCuratedEntries(entries: Cet4Entry[], vocabularyId: VocabularyId): Cet4Entry[] {
+  // The curated override table was built from CET4 evidence. Applying it to
+  // another pack silently replaces that pack's reviewed candidate IDs (for
+  // example TOEFL 结婚:wed with CET4 结婚:marry), breaking vocabulary
+  // isolation and making independent labels impossible to satisfy.
+  if (vocabularyId !== "cet4") {
+    const cache = vocabularyContextEntriesCache.get(vocabularyId) ?? new WeakMap<Cet4Entry[], Cet4Entry[]>();
+    vocabularyContextEntriesCache.set(vocabularyId, cache);
+    const cached = cache.get(entries);
+    if (cached) return cached;
+    const curated = entries.map((entry) => {
+      const rules = contextRulesForVocabularyCandidate(vocabularyId, candidateIdFor(entry));
+      return rules.length === 0 ? entry : {
+        ...entry,
+        contextRules: [...(entry.contextRules ?? []), ...rules],
+      };
+    });
+    cache.set(entries, curated);
+    return curated;
+  }
+  const cached = curatedEntriesCache.get(entries);
+  if (cached) return cached;
+  const curated = applyCuratedEntryOverrides(entries);
+  curatedEntriesCache.set(entries, curated);
+  return curated;
+}
+
+function getCachedDict(entries: Cet4Entry[]): Map<string, Cet4Entry[]> {
+  const cached = dictionaryCache.get(entries);
+  if (cached) return cached;
+  const dict = buildDictMap(entries);
+  dictionaryCache.set(entries, dict);
+  return dict;
+}
+
+function getDictionaryScanIndex(dict: Map<string, Cet4Entry[]>): DictionaryScanIndex {
+  const cached = dictionaryScanIndexCache.get(dict);
+  if (cached) return cached;
+  const lengths = new Map<string, Set<number>>();
+  const prefixes = new Set<string>();
+  let maxLength = 0;
+  for (const key of dict.keys()) {
+    const firstCharacter = key[0];
+    const values = lengths.get(firstCharacter) ?? new Set<number>();
+    values.add(key.length);
+    lengths.set(firstCharacter, values);
+    maxLength = Math.max(maxLength, key.length);
+    for (let prefixLength = 2; prefixLength < key.length; prefixLength += 1) {
+      prefixes.add(key.slice(0, prefixLength));
+    }
+  }
+  const lengthsByFirstCharacter = new Map<string, readonly number[]>(
+    [...lengths.entries()].map(([firstCharacter, values]) => [
+      firstCharacter,
+      [...values].sort((left, right) => right - left),
+    ]),
+  );
+  const index: DictionaryScanIndex = Object.freeze({
+    firstCharacters: new Set(lengths.keys()),
+    lengthsByFirstCharacter,
+    prefixes,
+    maxLength: Math.max(maxLength, 2),
+  });
+  dictionaryScanIndexCache.set(dict, index);
+  return index;
 }
 
 function isBlockedTerm(term: string): boolean {
@@ -294,17 +390,18 @@ function findTermsViaSegments(
   protectedRanges: ProtectedRange[],
   protectedCompoundRanges: ProtectedRange[],
   corrections: ReadonlyMap<string, string>,
+  vocabularyId: VocabularyId,
 ): MatchedTerm[] {
   const matches: MatchedTerm[] = [];
 
-  for (const seg of segments) {
+  for (const [segmentIndex, seg] of segments.entries()) {
     const entries = dict.get(seg.segment);
     if (!entries) continue;
 
     const start = seg.index;
     const end = seg.index + seg.segment.length;
     if (isInsideProtected(protectedRanges, start, end)) continue;
-    if (isProtectedCompound(protectedCompoundRanges, start, end) || hasUnsafeSingleCharacterNeighbor(segments, seg, dict)) continue;
+    if (isProtectedCompound(protectedCompoundRanges, start, end) || hasUnsafeSingleCharacterNeighbor(segments, segmentIndex, seg, dict)) continue;
     if (isContextuallyUnsafeTerm(text, seg.segment, start)) continue;
 
     const leftChar = text[start - 1] ?? "";
@@ -316,15 +413,18 @@ function findTermsViaSegments(
       entries,
       corrections.get(correctionKey(seg.segment, sentence)),
       buildLocalContext(text, start, end),
+      (candidateId) => isCandidateApprovedForVocabulary(vocabularyId, candidateId),
+      vocabularyId !== "cet4",
     );
     const entry = selected.entry;
     const selectedCandidateId = candidateIdFor(entry);
+    if (vocabularyId !== "cet4" && !isCandidateApprovedForVocabulary(vocabularyId, selectedCandidateId)) continue;
     const selectedContext = buildLocalContext(text, start, end);
-    if (candidateMode(selectedCandidateId) === "blocked") continue;
-    const contextEvidence = candidateMode(selectedCandidateId) === "contextual"
-      ? hasContextualEvidence(seg.segment, selectedContext)
+    if (candidateModeForVocabulary(vocabularyId, selectedCandidateId) === "blocked") continue;
+    const contextEvidence = candidateModeForVocabulary(vocabularyId, selectedCandidateId) === "contextual"
+      ? hasContextualEvidenceForVocabulary(vocabularyId, seg.segment, selectedContext, selectedCandidateId)
       : false;
-    if (candidateMode(selectedCandidateId) === "contextual" && !contextEvidence) continue;
+    if (candidateModeForVocabulary(vocabularyId, selectedCandidateId) === "contextual" && !contextEvidence) continue;
     matches.push({
       id: `${entry.zh}-${entry.en}-${start}`,
       zh: entry.zh,
@@ -353,25 +453,28 @@ function findTermsViaSegments(
 function findTermsViaScan(
   text: string,
   dict: Map<string, Cet4Entry[]>,
+  scanIndex: DictionaryScanIndex,
   sentences: SentenceSpan[],
   protectedRanges: ProtectedRange[],
   protectedCompoundRanges: ProtectedRange[],
   corrections: ReadonlyMap<string, string>,
   segments: SegmentSpan[] | null,
   scanStarts?: ReadonlySet<number>,
+  vocabularyId: VocabularyId = "cet4",
 ): MatchedTerm[] {
   const candidates: MatchedTerm[] = [];
-  const maxLen = maxKeyLength(dict);
 
   for (let i = 0; i < text.length; i++) {
     if (scanStarts && !scanStarts.has(i)) continue;
     // Skip non-Chinese starting positions (e.g. punctuation, whitespace)
     if (!isCJKChar(text[i])) continue;
+    const lengths = scanIndex.lengthsByFirstCharacter.get(text[i]);
+    if (!lengths) continue;
 
     // Retain every candidate at a position. Resolution later considers
     // semantic confidence as well as span length, so a long unsafe prefix
     // cannot automatically swallow two safer words.
-    for (let len = maxLen; len >= 2; len--) {
+    for (const len of lengths) {
       if (i + len > text.length) continue;
       const candidate = text.slice(i, i + len);
       const entries = dict.get(candidate);
@@ -390,15 +493,18 @@ function findTermsViaScan(
         entries,
         corrections.get(correctionKey(candidate, sentence)),
         buildLocalContext(text, i, i + len),
+        (candidateId) => isCandidateApprovedForVocabulary(vocabularyId, candidateId),
+        vocabularyId !== "cet4",
       );
       const entry = selected.entry;
       const selectedCandidateId = candidateIdFor(entry);
+      if (vocabularyId !== "cet4" && !isCandidateApprovedForVocabulary(vocabularyId, selectedCandidateId)) continue;
       const selectedContext = buildLocalContext(text, i, i + len);
-      if (candidateMode(selectedCandidateId) === "blocked") continue;
-      const contextEvidence = candidateMode(selectedCandidateId) === "contextual"
-        ? hasContextualEvidence(candidate, selectedContext)
+      if (candidateModeForVocabulary(vocabularyId, selectedCandidateId) === "blocked") continue;
+      const contextEvidence = candidateModeForVocabulary(vocabularyId, selectedCandidateId) === "contextual"
+        ? hasContextualEvidenceForVocabulary(vocabularyId, candidate, selectedContext, selectedCandidateId)
         : false;
-      if (candidateMode(selectedCandidateId) === "contextual" && !contextEvidence) continue;
+      if (candidateModeForVocabulary(vocabularyId, selectedCandidateId) === "contextual" && !contextEvidence) continue;
       candidates.push({
         id: `${entry.zh}-${entry.en}-${i}`,
         zh: entry.zh,
@@ -431,9 +537,10 @@ function findTermsViaScan(
 function buildUncertainScanStarts(
   segments: SegmentSpan[],
   dict: Map<string, Cet4Entry[]>,
+  scanIndex: DictionaryScanIndex,
 ): Set<number> {
   const starts = new Set<number>();
-  const longestTerm = maxKeyLength(dict);
+  const longestTerm = scanIndex.maxLength;
   for (let index = 0; index < segments.length; index += 1) {
     const segment = segments[index];
     const length = [...segment.segment].length;
@@ -447,9 +554,30 @@ function buildUncertainScanStarts(
       if ([...compound].length > longestTerm) break;
       if (dict.has(compound)) starts.add(segment.index);
     }
-    if (length > 8 || dict.has(segment.segment)) continue;
+    // Long native segments can contain several useful dictionary words
+    // (especially in prose without punctuation). The indexed offset scan
+    // below is bounded by the dictionary's prefixes, so do not discard those
+    // segments solely because the browser grouped more than eight characters.
+    if (dict.has(segment.segment)) continue;
+    if (length === 1 && scanIndex.firstCharacters.has(segment.segment)) {
+      // Segmenter often emits the first character of a two-character term as
+      // a standalone span (e.g. 大 + 多功能). Preserve that boundary for a
+      // cross-segment scan even though the local remainder is one character.
+      starts.add(segment.index);
+      continue;
+    }
     for (let offset = 0; offset < segment.segment.length; offset += 1) {
-      starts.add(segment.index + offset);
+      if (!scanIndex.firstCharacters.has(segment.segment[offset])) continue;
+      const remaining = segment.segment.slice(offset, offset + scanIndex.maxLength);
+      // A scan is useful only when this offset can start a dictionary term or
+      // a prefix of one. This avoids probing every Chinese character in a
+      // long prose segment while preserving short compounds.
+      let possible = dict.has(remaining);
+      for (let length = 2; !possible && length <= remaining.length; length += 1) {
+        const probe = remaining.slice(0, length);
+        possible = dict.has(probe) || scanIndex.prefixes.has(probe);
+      }
+      if (possible) starts.add(segment.index + offset);
     }
   }
   return starts;
@@ -616,12 +744,10 @@ function buildProtectedCompoundRanges(text: string): ProtectedRange[] {
 
 function hasUnsafeSingleCharacterNeighbor(
   segments: SegmentSpan[],
+  currentIndex: number,
   current: SegmentSpan,
   dict: Map<string, Cet4Entry[]>,
 ): boolean {
-  const currentIndex = segments.findIndex((segment) => segment.index === current.index);
-  if (currentIndex < 0) return false;
-
   const previous = segments[currentIndex - 1];
   const next = segments[currentIndex + 1];
   return [previous, next].some((neighbor) => {
@@ -645,12 +771,27 @@ function isContainedByLongerSegment(
 ): boolean {
   if (!segments || segments.length === 0) return false;
 
-  return segments.some((segment) => {
-    const segmentEnd = segment.index + segment.segment.length;
-    const segmentLength = [...segment.segment].length;
-    return segmentLength <= 8 && dict.has(segment.segment) && segment.index <= start && segmentEnd >= end
-      && (segment.index < start || segmentEnd > end);
-  });
+  // Segment spans are sorted and non-overlapping. Find the last span whose
+  // start is at or before the candidate, then inspect only that span instead
+  // of scanning the entire chapter's Segmenter output for every candidate.
+  let low = 0;
+  let high = segments.length - 1;
+  let containingIndex = -1;
+  while (low <= high) {
+    const middle = Math.floor((low + high) / 2);
+    if (segments[middle].index <= start) {
+      containingIndex = middle;
+      low = middle + 1;
+    } else {
+      high = middle - 1;
+    }
+  }
+  if (containingIndex < 0) return false;
+  const segment = segments[containingIndex];
+  const segmentEnd = segment.index + segment.segment.length;
+  const segmentLength = [...segment.segment].length;
+  return segmentLength <= 8 && dict.has(segment.segment) && segment.index <= start && segmentEnd >= end
+    && (segment.index < start || segmentEnd > end);
 }
 
 function isProtectedCompound(ranges: ProtectedRange[], start: number, end: number): boolean {
@@ -676,16 +817,20 @@ function markAllOccurrences(text: string, term: string, ranges: ProtectedRange[]
 }
 
 function findSentenceForRange(sentences: SentenceSpan[], start: number, end: number): string {
-  const sentence = sentences.find((item) => item.start <= start && item.end >= end);
-  return sentence?.text ?? "";
-}
-
-function maxKeyLength(dict: Map<string, Cet4Entry[]>): number {
-  let max = 0;
-  for (const key of dict.keys()) {
-    if (key.length > max) max = key.length;
+  let low = 0;
+  let high = sentences.length - 1;
+  while (low <= high) {
+    const middle = Math.floor((low + high) / 2);
+    const sentence = sentences[middle];
+    if (start < sentence.start) {
+      high = middle - 1;
+    } else if (end > sentence.end) {
+      low = middle + 1;
+    } else {
+      return sentence.text;
+    }
   }
-  return Math.max(max, 2);
+  return "";
 }
 
 function isCJKChar(ch: string): boolean {

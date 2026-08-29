@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "dataset": "ielts",
+  "status": "available",
+  "rawEntryCount": 4690,
+  "normalizedEntryCount": 4690,
+  "duplicateLexicalTupleCount": 0,
+  "sourcePolicy": "WordTyper/ECDICT MIT source converted by scripts/convert-wordtyper-vocab.mjs; 284 rows without a reader-compatible phonetic/POS mapping were excluded",
+  "generatedBy": "scripts/convert-wordtyper-vocab.mjs",
+  "assetSha256": "a8720b6166c25c0df8a33aaab87bc12e486415d1a4bad1b69cf6894b4ce99eed"
+}

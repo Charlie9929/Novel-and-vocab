@@ -15,7 +15,7 @@ export interface ShelfEntry {
 
 interface FilePickerProps {
   shelf: ShelfEntry[];
-  onLoaded: (novel: LocalNovel, handle: FileSystemFileHandle | null) => void;
+  onLoaded: (novel: LocalNovel, handle: FileSystemFileHandle | null) => void | Promise<void>;
   onResumeMissing: (onProgress: (progress: NovelReadProgress) => void) => Promise<void> | void;
 }
 
@@ -34,7 +34,7 @@ export function FilePicker({ shelf, onLoaded, onResumeMissing }: FilePickerProps
     setReadProgress({ phase: "reading", percent: 0 });
     try {
       const { novel, handle } = await pickNovelViaFsa(handleReadProgress);
-      onLoaded(novel, handle);
+      await onLoaded(novel, handle);
     } catch (err: unknown) {
       if (err instanceof DOMException && err.name === "AbortError") return;
       setError(err instanceof Error ? err.message : "读取失败。");
@@ -50,7 +50,7 @@ export function FilePicker({ shelf, onLoaded, onResumeMissing }: FilePickerProps
     setReadProgress({ phase: "reading", percent: 0 });
     try {
       if (entry.sessionNovel) {
-        onLoaded(entry.sessionNovel, null);
+        await onLoaded(entry.sessionNovel, null);
         return;
       }
       if (entry.hasHandle) {
@@ -59,7 +59,7 @@ export function FilePicker({ shelf, onLoaded, onResumeMissing }: FilePickerProps
         if (handle) {
           const novel = await readFromHandle(handle, handleReadProgress);
           if (novel) {
-            onLoaded(novel, handle);
+            await onLoaded(novel, handle);
             return;
           }
         }
@@ -75,8 +75,16 @@ export function FilePicker({ shelf, onLoaded, onResumeMissing }: FilePickerProps
     }
   }
 
-  function loadDemo() {
-    onLoaded(makeDemoNovel(), null);
+  async function loadDemo() {
+    setError("");
+    setIsReading(true);
+    try {
+      await onLoaded(makeDemoNovel(), null);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "读取失败。");
+    } finally {
+      setIsReading(false);
+    }
   }
 
   const hasShelf = shelf.length > 0;
@@ -126,7 +134,7 @@ export function FilePicker({ shelf, onLoaded, onResumeMissing }: FilePickerProps
         </>
       )}
 
-      <button className="secondary-button" type="button" onClick={loadDemo} disabled={isReading}>
+      <button className="secondary-button" type="button" onClick={() => void loadDemo()} disabled={isReading}>
         体验示例
       </button>
 

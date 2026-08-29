@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "dataset": "cet4",
+  "status": "available",
+  "rawEntryCount": 3807,
+  "normalizedEntryCount": 3806,
+  "duplicateLexicalTupleCount": 1,
+  "sourcePolicy": "existing local map retained for compatibility; provenance and redistribution license remain unverified",
+  "generatedBy": "scripts/audit-vocabulary-sources.mjs",
+  "assetSha256": "9dfc83de9690ebc2ef5a6df7343115d06003104f7456fef31f83092c8844c3d8"
+}

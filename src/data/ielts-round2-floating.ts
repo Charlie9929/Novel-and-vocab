@@ -1,0 +1,22 @@
+/* Generated from independently reviewed development/validation metadata; no blind labels are read. */
+export const IELTS_ROUND2_FLOATING_IDS = [
+  "人类:human:noun",
+  "动物:animal:noun",
+  "单调的:monotonous:adjective",
+  "在下面的:underlying:adjective",
+  "垃圾场:dump:noun",
+  "小心的:discreet:adjective",
+  "心脏:heart:noun",
+  "改变:alter:verb",
+  "放大:magnify:verb",
+  "杂志:magazine:noun",
+  "活动:activity:noun",
+  "潮湿的:moist:adjective",
+  "相似的:similar:adjective",
+  "真正的:genuine:adjective",
+  "范围:extent:noun",
+  "身份:identity:noun",
+  "转移:divert:verb",
+  "阅读:reading:noun",
+  "难以置信的:incredible:adjective",
+] as const;

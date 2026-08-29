@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import cet4Entries from "./data/cet4-map.json";
 import { BottomNav, type AppTab } from "./components/BottomNav";
 import { FilePicker, type ShelfEntry } from "./components/FilePicker";
 import { QuizPanel } from "./components/QuizPanel";
@@ -7,11 +6,13 @@ import { Reader } from "./components/Reader";
 import { ReviewPanel } from "./components/ReviewPanel";
 import { SettingsPanel } from "./components/SettingsPanel";
 import { VocabList } from "./components/VocabList";
+import { VocabularyPicker } from "./components/VocabularyPicker";
 import { WordSheet } from "./components/WordSheet";
 import {
   addBlacklistTerm,
   addVocabulary,
-  clearLocalLearningData,
+  clearAllLearningData,
+  clearCurrentVocabularyData,
   db,
   getAllShelfEntries,
   getBlacklistTerms,
@@ -22,6 +23,7 @@ import {
   putSetting,
   removeBlacklistTerm,
   saveFileHandle,
+  saveBookRecord,
   saveQuizHistory,
   saveReadingProgress,
   saveReplacementRecords,
@@ -48,9 +50,12 @@ import type {
   LocalNovel,
   QuizQuestion,
   ReplacementToken,
+  VocabularyId,
 } from "./core/types";
+import { DEFAULT_VOCABULARY_ID } from "./core/types";
+import { isVocabularyId, loadVocabularyEntries } from "./data/vocabulary";
 
-const typedCet4Entries = cet4Entries as Cet4Entry[];
+const VOCABULARY_SETTING_KEY = "vocabularyId";
 
 interface ReaderProgressUpdate {
   scrollPercent: number;
@@ -118,6 +123,10 @@ function mapSavedProgress(
 }
 
 export default function App() {
+  const [vocabularyId, setVocabularyId] = useState<VocabularyId | null>(null);
+  const [vocabularyEntries, setVocabularyEntries] = useState<Cet4Entry[]>([]);
+  const [isVocabularyLoading, setIsVocabularyLoading] = useState(false);
+  const [vocabularyError, setVocabularyError] = useState("");
   const [novel, setNovel] = useState<LocalNovel | null>(null);
   const [activeTab, setActiveTab] = useState<AppTab>("reader");
   const [chapterIndex, setChapterIndex] = useState(0);
@@ -146,29 +155,83 @@ export default function App() {
 
   const densityValue = DENSITY_VALUES[densityLevel];
   const replacedChapter = useMemo(() => {
-    if (!currentChapter) return null;
-    return replaceChapterTerms(currentChapter, typedCet4Entries, new Set(blacklist), densityValue, corrections);
-  }, [blacklist, corrections, currentChapter, densityValue]);
+    if (!currentChapter || vocabularyEntries.length === 0) return null;
+    return replaceChapterTerms(currentChapter, vocabularyEntries, new Set(blacklist), densityValue, corrections, vocabularyId ?? DEFAULT_VOCABULARY_ID);
+  }, [blacklist, corrections, currentChapter, densityValue, vocabularyEntries, vocabularyId]);
 
   useEffect(() => {
-    void refreshLocalState();
+    void initializeApp();
   }, []);
 
   useEffect(() => {
-    if (!novel || !replacedChapter) return;
-    void saveReplacementRecords(replacedChapter.replacements, novel.fingerprint).catch((error: unknown) => {
+    if (!vocabularyId) {
+      setVocabularyEntries([]);
+      setVocabularyError("");
+      return;
+    }
+    let cancelled = false;
+    setIsVocabularyLoading(true);
+    setVocabularyEntries([]);
+    setVocabularyError("");
+    void loadVocabularyEntries(vocabularyId)
+      .then((entries) => {
+        if (!cancelled) setVocabularyEntries([...entries] as Cet4Entry[]);
+      })
+      .catch((error: unknown) => {
+        if (cancelled) return;
+        setVocabularyEntries([]);
+        setVocabularyError(error instanceof Error ? error.message : "当前词库暂不可用。");
+      })
+      .finally(() => {
+        if (!cancelled) setIsVocabularyLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [vocabularyId]);
+
+  useEffect(() => {
+    if (!novel || !replacedChapter || !vocabularyId) return;
+    void saveReplacementRecords(replacedChapter.replacements, novel.fingerprint, vocabularyId).catch((error: unknown) => {
       reportStorageIssue(error);
     });
-  }, [novel, replacedChapter]);
+  }, [novel, replacedChapter, vocabularyId]);
 
-  async function refreshLocalState() {
+  async function initializeApp(): Promise<void> {
+    try {
+      const savedVocabulary = await getSetting(VOCABULARY_SETTING_KEY);
+      let nextVocabularyId: VocabularyId | null = isVocabularyId(savedVocabulary) ? savedVocabulary : null;
+      // A pre-v6 user has learning records but no vocabulary setting. The v6
+      // migration normally writes CET4; this fallback also handles databases
+      // created by an older development build.
+      const scopedLearningCounts = await Promise.all([
+        db.readingProgress.count(),
+        db.vocabulary.count(),
+        db.replacementRecords.count(),
+        db.blacklist.count(),
+        db.quizHistory.count(),
+        db.contextCorrections.count(),
+        db.translationFeedback.count(),
+      ]);
+      if (!nextVocabularyId && scopedLearningCounts.some((count) => count > 0)) {
+        nextVocabularyId = DEFAULT_VOCABULARY_ID;
+        await putSetting(VOCABULARY_SETTING_KEY, nextVocabularyId);
+      }
+      setVocabularyId(nextVocabularyId);
+      if (nextVocabularyId) await refreshLocalState(nextVocabularyId);
+    } catch (error: unknown) {
+      reportStorageIssue(error);
+    }
+  }
+
+  async function refreshLocalState(scope: VocabularyId = vocabularyId ?? DEFAULT_VOCABULARY_ID) {
     try {
       const [blacklistTerms, words, savedDensity, shelfEntries, savedCorrections, savedReaderPreferences] = await Promise.all([
-        getBlacklistTerms(),
-        db.vocabulary.orderBy("createdAt").reverse().toArray(),
+        getBlacklistTerms(scope),
+        db.vocabulary.where("vocabularyId").equals(scope).sortBy("createdAt").then((items) => items.reverse()),
         getSetting("replacementDensity"),
-        getAllShelfEntries(),
-        getContextCorrections(),
+        getAllShelfEntries(scope),
+        getContextCorrections(scope),
         getSetting(READER_PREFERENCES_KEY),
       ]);
       setBlacklist(blacklistTerms);
@@ -196,16 +259,20 @@ export default function App() {
   }
 
   async function handleNovelLoaded(nextNovel: LocalNovel, nextHandle: FileSystemFileHandle | null) {
+    if (!vocabularyId) return;
+    const scope = vocabularyId;
     if (progressSaveTimerRef.current !== null) {
       clearTimeout(progressSaveTimerRef.current);
       progressSaveTimerRef.current = null;
     }
     sessionNovelsRef.current.clear();
     sessionNovelsRef.current.set(nextNovel.fingerprint, nextNovel);
-    setNovel(nextNovel);
     setIsImmersive(false);
     setAutoStatus("idle");
     setQuizOrigin(null);
+    setSelectedWord(null);
+    setQuizQuestions(null);
+    setIsReviewing(false);
 
     if (nextHandle) {
       try {
@@ -215,9 +282,23 @@ export default function App() {
       }
     }
 
-    let savedProgress: Awaited<ReturnType<typeof getReadingProgress>>;
     try {
-      savedProgress = await getReadingProgress(nextNovel.fingerprint);
+      await saveBookRecord({
+        id: nextNovel.fingerprint,
+        source: "local",
+        fileFingerprint: nextNovel.fingerprint,
+        fileName: nextNovel.fileName,
+        fileSize: nextNovel.fileSize,
+        lastModified: nextNovel.lastModified,
+        updatedAt: Date.now(),
+      });
+    } catch (error: unknown) {
+      reportStorageIssue(error);
+    }
+
+    let savedProgress: Awaited<ReturnType<typeof getReadingProgress>> = undefined;
+    try {
+      savedProgress = await getReadingProgress(nextNovel.fingerprint, scope);
     } catch (error: unknown) {
       reportStorageIssue(error);
     }
@@ -247,6 +328,7 @@ export default function App() {
     // returning before scrolling produced an empty shelf.
     try {
       await saveReadingProgress({
+        vocabularyId: scope,
         fileFingerprint: nextNovel.fingerprint,
         fileName: nextNovel.fileName,
         chapterIndex: mappedLocation.chapterIndex,
@@ -259,7 +341,11 @@ export default function App() {
     } catch (error: unknown) {
       reportStorageIssue(error);
     }
-    await refreshLocalState();
+    await refreshLocalState(scope);
+    // Only render the reader after the book, progress and shelf state are
+    // prepared. This keeps a second large book from replacing the picker
+    // while its asynchronous persistence work is still in flight.
+    setNovel(nextNovel);
   }
 
   /** Called when user clicks a shelf card for a book without an FSA handle. */
@@ -281,8 +367,9 @@ export default function App() {
       paragraphOffset,
     },
   ): Promise<void> {
-    if (!novel) return Promise.resolve();
+    if (!novel || !vocabularyId) return Promise.resolve();
     const record: ReadingProgressRecord = {
+      vocabularyId,
       fileFingerprint: novel.fingerprint,
       fileName: novel.fileName,
       chapterIndex: nextChapterIndex,
@@ -344,26 +431,28 @@ export default function App() {
   }
 
   async function handleSaveWord(replacement: ReplacementToken) {
-    if (!novel) return;
-    await addVocabulary(replacement, novel.fingerprint);
+    if (!novel || !vocabularyId) return;
+    await addVocabulary(replacement, novel.fingerprint, vocabularyId);
     await refreshLocalState();
     setSelectedWord(null);
   }
 
   async function handleBlacklist(replacement: ReplacementToken) {
-    await addBlacklistTerm(replacement.zh);
-    await addBlacklistTerm(replacement.en);
+    if (!vocabularyId) return;
+    await addBlacklistTerm(replacement.zh, vocabularyId);
+    await addBlacklistTerm(replacement.en, vocabularyId);
     await refreshLocalState();
     setSelectedWord(null);
   }
 
   async function handleRemoveBlacklist(term: string) {
-    await removeBlacklistTerm(term);
+    if (!vocabularyId) return;
+    await removeBlacklistTerm(term, vocabularyId);
     await refreshLocalState();
   }
 
   async function handleClearData() {
-    await clearLocalLearningData();
+    await clearAllLearningData();
     setProgressPercent(0);
     setParagraphIndex(undefined);
     setParagraphOffset(undefined);
@@ -372,9 +461,43 @@ export default function App() {
       clearTimeout(progressSaveTimerRef.current);
       progressSaveTimerRef.current = null;
     }
-    setReaderPreferences({ ...DEFAULT_READER_PREFERENCES });
     setAutoStatus("idle");
     await refreshLocalState();
+  }
+
+  async function handleClearCurrentVocabularyData(): Promise<void> {
+    if (!vocabularyId) return;
+    await clearCurrentVocabularyData(vocabularyId);
+    setProgressPercent(0);
+    setParagraphIndex(undefined);
+    setParagraphOffset(undefined);
+    latestProgressRef.current = { chapterIndex, scrollPercent: 0, paragraphIndex: undefined, paragraphOffset: undefined };
+    if (progressSaveTimerRef.current !== null) {
+      clearTimeout(progressSaveTimerRef.current);
+      progressSaveTimerRef.current = null;
+    }
+    await refreshLocalState(vocabularyId);
+  }
+
+  async function handleVocabularyChange(nextVocabularyId: VocabularyId): Promise<void> {
+    if (nextVocabularyId === vocabularyId) return;
+    if (novel) await flushProgressPersistence();
+    await putSetting(VOCABULARY_SETTING_KEY, nextVocabularyId);
+    setVocabularyId(nextVocabularyId);
+    setNovel(null);
+    setSelectedWord(null);
+    setQuizQuestions(null);
+    setIsReviewing(false);
+    setActiveTab("reader");
+    setChapterIndex(0);
+    setProgressPercent(0);
+    setParagraphIndex(undefined);
+    setParagraphOffset(undefined);
+    latestProgressRef.current = { chapterIndex: 0, scrollPercent: 0, paragraphIndex: undefined, paragraphOffset: undefined };
+    // The picker closes as soon as this starts. Refresh the scoped learning
+    // state in the background so a large local database cannot make the
+    // confirmation button appear unresponsive.
+    void refreshLocalState(nextVocabularyId);
   }
 
   async function handleSetDensity(level: DensityLevel) {
@@ -420,8 +543,9 @@ export default function App() {
   }
 
   function handleReviewComplete(results: Array<{ key: string; sm2: Sm2State }>) {
+    if (!vocabularyId) return;
     for (const r of results) {
-      void db.vocabulary.where("key").equals(r.key).modify({ sm2: r.sm2 });
+      void db.vocabulary.where("[vocabularyId+key]").equals([vocabularyId, r.key]).modify({ sm2: r.sm2 });
     }
   }
 
@@ -438,10 +562,11 @@ export default function App() {
   }
 
   async function handleQuizSubmit(correctCount: number) {
-    if (!novel || !currentChapter || !quizQuestions) return;
+    if (!novel || !currentChapter || !quizQuestions || !vocabularyId) return;
     const origin = quizOrigin;
     try {
       await saveQuizHistory({
+        vocabularyId,
         fileFingerprint: novel.fingerprint,
         chapterIndex: currentChapter.index,
         questions: quizQuestions,
@@ -469,6 +594,10 @@ export default function App() {
   async function handleReturnToShelf() {
     setIsImmersive(false);
     setAutoStatus("idle");
+    setSelectedWord(null);
+    setQuizQuestions(null);
+    setQuizOrigin(null);
+    setIsReviewing(false);
     await flushProgressPersistence();
     await refreshLocalState();
     setNovel(null);
@@ -479,15 +608,38 @@ export default function App() {
     setStorageWarning("本地学习记录暂时不可用，但不影响阅读。刷新或更换浏览器后可恢复保存。");
   }
 
+  if (!vocabularyId) {
+    return (
+      <main className="app-shell centered-shell">
+        {storageWarning ? <p className="storage-warning" role="alert">{storageWarning}</p> : null}
+        <VocabularyPicker
+          currentVocabularyId={null}
+          onChange={handleVocabularyChange}
+        />
+      </main>
+    );
+  }
+
   if (!novel || !currentChapter || !replacedChapter) {
     return (
       <main className="app-shell centered-shell">
         {storageWarning ? <p className="storage-warning" role="alert">{storageWarning}</p> : null}
-        <FilePicker
-          shelf={shelf}
-          onLoaded={(nextNovel, nextHandle) => void handleNovelLoaded(nextNovel, nextHandle)}
-          onResumeMissing={handleResumeMissing}
+        <VocabularyPicker
+          currentVocabularyId={vocabularyId}
+          onChange={handleVocabularyChange}
+          onClearCurrentData={() => void handleClearCurrentVocabularyData()}
         />
+        {vocabularyError ? (
+          <p className="error-text" role="alert">{vocabularyError}</p>
+        ) : isVocabularyLoading ? (
+          <p className="vocabulary-loading" role="status" aria-live="polite">正在加载当前词库…</p>
+        ) : (
+          <FilePicker
+            shelf={shelf}
+            onLoaded={handleNovelLoaded}
+            onResumeMissing={handleResumeMissing}
+          />
+        )}
       </main>
     );
   }
@@ -521,6 +673,9 @@ export default function App() {
             layoutVersion: novel.layout?.version,
           }}
           densityLevel={densityLevel}
+          replacementCount={replacedChapter.replacements.length}
+          vocabCount={vocab.length}
+          reviewDueCount={vocab.filter((word) => word.sm2.dueAt <= Date.now()).length}
           onSelectWord={(replacement) => {
             setIsImmersive(false);
             setSelectedWord(replacement);
@@ -552,22 +707,29 @@ export default function App() {
         )
       ) : null}
       {activeTab === "settings" ? (
-        <SettingsPanel
-          blacklist={blacklist}
-          densityLevel={densityLevel}
-          readerPreferences={readerPreferences}
-          autoStatus={autoStatus}
-          replacementCount={replacedChapter.replacements.length}
-          vocabCount={vocab.length}
-          reviewDueCount={vocab.filter((word) => word.sm2.dueAt <= Date.now()).length}
-          onRemoveBlacklist={handleRemoveBlacklist}
-          onClearData={() => void handleClearData()}
-          onSetDensity={(level) => void handleSetDensity(level)}
-          onReaderPreferencesChange={handleReaderPreferencesChange}
-          onStartAutoReading={startAutoReadingFromSettings}
-          onResumeAutoReading={resumeAutoReadingFromSettings}
-          onStopAutoReading={() => handleAutoStatusChange("idle")}
-        />
+        <>
+          <VocabularyPicker
+            currentVocabularyId={vocabularyId}
+            onChange={handleVocabularyChange}
+            onClearCurrentData={() => void handleClearCurrentVocabularyData()}
+          />
+          <SettingsPanel
+            blacklist={blacklist}
+            densityLevel={densityLevel}
+            readerPreferences={readerPreferences}
+            autoStatus={autoStatus}
+            replacementCount={replacedChapter.replacements.length}
+            vocabCount={vocab.length}
+            reviewDueCount={vocab.filter((word) => word.sm2.dueAt <= Date.now()).length}
+            onRemoveBlacklist={handleRemoveBlacklist}
+            onClearData={() => void handleClearData()}
+            onSetDensity={(level) => void handleSetDensity(level)}
+            onReaderPreferencesChange={handleReaderPreferencesChange}
+            onStartAutoReading={startAutoReadingFromSettings}
+            onResumeAutoReading={resumeAutoReadingFromSettings}
+            onStopAutoReading={() => handleAutoStatusChange("idle")}
+          />
+        </>
       ) : null}
 
       <BottomNav activeTab={activeTab} onChange={handleTabChange} hidden={activeTab === "reader" && isImmersive} />

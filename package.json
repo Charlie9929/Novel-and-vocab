@@ -17,9 +17,32 @@
     "quality:repartition": "node scripts/repartition-local-quality-manifest.mjs",
     "quality:expand": "node scripts/expand-local-quality-manifest.mjs",
     "quality:propose-candidates": "node scripts/propose-local-candidate-promotions.mjs",
+    "quality:propose-strict-stable": "node scripts/propose-strict-stable-candidates.mjs",
+    "quality:propose-floating-boundary": "node scripts/propose-floating-boundary-candidates.mjs",
+    "quality:propose-contextual": "node scripts/propose-contextual-candidates.mjs",
+    "quality:export-contextual": "node scripts/export-contextual-candidates.mjs",
+    "quality:export-strict-stable": "node scripts/export-strict-stable-candidates.mjs",
     "quality:baseline": "node scripts/run-git-baseline-quality.mjs",
     "quality:novels": "node scripts/run-local-quality-gate.mjs",
-    "quality:audit-candidates": "node scripts/audit-production-candidates.mjs"
+    "quality:novels:batches": "node scripts/run-local-quality-batches.mjs",
+    "quality:novels:sample": "node scripts/run-local-quality-sample.mjs",
+    "quality:render-annotation": "node scripts/render-local-annotation-review.mjs",
+    "quality:build-vocabulary-round": "node scripts/build-vocabulary-quality-round.mjs",
+    "quality:augment-vocabulary-training": "node scripts/augment-vocabulary-training-manifest.mjs",
+    "quality:prepare-public-domain-corpus": "node scripts/prepare-public-domain-corpus.mjs",
+    "quality:inventory-corpus": "node scripts/inventory-local-corpus.mjs",
+    "quality:assign-corpus-splits": "node scripts/assign-corpus-splits.mjs",
+    "quality:prepare-full-corpus": "node scripts/prepare-full-quality-corpus.mjs",
+    "quality:build-full-round": "node scripts/build-full-corpus-quality-round.mjs",
+    "quality:repair-manifest-sources": "node scripts/repair-quality-manifest-source-variants.mjs",
+    "quality:build-cohort-blind": "node scripts/build-cohort-blind-manifest.mjs",
+    "quality:build-shared-reuse": "node scripts/build-shared-candidate-reuse.mjs",
+    "quality:pack-contract": "vitest run tests/quality/vocabulary-pack-contract.test.ts",
+    "quality:audit-candidates": "node scripts/audit-production-candidates.mjs",
+    "quality:audit-vocabulary": "node scripts/audit-vocabulary-sources.mjs",
+    "quality:audit-vocabulary:strict": "node scripts/audit-vocabulary-sources.mjs --strict",
+    "quality:audit-labels": "node scripts/audit-vocabulary-labels.mjs",
+    "quality:audit-labels:strict": "node scripts/audit-vocabulary-labels.mjs --strict"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.0.4",
@@ -36,6 +59,7 @@
     "@types/react-dom": "^19.2.3",
     "@vitest/coverage-v8": "^4.1.10",
     "fake-indexeddb": "^6.2.5",
+    "opencc-js": "^1.4.2",
     "vitest": "^4.1.10"
   }
 }
