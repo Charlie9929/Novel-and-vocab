@@ -32,6 +32,8 @@ export type ReadingProgressInput = Omit<ReadingProgressRecord, "vocabularyId"> &
 export interface VocabRecord {
   id?: number;
   vocabularyId: VocabularyId;
+  /** One learning card per vocabulary lemma, regardless of source occurrence. */
+  lemma: string;
   key: string;
   word: string;
   meaning: string;
@@ -138,6 +140,11 @@ const V2_TABLES = {
   quizHistory: "quizHistoryV2",
   contextCorrections: "contextCorrectionsV2",
   translationFeedback: "translationFeedbackV2",
+} as const;
+
+/** The lemma-scoped vocabulary table introduced after the first scoped schema. */
+const V3_TABLES = {
+  vocabulary: "vocabularyV3",
 } as const;
 
 /**
@@ -253,8 +260,36 @@ class ImmersiveVocabDb extends Dexie {
       bookRegistry: "&id, source, fileFingerprint, updatedAt",
     });
 
+    // v8 changes only the learning-card identity. Replacement occurrences
+    // remain in their own table; a vocabulary card is now unique per
+    // vocabulary + lemma so the same word does not receive separate SRS
+    // schedules for every book/chapter occurrence.
+    this.version(8)
+      .stores({
+        readingProgress: "fileFingerprint, updatedAt",
+        vocabulary: "++id, &key, word, originalChinese, fileFingerprint, createdAt, sm2.dueAt",
+        replacementRecords: "++id, &key, fileFingerprint, chapterIndex, word, originalChinese",
+        blacklist: "++id, &term, createdAt",
+        quizHistory: "++id, fileFingerprint, chapterIndex, createdAt",
+        settings: "++id, &key",
+        fileHandles: "fileFingerprint, savedAt",
+        contextCorrections: "key, zh, updatedAt",
+        translationFeedback: "&key, originalChinese, englishWord, createdAt, status",
+
+        readingProgressV2: "[vocabularyId+fileFingerprint], vocabularyId, fileFingerprint, updatedAt",
+        vocabularyV2: "++id, &[vocabularyId+key], vocabularyId, key, word, originalChinese, fileFingerprint, createdAt, sm2.dueAt",
+        replacementRecordsV2: "++id, &[vocabularyId+key], vocabularyId, key, fileFingerprint, chapterIndex, word, originalChinese",
+        blacklistV2: "++id, &[vocabularyId+term], vocabularyId, term, createdAt",
+        quizHistoryV2: "++id, [vocabularyId+fileFingerprint], vocabularyId, fileFingerprint, chapterIndex, createdAt",
+        contextCorrectionsV2: "[vocabularyId+key], vocabularyId, key, zh, updatedAt",
+        translationFeedbackV2: "&[vocabularyId+key], vocabularyId, key, originalChinese, englishWord, createdAt, status",
+        bookRegistry: "&id, source, fileFingerprint, updatedAt",
+        vocabularyV3: "++id, &[vocabularyId+lemma], vocabularyId, lemma, word, originalChinese, fileFingerprint, createdAt, sm2.dueAt",
+      })
+      .upgrade(async (transaction) => migrateVocabularyToLemma(transaction));
+
     this.readingProgress = this.table(V2_TABLES.readingProgress) as typeof this.readingProgress;
-    this.vocabulary = this.table(V2_TABLES.vocabulary) as typeof this.vocabulary;
+    this.vocabulary = this.table(V3_TABLES.vocabulary) as typeof this.vocabulary;
     this.replacementRecords = this.table(V2_TABLES.replacementRecords) as typeof this.replacementRecords;
     this.blacklist = this.table(V2_TABLES.blacklist) as typeof this.blacklist;
     this.quizHistory = this.table(V2_TABLES.quizHistory) as typeof this.quizHistory;
@@ -335,6 +370,52 @@ async function migrateLegacyTables(transaction: Transaction): Promise<void> {
   }
 }
 
+/** Collapse occurrence-scoped v6/v7 cards into one card per lemma. */
+async function migrateVocabularyToLemma(transaction: Transaction): Promise<void> {
+  const oldRecords = await transaction.table(V2_TABLES.vocabulary).toArray() as Array<LegacyVocabRecord & {
+    vocabularyId?: VocabularyId;
+    lemma?: string;
+  }>;
+  const merged = new Map<string, VocabRecord>();
+
+  for (const oldRecord of oldRecords) {
+    const vocabularyId = oldRecord.vocabularyId ?? DEFAULT_SCOPE;
+    const lemma = normalizeLemma(oldRecord.lemma ?? oldRecord.word);
+    if (!lemma) continue;
+    const key = `${vocabularyId}:${lemma}`;
+    const candidate: VocabRecord = {
+      ...oldRecord,
+      vocabularyId,
+      lemma,
+      key,
+    };
+    const existing = merged.get(key);
+    if (!existing) {
+      merged.set(key, candidate);
+      continue;
+    }
+
+    // Keep the most recently reviewed SRS state, while retaining the earliest
+    // discovery timestamp and a valid source example.
+    const latestState = (candidate.sm2.updatedAt ?? 0) > (existing.sm2.updatedAt ?? 0)
+      ? candidate.sm2
+      : existing.sm2;
+    merged.set(key, {
+      ...existing,
+      sm2: latestState,
+      createdAt: Math.min(existing.createdAt, candidate.createdAt),
+    });
+  }
+
+  if (merged.size > 0) {
+    await transaction.table(V3_TABLES.vocabulary).bulkPut([...merged.values()]);
+  }
+}
+
+function normalizeLemma(value: string): string {
+  return value.normalize("NFKC").trim().toLocaleLowerCase("en-US");
+}
+
 export const db = new ImmersiveVocabDb();
 
 async function upsertSetting(settings: Table<SettingsRecord, number>, key: string, value: string): Promise<void> {
@@ -363,9 +444,11 @@ export async function addVocabulary(
   vocabularyId: VocabularyId = DEFAULT_SCOPE,
 ): Promise<void> {
   const now = Date.now();
-  const key = `${fileFingerprint}:${replacement.chapterIndex}:${replacement.start}:${replacement.en}`;
+  const lemma = normalizeLemma(replacement.lemma ?? replacement.en);
+  const key = `${vocabularyId}:${lemma}`;
   const record = {
     vocabularyId,
+    lemma,
     key,
     word: replacement.en,
     meaning: replacement.meaning,
@@ -376,9 +459,17 @@ export async function addVocabulary(
     sm2: createInitialSm2State(now),
   } satisfies VocabRecord;
   await db.transaction("rw", db.vocabulary, async () => {
-    const existing = await db.vocabulary.where("[vocabularyId+key]").equals([vocabularyId, key]).first();
-    await db.vocabulary.put(existing?.id === undefined ? record : { ...record, id: existing.id });
+    const existing = await db.vocabulary.where("[vocabularyId+lemma]").equals([vocabularyId, lemma]).first();
+    if (existing?.id !== undefined) return;
+    await db.vocabulary.put(record);
   });
+}
+
+export async function getTranslationFeedbackKeys(vocabularyId: VocabularyId = DEFAULT_SCOPE): Promise<string[]> {
+  const records = await db.translationFeedback.where("vocabularyId").equals(vocabularyId).toArray();
+  // Derive the reader's context key even for rows written before the key
+  // format changed; those rows then suppress correctly after an app reload.
+  return [...new Set(records.map((record) => correctionKey(record.originalChinese, record.sourceSentence)))];
 }
 
 export async function saveReplacementRecords(
@@ -439,8 +530,11 @@ export async function saveTranslationFeedback(
   userSuggestion = "",
   vocabularyId: VocabularyId = DEFAULT_SCOPE,
 ): Promise<string> {
-  const context = normalizeContext(replacement.sentence, replacement.zh);
-  const key = `${replacement.zh}:${replacement.en}:${context}`;
+  // Suppression is local-context scoped: if the same Chinese span occurs
+  // again in this sentence, the reader should not immediately show it after
+  // the user reports the replacement. Existing rows are converted to this
+  // context key by getTranslationFeedbackKeys when they are read.
+  const key = correctionKey(replacement.zh, replacement.sentence);
   await db.translationFeedback.put({
     vocabularyId,
     key,
@@ -524,6 +618,7 @@ export async function clearAllLearningData(): Promise<void> {
     db.translationFeedback,
     db.legacyTable("readingProgress"),
     db.legacyTable("vocabulary"),
+    db.legacyTable(V2_TABLES.vocabulary),
     db.legacyTable("replacementRecords"),
     db.legacyTable("blacklist"),
     db.legacyTable("quizHistory"),
@@ -540,6 +635,7 @@ export async function clearAllLearningData(): Promise<void> {
         db.translationFeedback.clear(),
         db.legacyTable("readingProgress").clear(),
         db.legacyTable("vocabulary").clear(),
+        db.legacyTable(V2_TABLES.vocabulary).clear(),
         db.legacyTable("replacementRecords").clear(),
         db.legacyTable("blacklist").clear(),
         db.legacyTable("quizHistory").clear(),

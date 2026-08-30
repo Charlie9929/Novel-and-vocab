@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   assertVocabularyId,
   getVocabularyData,
+  getVocabularyCoverageStats,
   getVocabularyManifest,
   getVocabularySources,
   isVocabularyPublishable,
@@ -16,7 +17,9 @@ import {
   extendVocabularyCandidateStrategy,
   getVocabularyCandidateStrategy,
   isCandidateApprovedForVocabulary,
+  isCandidateReusableFromCet4,
   isFloatingBoundaryCandidateApprovedForVocabulary,
+  VOCABULARY_CANDIDATE_STRATEGIES,
 } from "../../src/data/vocabulary-candidates";
 import { replaceChapterTerms } from "../../src/core/replacer";
 import type { Cet4Entry } from "../../src/core/types";
@@ -46,12 +49,49 @@ describe("vocabulary loading contract", () => {
   });
 
   it("loads the three source-audited packs with their normalized counts", async () => {
-    const expectedCounts = { cet6: 5294, ielts: 4690, toefl: 6780 } as const;
+    const expectedCounts = { cet6: 5294, ielts: 4740, toefl: 6836 } as const;
     for (const id of ["cet6", "ielts", "toefl"] as const) {
       expect(isVocabularyReady(id)).toBe(true);
       expect((await loadVocabularyEntries(id, { allowUnavailable: true })).length).toBe(expectedCounts[id]);
       expect((await loadVocabularyEntries(id)).length).toBe(expectedCounts[id]);
       expect((await getVocabularyData(id)).entries.length).toBe(expectedCounts[id]);
+    }
+  });
+
+  it("runs the locally promoted IELTS and TOEFL v2 mappings without a preview flag", async () => {
+    for (const [vocabularyId, candidateId, text] of [
+      ["ielts", "演员:actor:noun", "他是一名演员。"],
+      ["toefl", "意识到:realize:verb", "他立刻意识到问题。"],
+    ] as const) {
+      const entries = await loadVocabularyEntries(vocabularyId);
+      expect(isCandidateApprovedForVocabulary(vocabularyId, candidateId)).toBe(true);
+      const result = replaceChapterTerms(
+        { id: `${vocabularyId}-v2-local`, title: "测试", index: 0, text },
+        [...entries],
+        new Set(),
+        1,
+        new Map(),
+        vocabularyId,
+      );
+      expect(result.replacements.map((item) => item.candidateId)).toContain(candidateId);
+    }
+  });
+
+  it("keeps a measurable precision-gated coverage floor outside CET4", async () => {
+    const expectedMinimums = {
+      cet6: { approvedEntryCount: 250, nonCet4ApprovedEntryCount: 150 },
+      ielts: { approvedEntryCount: 200, nonCet4ApprovedEntryCount: 100 },
+      toefl: { approvedEntryCount: 250, nonCet4ApprovedEntryCount: 150 },
+    } as const;
+    for (const [vocabularyId, minimum] of Object.entries(expectedMinimums) as Array<[keyof typeof expectedMinimums, typeof expectedMinimums[keyof typeof expectedMinimums]]>) {
+      const stats = await getVocabularyCoverageStats(vocabularyId);
+      expect(stats.entryCount).toBeGreaterThan(stats.approvedEntryCount);
+      expect(stats.approvedCandidateCount).toBe(stats.approvedEntryCount);
+      expect(stats.approvedLemmaCount).toBeGreaterThan(0);
+      expect(stats.reusableCandidateCount).toBeGreaterThan(0);
+      expect(stats.entryCoverage).toBeGreaterThanOrEqual(minimum.approvedEntryCount / stats.entryCount);
+      expect(stats.approvedEntryCount).toBeGreaterThanOrEqual(minimum.approvedEntryCount);
+      expect(stats.nonCet4ApprovedEntryCount).toBeGreaterThanOrEqual(minimum.nonCet4ApprovedEntryCount);
     }
   });
 
@@ -165,25 +205,39 @@ describe("vocabulary loading contract", () => {
 });
 
 describe("per-vocabulary candidate policy", () => {
-  it("bridges exact single-sense CET4 tuples while keeping the review queue gated", () => {
+  it("keeps exact single-sense CET4 tuples as a target-pack review queue", async () => {
     expect(CET6_CET4_REUSABLE_IDS).toHaveLength(375);
     expect(IELTS_CET4_REUSABLE_IDS).toHaveLength(301);
     expect(TOEFL_CET4_REUSABLE_IDS).toHaveLength(226);
     for (const [vocabularyId, ids, singleSenseIds, sampleId] of [
-      ["cet6", CET6_CET4_REUSABLE_IDS, CET6_CET4_REUSABLE_SINGLE_SENSE_IDS, "背诵:recite:verb"],
-      ["ielts", IELTS_CET4_REUSABLE_IDS, IELTS_CET4_REUSABLE_SINGLE_SENSE_IDS, "暗示:hint:noun"],
-      ["toefl", TOEFL_CET4_REUSABLE_IDS, TOEFL_CET4_REUSABLE_SINGLE_SENSE_IDS, "背景:background:noun"],
+      ["cet6", CET6_CET4_REUSABLE_IDS, CET6_CET4_REUSABLE_SINGLE_SENSE_IDS, "得分:score:noun"],
+      ["ielts", IELTS_CET4_REUSABLE_IDS, IELTS_CET4_REUSABLE_SINGLE_SENSE_IDS, "得分:score:noun"],
+      ["toefl", TOEFL_CET4_REUSABLE_IDS, TOEFL_CET4_REUSABLE_SINGLE_SENSE_IDS, "得分:score:noun"],
     ] as const) {
       expect(ids).toContain(sampleId);
       expect(ids).toContain("内容:content:noun");
-      // Only the target-pack single-sense subset is bridged automatically;
-      // the broader overlap catalogue remains review-gated.
-      expect(isCandidateApprovedForVocabulary(vocabularyId, sampleId)).toBe(singleSenseIds.includes(sampleId));
-      expect(isCandidateApprovedForVocabulary(vocabularyId, "内容:content:noun")).toBe(true);
+      expect(singleSenseIds).toContain(sampleId);
+      expect(isCandidateReusableFromCet4(vocabularyId, sampleId)).toBe(true);
+      expect(isCandidateApprovedForVocabulary(vocabularyId, sampleId)).toBe(false);
+      expect(isCandidateReusableFromCet4(vocabularyId, "内容:content:noun")).toBe(
+        singleSenseIds.includes("内容:content:noun"),
+      );
     }
     // Same Chinese word with a different English sense is not reused.
     expect(isCandidateApprovedForVocabulary("toefl", "结婚:marry:verb")).toBe(false);
-    expect(isCandidateApprovedForVocabulary("cet6", "一针:stitch:noun")).toBe(true);
+    expect(isCandidateReusableFromCet4("cet6", "得分:score:noun")).toBe(true);
+    expect(isCandidateApprovedForVocabulary("cet6", "得分:score:noun")).toBe(false);
+    const cet6Entries = await loadVocabularyEntries("cet6");
+    const reusableOnly = replaceChapterTerms(
+      { id: "reusable-only", title: "测试", index: 0, text: "得分。" },
+      [...cet6Entries],
+      new Set(),
+      1,
+      new Map(),
+      "cet6",
+    );
+    expect(isCandidateReusableFromCet4("cet6", "得分:score:noun")).toBe(true);
+    expect(reusableOnly.replacements.map((item) => item.candidateId)).not.toContain("得分:score:noun");
     expect(isCandidateApprovedForVocabulary("ielts", "背诵:recite:verb")).toBe(false);
     expect(isCandidateApprovedForVocabulary("toefl", "背诵:recite:verb")).toBe(false);
   });
@@ -254,6 +308,16 @@ describe("per-vocabulary candidate policy", () => {
     expect(isFloatingBoundaryCandidateApprovedForVocabulary("cet6", "突然:suddenly:adverb")).toBe(true);
     expect(candidateModeForVocabulary("toefl", "选择:choose:verb")).toBe("blocked");
     expect(getVocabularyCandidateStrategy("ielts").status).toBe("partial");
+  });
+
+  it("never exposes a globally blocked term as an approved runtime row", () => {
+    for (const strategy of Object.values(VOCABULARY_CANDIDATE_STRATEGIES)) {
+      for (const candidateId of strategy.approvedCandidateIds) {
+        const blocked = strategy.blockedTerms.has(candidateId.split(":", 1)[0]);
+        const rejected = strategy.rejectedCandidateIds.has(candidateId);
+        expect(isCandidateApprovedForVocabulary(strategy.vocabularyId, candidateId)).toBe(!blocked && !rejected);
+      }
+    }
   });
 
   it("uses the current vocabulary approval when selecting an imported entry", async () => {

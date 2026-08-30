@@ -31,6 +31,8 @@ import {
 export interface VocabularyCandidateStrategy {
   vocabularyId: VocabularyId;
   approvedCandidateIds: ReadonlySet<string>;
+  /** Exact CET4 tuples that may seed this pack's independent review queue. */
+  reusableCandidateIds: ReadonlySet<string>;
   rejectedCandidateIds: ReadonlySet<string>;
   floatingBoundaryCandidateIds: ReadonlySet<string>;
   contextualTerms: ReadonlySet<string>;
@@ -43,6 +45,7 @@ export interface VocabularyCandidateStrategy {
 /** Declarative additions used by a future per-library curation batch. */
 export interface CandidateStrategyExtension {
   approvedCandidateIds?: readonly string[];
+  reusableCandidateIds?: readonly string[];
   rejectedCandidateIds?: readonly string[];
   floatingBoundaryCandidateIds?: readonly string[];
   contextualTerms?: readonly string[];
@@ -60,6 +63,7 @@ function makeStrategy(
     vocabularyId,
     status,
     approvedCandidateIds: new Set(extension.approvedCandidateIds ?? []),
+    reusableCandidateIds: new Set(extension.reusableCandidateIds ?? []),
     rejectedCandidateIds: new Set(extension.rejectedCandidateIds ?? []),
     floatingBoundaryCandidateIds: new Set(extension.floatingBoundaryCandidateIds ?? []),
     contextualTerms: new Set([...PRODUCTION_CONTEXTUAL_TERMS, ...(extension.contextualTerms ?? [])]),
@@ -70,8 +74,8 @@ function makeStrategy(
 }
 
 // These entries are the small vocabulary-specific curation batches. The exact
-// CET4 overlap catalogue is generated in shared-vocabulary-candidates.ts; only
-// its single-sense subset is bridged below after the target map has been checked.
+// CET4 overlap catalogue is generated in shared-vocabulary-candidates.ts; its
+// single-sense subset is a review queue only and is never approved implicitly.
 const CET6_ROUND2_APPROVALS = [
   "现在:currently:adverb", "重要的:significant:adjective", "发现:discover:verb",
   "附近的:nearby:adjective", "后来的:subsequent:adjective", "然后:afterward:adverb",
@@ -94,7 +98,7 @@ const CET6_ROUND2_APPROVALS = [
   "西南:southwest:noun", "消息:message:noun", "行人:pedestrian:noun", "兴趣:interest:noun",
   "需要:require:verb", "旋转的:rotary:adjective", "研究人员:researcher:noun", "以后:later:adverb",
   "印象:impression:noun", "影响力:influence:noun", "永远:forever:adverb", "犹豫:hesitate:verb",
-  "增加:augment:verb", "障碍:barrier:noun", "智慧:wisdom:noun", "状态:state:noun",
+  "障碍:barrier:noun", "智慧:wisdom:noun", "状态:state:noun",
   "资源:resource:noun", "自然地:naturally:adverb", "自杀:suicide:noun", "走廊:corridor:noun",
   "最近:recently:adverb",
   // Strict automation: one source candidate, positive support in at least two
@@ -156,6 +160,373 @@ const IELTS_ROUND5_NEXT_APPROVALS = [
 ] as const;
 const TOEFL_ROUND5_TOP_APPROVALS = [
   "尸体:carcass:noun",
+] as const;
+// Round-6 stable additions selected from the remaining development/validation
+// proposal set. Every item below has at least two positive development
+// examples across two books and no reviewed conflict; blind labels are not
+// used for admission.
+const CET6_ROUND6_APPROVALS = [
+  "改变:alter:verb", "区别:distinction:noun", "真的:real:adjective",
+  "犯罪:crime:noun", "男人:fellow:noun", "完美的:faultless:adjective",
+] as const;
+const IELTS_ROUND6_APPROVALS = [
+  "震动:shock:noun", "作家:writer:noun",
+] as const;
+const TOEFL_ROUND6_APPROVALS = [
+  "无数:myriad:noun", "利用:utilization:noun", "动机:incentive:noun",
+  "扭曲的:tortuous:adjective", "杀人:homicide:noun", "想象:envision:verb",
+  "严格的:severe:adjective", "把握:grasp:noun", "部队:corps:noun",
+  "附近:vicinity:noun", "和蔼的:genial:adjective",
+] as const;
+// Round-7 additions keep the same evidence bar while excluding phrase-level,
+// POS-mismatched, and semantically shifted proposals. They are sourced only
+// from reviewed development/validation rows; no blind answer is consulted.
+const CET6_ROUND7_APPROVALS = [
+  "处理:dispose:verb", "表达:expression:noun", "喘息:pant:noun", "大叫:exclaim:verb",
+  "大气的:atmospheric:adjective", "斗争:struggle:noun", "分离:separation:noun",
+  "分散:disperse:verb", "愤怒的:indignant:adjective", "疯狂:insanity:noun",
+  "固执的:persistent:adjective", "激动:agitation:noun", "可怜的:wretched:adjective",
+  "扩大:enlarge:verb", "猛烈地:violently:adverb", "咆哮:roar:noun",
+  "一阵风:blast:noun", "在下面的:underlying:adjective",
+] as const;
+const IELTS_ROUND7_APPROVALS = [
+  "包括:involve:verb", "捕捉:catch:noun", "不符合:discrepancy:noun",
+  "差别:contrast:noun", "常态:normal:noun", "充满:teem:verb",
+  "过度的:exorbitant:adjective", "集团:bloc:noun", "家伙:guy:noun",
+  "联合:combine:verb", "面对:envisage:verb", "囚犯:convict:noun",
+  "羡慕:envy:noun", "休息:break:noun",
+] as const;
+const TOEFL_ROUND7_APPROVALS = [
+  "苍白的:wan:adjective", "侧面:profile:noun", "除外:exclude:verb",
+  "欢呼的:jubilant:adjective", "慌乱:fluster:noun", "纪念:commemorate:verb",
+  "骄傲:pride:noun", "借口:pretense:noun", "沮丧:dismay:noun",
+  "流出的:effluent:adjective", "流汗:perspiration:noun", "香气:incense:noun",
+  "要求:claim:noun", "引出的:derivative:adjective",
+] as const;
+// Round-8 additions are limited to independently reviewed development /
+// validation rows with a direct lexical sense. Ambiguous fragments and
+// source variants with an established conflict remain out of the allowlist.
+const CET6_ROUND8_APPROVALS = [
+  "放大:magnify:verb", "足够:suffice:verb", "痕迹:trace:noun",
+] as const;
+const IELTS_ROUND8_APPROVALS = [
+  "影响:affect:verb", "个人:individual:noun", "沉默的:silent:adjective",
+  "区域:area:noun", "否认:deny:verb",
+] as const;
+const TOEFL_ROUND8_APPROVALS = [
+  "相似的:alike:adjective",
+] as const;
+// Round-9 additions come from the full reviewed manifest rather than a
+// single proposal file: every development/validation row for each term chose
+// the same candidate, and the candidate is a complete lexical entry.
+const CET6_ROUND9_APPROVALS = [
+  "几乎不:barely:adverb", "抵抗力:resistance:noun", "时代:era:noun",
+  "影响:affect:verb", "结束:conclude:verb", "目的:objective:noun",
+] as const;
+const IELTS_ROUND9_APPROVALS = [
+  "可能性:odds:noun", "工作室:studio:noun", "眼睛:eye:noun",
+  "情况:condition:noun", "无数的:innumerable:adjective", "电影院:cinema:noun",
+  "小心的:discreet:adjective", "建筑物:building:noun", "心情:mood:noun",
+  "标签:tag:noun", "温度计:thermometer:noun", "玻璃:glass:noun",
+  "目的地:destination:noun", "继承人:heir:noun", "而且:moreover:adverb",
+  "影响力:influence:noun", "房子:house:noun", "消息:information:noun",
+  "温度:temperature:noun", "男人:male:noun", "空气:air:noun",
+  "窗户:window:noun", "线索:clue:noun", "缝隙:gap:noun", "范围:extent:noun",
+] as const;
+const TOEFL_ROUND9_APPROVALS = [
+  "固定的:fixed:adjective", "本来:originally:adverb", "认为:deem:verb",
+  "一口:bite:noun", "下水道:sewer:noun", "天气:weather:noun",
+  "弟子:disciple:noun", "有时候:occasionally:adverb", "混乱的:chaotic:adjective",
+  "燃烧的:burning:adjective", "大量的:ample:adjective", "容易的:facile:adjective",
+  "情绪:emotion:noun", "攻击:assault:noun", "精神:spirit:noun",
+] as const;
+// Round-10 independent review: exact CET4-overlap and target-pack entries
+// were checked only on development/validation contexts in the round5-full
+// manifests. The entries are admitted to each target pack independently;
+// no blind labels or CET4 runtime fallback are used.
+const CET6_ROUND10_APPROVALS = [
+  "中心:centre:noun", "翅膀:wing:noun", "黄瓜:cucumber:noun", "教授:professor:noun",
+  "类型:type:noun", "青铜:bronze:noun", "胜利:victory:noun", "同事:colleague:noun",
+  "珍珠:pearl:noun",
+] as const;
+const IELTS_ROUND10_APPROVALS = [
+  "脖子:neck:noun", "厨房:kitchen:noun", "黄瓜:cucumber:noun", "街道:street:noun",
+  "例外:exception:noun", "生物学:biology:noun", "细节:detail:noun", "颜色:color:noun",
+] as const;
+const TOEFL_ROUND10_APPROVALS = [
+  "珍珠:pearl:noun", "粉末:powder:noun", "面具:mask:noun", "平原:plain:noun",
+  "同事:colleague:noun", "原因:cause:noun", "黄瓜:cucumber:noun",
+] as const;
+// Round-11 follow-up: these are the remaining unambiguous, independently
+// reviewed non-blind rows from the earlier development/validation rounds.
+// `伤害` has two distinct development book groups for its multi-sense source;
+// the other two are single-source lexical entries.
+const IELTS_ROUND11_APPROVALS = ["学问:scholarship:noun"] as const;
+const TOEFL_ROUND11_APPROVALS = ["住处:dwelling:noun", "伤害:harm:noun"] as const;
+// Round-12 lexical batch: high-frequency, single-sense CET4-overlap entries
+// reviewed against non-benchmark development/validation corpus occurrences.
+// They remain ordinary target-pack approvals (the shared list is only the
+// review queue); no CET4 allowlist is consulted at runtime.
+const CET6_ROUND12_APPROVALS = [
+  "武器:weapon:noun", "石头:stone:noun", "镜子:mirror:noun", "角色:role:noun",
+  "阴影:shadow:noun", "袖子:sleeve:noun", "数量:quantity:noun", "手套:glove:noun",
+  "水平:level:noun", "水泥:cement:noun", "拇指:thumb:noun", "物质:substance:noun",
+  "扫帚:broom:noun", "厕所:toilet:noun", "笑声:laughter:noun", "政府:government:noun",
+  "单位:unit:noun", "帐篷:tent:noun", "风格:style:noun", "港口:port:noun",
+] as const;
+const IELTS_ROUND12_APPROVALS = [
+  "武器:weapon:noun", "母亲:mother:noun", "下巴:chin:noun", "机器:machine:noun",
+  "石头:stone:noun", "钥匙:key:noun", "运气:luck:noun", "地图:map:noun",
+  "事件:event:noun", "教室:classroom:noun", "角色:role:noun", "国家:country:noun",
+  "水果:fruit:noun", "后悔:repent:verb", "水平:level:noun", "调整:adjust:verb",
+  "水泥:cement:noun", "拇指:thumb:noun", "学院:college:noun", "道路:road:noun",
+] as const;
+const TOEFL_ROUND12_APPROVALS = [
+  "属于:belong:verb", "地图:map:noun", "角度:angle:noun", "角色:role:noun",
+  "数量:quantity:noun", "拇指:thumb:noun", "酒吧:bar:noun", "文章:article:noun",
+  "年龄:age:noun", "菜单:menu:noun", "责任:responsibility:noun", "夫妇:couple:noun",
+  "交通:traffic:noun", "属性:attribute:noun", "逻辑:logic:noun", "窗帘:curtain:noun",
+  "广播:broadcast:noun", "场合:occasion:noun", "抽屉:drawer:noun", "效率:efficiency:noun",
+] as const;
+// Round-13 continues the same non-benchmark, single-sense review pass with
+// direct noun/verb mappings.  Compound-boundary and POS-shifted entries stay
+// in the queue for a later contextual review instead of being bulk-enabled.
+const CET6_ROUND13_APPROVALS = [
+  "西北:northwest:noun", "理论:theory:noun", "跟随:follow:verb", "世纪:century:noun",
+  "狐狸:fox:noun", "人口:population:noun", "属性:attribute:noun", "结论:conclusion:noun",
+  "一代:generation:noun", "继承:inherit:verb", "危机:crisis:noun", "炸弹:bomb:noun",
+  "分子:molecule:noun", "现象:phenomenon:noun", "蜘蛛:spider:noun", "公路:highway:noun",
+  "祖父:grandfather:noun", "衣领:collar:noun", "凳子:stool:noun", "甲板:deck:noun",
+] as const;
+const IELTS_ROUND13_APPROVALS = [
+  "带来:bring:verb", "市场:market:noun", "节目:program:noun", "杯子:cup:noun",
+  "避免:avoid:verb", "理论:theory:noun", "语言:language:noun", "城堡:castle:noun",
+  "世纪:century:noun", "惊恐:alarm:noun", "人口:population:noun", "结论:conclusion:noun",
+  "工厂:factory:noun", "继承:inherit:verb", "危机:crisis:noun", "分子:molecule:noun",
+  "现象:phenomenon:noun", "因素:factor:noun", "茶叶:tea:noun", "邮件:mail:noun",
+] as const;
+const TOEFL_ROUND13_APPROVALS = [
+  "继承:inherit:verb", "文化:culture:noun", "分子:molecule:noun", "蜘蛛:spider:noun",
+  "因素:factor:noun", "甲板:deck:noun", "羊毛:wool:noun", "冠军:champion:noun",
+  "季节:season:noun", "进化:evolution:noun", "隧道:tunnel:noun", "商人:merchant:noun",
+  "档案:file:noun", "假期:vacation:noun", "开关:switch:noun", "布局:layout:noun",
+  "鼓励:encourage:verb", "焦虑:anxiety:noun", "立场:standpoint:noun",
+] as const;
+const CET6_ROUND14_APPROVALS = [
+  "先前:previously:adverb", "婴儿:infant:noun", "冠军:champion:noun", "进化:evolution:noun",
+  "劳动:labour:noun", "狮子:lion:noun", "魔鬼:devil:noun", "假期:vacation:noun",
+  "森林:forest:noun", "鞭子:whip:noun", "王子:prince:noun", "信封:envelope:noun",
+  "岩石:rock:noun", "玩具:toy:noun", "良心:conscience:noun", "好感:favour:noun",
+  "围巾:scarf:noun", "孤儿:orphan:noun", "沙子:sand:noun", "地毯:carpet:noun",
+] as const;
+const IELTS_ROUND14_APPROVALS = [
+  "变成:become:verb", "学校:school:noun", "城市:city:noun", "银行:bank:noun",
+  "行礼:salute:verb", "健康:health:noun", "货物:goods:noun", "零点:zero:noun",
+  "书桌:desk:noun", "教学:teaching:noun", "公园:park:noun", "浴室:bathroom:noun",
+  "压迫:oppress:verb", "婴儿:infant:noun", "书籍:book:noun", "制服:uniform:noun",
+  "水晶:crystal:noun", "岩石:rock:noun", "周末:weekend:noun", "良心:conscience:noun",
+] as const;
+const TOEFL_ROUND14_APPROVALS = [
+  "制服:uniform:noun", "水晶:crystal:noun", "文明:civilization:noun", "悬崖:cliff:noun",
+  "日期:date:noun", "拖鞋:slipper:noun", "托盘:tray:noun", "正义:justice:noun",
+  "番茄:tomato:noun", "宗教:religion:noun", "柱子:pillar:noun", "间隔:interval:noun",
+  "火花:spark:noun", "丛林:jungle:noun", "垫子:cushion:noun", "面粉:flour:noun",
+  "炸药:explosive:noun", "社区:community:noun", "空闲:leisure:noun", "助手:assistant:noun",
+] as const;
+const CET6_ROUND15_APPROVALS = [
+  "文明:civilization:noun", "饿死:starve:verb", "肋骨:rib:noun", "悬崖:cliff:noun",
+  "字母:alphabet:noun", "管道:pipeline:noun", "庆祝:celebrate:verb", "东南:southeast:noun",
+  "拖鞋:slipper:noun", "蜡烛:candle:noun", "咽喉:throat:noun", "托盘:tray:noun",
+  "正义:justice:noun", "番茄:tomato:noun", "缰绳:rein:noun", "宗教:religion:noun",
+  "柱子:pillar:noun", "间隔:interval:noun", "家具:furniture:noun", "项链:necklace:noun",
+] as const;
+const IELTS_ROUND15_APPROVALS = [
+  "好感:favour:noun", "教师:teacher:noun", "地毯:carpet:noun", "饿死:starve:verb",
+  "秘书:secretary:noun", "日期:date:noun", "奇迹:miracle:noun", "蜡烛:candle:noun",
+  "咽喉:throat:noun", "喇叭:trumpet:noun", "宗教:religion:noun", "柱子:pillar:noun",
+  "间隔:interval:noun", "小刀:knife:noun", "交出:surrender:verb", "宫殿:palace:noun",
+  "符号:sign:noun", "家具:furniture:noun", "鱼肉:fish:noun", "烦恼:trouble:noun",
+] as const;
+const TOEFL_ROUND15_APPROVALS = [
+  "饿死:starve:verb", "交出:surrender:verb", "财产:property:noun", "陪伴:accompany:verb",
+  "难题:puzzle:noun", "地震:earthquake:noun", "妥协:compromise:noun", "日出:sunrise:noun",
+  "奢侈:luxury:noun", "键盘:keyboard:noun", "天堂:heaven:noun", "蒸汽:steam:noun",
+  "骆驼:camel:noun", "尺寸:dimension:noun", "杂草:weed:noun",
+  "微风:breeze:noun", "焦点:focus:noun", "激光:laser:noun", "定义:definition:noun",
+] as const;
+const CET6_ROUND16_APPROVALS = [
+  "原则:principle:noun", "东北:northeast:noun", "侄子:nephew:noun",
+  "手帕:handkerchief:noun", "杂志:magazine:noun", "稻草:straw:noun", "口哨:whistle:noun",
+  "咀嚼:chew:verb", "长度:length:noun", "性别:sex:noun", "头痛:headache:noun",
+  "小包:packet:noun", "午夜:midnight:noun", "步骤:step:noun", "侮辱:insult:noun",
+  "仆人:servant:noun", "文学:literature:noun", "公众:public:noun", "政策:policy:noun",
+] as const;
+const IELTS_ROUND16_APPROVALS = [
+  "春天:spring:noun", "口哨:whistle:noun", "咀嚼:chew:verb", "卡片:card:noun",
+  "馅饼:pie:noun", "长度:length:noun", "性别:sex:noun", "头痛:headache:noun",
+  "午夜:midnight:noun", "侮辱:insult:noun", "苍蝇:fly:noun", "文学:literature:noun",
+  "现金:cash:noun", "公众:public:noun", "班级:class:noun", "政策:policy:noun",
+  "俘虏:captive:noun", "编织:knit:verb", "参考:reference:noun", "淹死:drown:verb",
+] as const;
+const TOEFL_ROUND16_APPROVALS = [
+  "口腔:mouth:noun", "激情:passion:noun", "电池:battery:noun", "贷款:loan:noun",
+  "水滴:drip:noun", "贫穷:poverty:noun", "黄铜:brass:noun", "偏爱:preference:noun",
+  "真空:vacuum:noun", "日落:sunset:noun", "燕子:swallow:noun", "回声:echo:noun",
+  "岛屿:island:noun", "抗议:protest:noun",
+  "隐藏:conceal:verb", "烦恼:trouble:noun", "车库:garage:noun", "日期:date:noun",
+] as const;
+const CET6_ROUND17_APPROVALS = [
+  "饥饿:hunger:noun", "小鸡:chicken:noun", "蚊子:mosquito:noun", "谣言:rumour:noun",
+  "学者:scholar:noun", "词汇:vocabulary:noun", "乘客:passenger:noun", "笔迹:handwriting:noun",
+  "幽默:humour:noun", "创伤:wound:noun", "羞耻:shame:noun", "乞丐:beggar:noun",
+  "卷轴:reel:noun", "加热:heating:noun", "洋葱:onion:noun", "斑马:zebra:noun",
+  "模子:mould:noun", "澄清:clarify:verb", "社会主义:socialism:noun", "背诵:recite:verb",
+] as const;
+const IELTS_ROUND17_APPROVALS = [
+  "模型:model:noun", "蚊子:mosquito:noun", "谣言:rumour:noun", "词汇:vocabulary:noun",
+  "柠檬:lemon:noun", "夏季:summer:noun", "模子:mould:noun", "澄清:clarify:verb",
+] as const;
+const TOEFL_ROUND17_APPROVALS = [
+  "紫色:purple:noun", "离婚:divorce:noun", "小麦:wheat:noun",
+] as const;
+// Round-18 independent promotions. Each row has a unanimous, reviewed
+// development/validation decision in the target pack's full quality
+// manifest; exact CET4 overlaps still require this target-pack review.
+const CET6_ROUND18_APPROVALS = [
+  "创造:create:verb", "答应:engage:verb", "经过:transit:noun", "看不见:disappearance:noun",
+  "靠什么:whereby:adverb", "迅速地:readily:adverb", "眼花:dazzle:verb", "厌恶:disgust:noun",
+  "溢出:spill:noun", "钻进:plunge:noun",
+] as const;
+const IELTS_ROUND18_APPROVALS = [
+  "答应:engage:verb", "花园:garden:noun", "浪费:waste:noun",
+] as const;
+const TOEFL_ROUND18_APPROVALS = [
+  "厨房:kitchen:noun", "发出:emit:verb", "婴儿:infant:noun", "心情:mood:noun",
+  "校园:campus:noun", "片刻:moment:noun", "背景:background:noun", "胜利:victory:noun",
+  "脖子:neck:noun", "良心:conscience:noun",
+] as const;
+// Round-19 independent development review. These are single-sense CET6
+// entries with positive examples in two separate development books. The
+// examples were added to the private text-free manifest and reviewed for
+// CET6 only; no CET4 fallback or blind example was used.
+const CET6_ROUND19_APPROVALS = [
+  "心情:mood:noun", "原因:cause:noun", "十年:decade:noun", "下巴:chin:noun",
+  "隐藏:conceal:verb", "面具:mask:noun", "细节:detail:noun", "后悔:repent:verb",
+  "极限:utmost:noun", "逻辑:logic:noun", "线索:clue:noun", "效率:efficiency:noun",
+  "行礼:salute:verb", "交通:traffic:noun", "文化:culture:noun",
+] as const;
+// Round-19 IELTS independent development review. Each single-sense entry
+// has two ordinary prose examples from separate development books; the
+// target pack owns the decision even when the tuple overlaps CET4.
+const IELTS_ROUND19_APPROVALS = [
+  "天气:weather:noun", "手掌:palm:noun", "类型:type:noun", "港口:port:noun",
+  "政府:government:noun", "属性:attribute:noun", "文章:article:noun", "风格:style:noun",
+  "交通:traffic:noun", "经济:economy:noun", "冠军:champion:noun", "文化:culture:noun",
+  "场合:occasion:noun", "塑料:plastic:noun", "甲板:deck:noun", "进化:evolution:noun",
+  "智慧:wisdom:noun", "翅膀:wing:noun", "开关:switch:noun", "假期:vacation:noun",
+  "逻辑:logic:noun",
+] as const;
+// Round-19 TOEFL independent development review. The batch deliberately
+// leaves contextual `把手`, POS-shifted `惊恐`, and the regression probe
+// `得分` out; only unambiguous noun senses are promoted.
+const TOEFL_ROUND19_APPROVALS = [
+  "空气:air:noun", "时代:era:noun", "收获:harvest:noun", "袭击:raid:noun",
+  "线索:clue:noun", "例外:exception:noun", "塑料:plastic:noun", "气候:climate:noun",
+  "青铜:bronze:noun", "芦苇:reed:noun",
+] as const;
+// Round-20 CET6 follow-up from the reviewed development queue. These three
+// target-only entries meet the existing single/multi-sense support rule;
+// their CET4 overlap is evidence for review only, never a runtime fallback.
+const CET6_ROUND20_APPROVALS = [
+  "漏洞:hole:noun", "不幸:misfortune:noun", "点头:nod:noun",
+] as const;
+// Round-22 adds one high-frequency noun and two cross-reviewed nouns. The
+// shared sentences are labeled again for CET6; TOEFL decisions are not copied
+// into this pack's result.
+const CET6_ROUND22_APPROVALS = [
+  "方向:direction:noun", "收获:harvest:noun", "袭击:raid:noun",
+] as const;
+// Round-23 is the first CET6 batch accepted by the merged v5 blind gate:
+// 320 samples across eight holdout books, 100% end-to-end precision and
+// 85.94% replacement coverage. Ambiguous v4 candidates remain held for a
+// later contextual pass; these are stable lexical mappings only.
+const CET6_ROUND23_APPROVALS = [
+  "情绪:mood:noun", "极了:extremely:adverb", "神色:expression:noun",
+  "连忙:promptly:adverb", "紧张:nervous:adjective", "挣扎:struggle:verb",
+  "额头:forehead:noun", "挥手:wave:verb", "缓缓:slowly:adverb",
+  "一模一样:identical:adjective", "普通:common:adjective", "食堂:cafeteria:noun",
+  "无声:silent:adjective", "证据:evidence:noun", "生怕:fear:verb",
+  "读书人:scholar:noun", "人偶:puppet:noun", "从前:previously:adverb",
+  "想必:presumably:adverb", "外套:jacket:noun", "书生:scholar:noun",
+  "幸好:fortunately:adverb", "重要:significant:adjective", "适应:adapt:verb",
+  "大厅:hall:noun", "大多数:majority:noun", "顺利:smoothly:adverb",
+  "特意:specially:adverb", "劫匪:bandit:noun", "以往:formerly:adverb",
+  "招手:wave:verb", "迹象:indication:noun", "做梦:dream:verb",
+  "脸颊:cheek:noun", "认为:consider:verb",
+] as const;
+// Round-24 contextual additions reuse the v4 development evidence but only
+// replace occurrences with an explicit local construction. `面对面` and
+// negated `相同` are handled by tokenizer collision guards; the other eight
+// candidates use the candidate-level rules below.
+const CET6_ROUND24_APPROVALS = [
+  "相同:identical:adjective", "面对:confront:verb", "没用:useless:adjective",
+  "嘀咕:mutter:verb", "上前:advance:verb", "轻声:softly:adverb",
+  "感染:infect:verb", "真正:genuine:adjective", "得到:obtain:verb",
+  "恭喜:congratulate:verb",
+] as const;
+const CET6_ROUND24_CONTEXTUAL_RULES = {
+  "没用:useless:adjective": [
+    { kind: "rightPrefix", value: "的" }, { kind: "rightPrefix", value: "啊" }, { kind: "rightPrefix", value: "吧" },
+    { kind: "rightPrefix", value: "？" }, { kind: "rightPrefix", value: "！" },
+    { kind: "leftSuffix", value: "真" }, { kind: "leftSuffix", value: "太" }, { kind: "leftSuffix", value: "很" },
+  ],
+  "嘀咕:mutter:verb": [
+    { kind: "rightPrefix", value: "说" }, { kind: "rightPrefix", value: "道" }, { kind: "rightPrefix", value: "了" },
+    { kind: "rightPrefix", value: "：" }, { kind: "leftSuffix", value: "小声" }, { kind: "leftSuffix", value: "低声" },
+    { kind: "leftSuffix", value: "喃喃" }, { kind: "leftSuffix", value: "嘴里" },
+  ],
+  "上前:advance:verb": [
+    { kind: "leftSuffix", value: "走" }, { kind: "leftSuffix", value: "冲" }, { kind: "leftSuffix", value: "赶" },
+    { kind: "leftSuffix", value: "迎" }, { kind: "leftSuffix", value: "跑" }, { kind: "leftSuffix", value: "迈" },
+    { kind: "rightPrefix", value: "去" }, { kind: "rightPrefix", value: "来" }, { kind: "rightPrefix", value: "一步" },
+    { kind: "rightPrefix", value: "问" }, { kind: "rightPrefix", value: "行礼" }, { kind: "rightPrefix", value: "伸手" },
+    { kind: "rightPrefix", value: "走到" }, { kind: "rightPrefix", value: "拿起" },
+  ],
+  "轻声:softly:adverb": [
+    { kind: "rightPrefix", value: "道" }, { kind: "rightPrefix", value: "说" }, { kind: "rightPrefix", value: "问" },
+    { kind: "rightPrefix", value: "叫" }, { kind: "rightPrefix", value: "喊" }, { kind: "rightPrefix", value: "地" },
+    { kind: "rightPrefix", value: "念" }, { kind: "rightPrefix", value: "叹" }, { kind: "rightPrefix", value: "细语" },
+    { kind: "rightPrefix", value: "笑道" }, { kind: "rightPrefix", value: "问道" }, { kind: "rightPrefix", value: "说道" },
+    { kind: "rightPrefix", value: "叫道" }, { kind: "rightPrefix", value: "喊道" }, { kind: "rightPrefix", value: "念道" },
+  ],
+  "感染:infect:verb": [
+    { kind: "rightPrefix", value: "了" }, { kind: "rightPrefix", value: "风寒" }, { kind: "rightPrefix", value: "病毒" },
+    { kind: "rightPrefix", value: "细菌" }, { kind: "rightPrefix", value: "疾病" }, { kind: "rightPrefix", value: "上" },
+    { kind: "leftSuffix", value: "被" }, { kind: "leftSuffix", value: "受" }, { kind: "leftSuffix", value: "受到" },
+  ],
+  "真正:genuine:adjective": [{ kind: "rightPrefix", value: "的" }],
+  "得到:obtain:verb": [
+    { kind: "rightPrefix", value: "了" }, { kind: "rightPrefix", value: "消息" }, { kind: "rightPrefix", value: "称赞" },
+    { kind: "rightPrefix", value: "回答" }, { kind: "rightPrefix", value: "情报" }, { kind: "rightPrefix", value: "机会" },
+    { kind: "rightPrefix", value: "应允" }, { kind: "rightPrefix", value: "允许" }, { kind: "rightPrefix", value: "答案" },
+    { kind: "rightPrefix", value: "回应" }, { kind: "rightPrefix", value: "结果" }, { kind: "rightPrefix", value: "东西" },
+    { kind: "rightPrefix", value: "记录" }, { kind: "rightPrefix", value: "信息" },
+  ],
+  "恭喜:congratulate:verb": [
+    { kind: "rightPrefix", value: "你" }, { kind: "rightPrefix", value: "大家" }, { kind: "rightPrefix", value: "您" },
+    { kind: "rightPrefix", value: "啦" }, { kind: "rightPrefix", value: "了" }, { kind: "rightPrefix", value: "成功" },
+    { kind: "rightPrefix", value: "获得" }, { kind: "rightPrefix", value: "晋级" }, { kind: "rightPrefix", value: "小" },
+  ],
+} as const satisfies Readonly<Record<string, readonly LocalContextRule[]>>;
+// Round-20 TOEFL follow-up from two independently labeled development rows.
+const TOEFL_ROUND20_APPROVALS = [
+  "点头:nod:noun", "朋友:companion:noun",
+] as const;
+// Round-21 TOEFL promotions come from the larger non-benchmark development
+// cohort. Only the clearly matching adverb/verb senses are admitted; nearby
+// full-corpus proposals with POS or semantic drift remain rejected.
+const TOEFL_ROUND21_APPROVALS = [
+  "大概:mostly:adverb", "细看:scrutinize:verb",
 ] as const;
 // Small round-5 contextual approvals. These were independently reviewed on
 // development/validation examples after source-variant offsets were repaired;
@@ -373,6 +744,41 @@ const IELTS_ACTIVE_CONTEXTUAL_RULES = Object.fromEntries(
 // out of TOEFL replacements until its own labels are reviewed.
 const TOEFL_EXTRA_BLOCKED_TERMS = ["选择"] as const;
 
+// These are the two locally promoted v2 batches. They are written directly
+// into the imported maps for localhost review; they remain release-blocked by
+// the manifest until the user explicitly decides to publish them.
+const IELTS_V2_APPROVALS = [
+  "办法:means:noun", "并且:moreover:adverb", "不可能:impossible:adjective", "不一样:different:adjective",
+  "察觉:sense:verb", "成为:become:verb", "从而:thereby:adverb", "打扰:disturb:verb",
+  "带走:carry:verb", "地步:degree:noun", "动作:action:noun", "兑换:convert:verb",
+  "方式:method:noun", "复杂:complicated:adjective", "尴尬:awkward:adjective", "各种:various:adjective",
+  "管家:steward:noun", "接过:take:verb", "口感:texture:noun", "况且:moreover:adverb",
+  "每日:daily:adverb", "模式:mode:noun", "魔头:monster:noun", "拿到:get:verb",
+  "却是:nevertheless:adverb", "确认:confirm:verb", "少年人:youngster:noun", "身高:height:noun",
+  "实力:strength:noun", "食材:ingredient:noun", "手心:palm:noun", "似乎:seemingly:adverb",
+  "叹气:sigh:verb", "透明:transparent:adjective", "弯腰:stoop:verb", "玩家:player:noun",
+  "相机:camera:noun", "香气:fragrance:noun", "香味:fragrance:noun", "信息:information:noun",
+  "形成:form:verb", "性格:nature:noun", "胸口:chest:noun", "胸膛:chest:noun",
+  "选项:option:noun", "演员:actor:noun", "要不然:otherwise:adverb", "早饭:breakfast:noun",
+  "长相:appearance:noun", "主任:director:noun",
+] as const;
+const TOEFL_V2_APPROVALS = [
+  "其实:actually:adverb", "原本:originally:adverb", "动作:action:noun", "随后:subsequently:adverb",
+  "似乎:seemingly:adverb", "随即:immediately:adverb", "立刻:immediately:adverb", "偶尔:occasionally:adverb",
+  "实话:truth:noun", "办法:means:noun", "香味:fragrance:noun", "打断:interrupt:verb",
+  "确认:confirm:verb", "好奇:inquisitive:adjective", "一定:definitely:adverb", "模式:mode:noun",
+  "各种:various:adjective", "玉米:corn:noun", "沙哑:hoarse:adjective", "胸口:chest:noun",
+  "身高:height:noun", "演员:performer:noun", "聪明:intelligent:adjective", "景象:scene:noun",
+  "选项:option:noun", "场景:scene:noun", "打扰:disturb:verb", "原先:originally:adverb",
+  "顿时:immediately:adverb", "透明:transparent:adjective", "口感:texture:noun", "车厢:carriage:noun",
+  "食材:ingredient:noun", "生菜:lettuce:noun", "叹气:sigh:verb", "做完:finish:verb",
+  "半空:midair:noun", "并且:besides:adverb", "喊道:yell:verb", "意识到:realize:verb",
+  "熟人:acquaintance:noun", "实力:strength:noun", "关上:close:verb", "画面:scene:noun",
+  "下肚:consume:verb", "类似:analogous:adjective", "极光:aurora:noun", "考古:archaeology:noun",
+  "神奇:magical:adjective", "起初:originally:adverb", "少年人:youngster:noun", "幸运:fortunate:adjective",
+  "胸膛:chest:noun", "从而:thereby:adverb", "腰间:waist:noun", "意味着:signify:verb",
+] as const;
+
 // Candidate-specific rejections found in independent development/validation
 // review. Keep these separate from whole-term blocks so another sense can be
 // promoted later (for example 漏洞:hole instead of 漏洞:leak).
@@ -404,25 +810,52 @@ export const VOCABULARY_CANDIDATE_STRATEGIES: Readonly<Record<VocabularyId, Voca
   cet6: makeStrategy("cet6", "partial", {
     approvedCandidateIds: [
       ...CET6_ROUND2_APPROVALS, ...CET6_ROUND2_CONTEXTUAL_APPROVALS, ...CET6_STRICT_STABLE_IDS,
-      ...CET6_ROUND5_APPROVALS, ...CET6_CET4_REUSABLE_SINGLE_SENSE_IDS,
+      ...CET6_ROUND5_APPROVALS, ...CET6_ROUND6_APPROVALS, ...CET6_ROUND7_APPROVALS,
+      ...CET6_ROUND8_APPROVALS, ...CET6_ROUND9_APPROVALS, ...CET6_ROUND10_APPROVALS,
+      ...CET6_ROUND12_APPROVALS,
+      ...CET6_ROUND13_APPROVALS,
+      ...CET6_ROUND14_APPROVALS,
+      ...CET6_ROUND15_APPROVALS,
+      ...CET6_ROUND16_APPROVALS,
+      ...CET6_ROUND17_APPROVALS,
+      ...CET6_ROUND18_APPROVALS,
+      ...CET6_ROUND19_APPROVALS,
+      ...CET6_ROUND20_APPROVALS,
+      ...CET6_ROUND22_APPROVALS,
+      ...CET6_ROUND23_APPROVALS,
+      ...CET6_ROUND24_APPROVALS,
     ],
+    reusableCandidateIds: CET6_CET4_REUSABLE_SINGLE_SENSE_IDS,
     rejectedCandidateIds: CET6_REJECTED_CANDIDATES,
     floatingBoundaryCandidateIds: [
       "突然:suddenly:adverb", "发生:occur:verb", "闪电:lightning:noun", "塑料:plastic:noun",
       "芦苇:reed:noun", "山羊:goat:noun", "巨人:giant:noun", "皇帝:emperor:noun", "记忆:memory:noun",
       "敏感的:sensitive:adjective", "轻轻地:lightly:adverb", "情绪的:emotional:adjective",
       "衣服:garment:noun",
+      "隐藏:conceal:verb", "交通:traffic:noun", "文化:culture:noun",
+      "袭击:raid:noun",
       "阅读:reading:noun", "重要的:significant:adjective",
       ...CET6_ROUND2_FLOATING_IDS,
     ],
-    candidateContextualRules: CET6_ACTIVE_CONTEXTUAL_RULES,
+    candidateContextualRules: { ...CET6_ACTIVE_CONTEXTUAL_RULES, ...CET6_ROUND24_CONTEXTUAL_RULES },
   }),
   ielts: makeStrategy("ielts", "partial", {
     approvedCandidateIds: [
       ...IELTS_STRICT_STABLE_IDS, ...IELTS_ROUND2_CONTEXTUAL_IDS, ...IELTS_ROUND4_APPROVALS,
-      ...IELTS_ROUND5_APPROVALS, ...IELTS_ROUND5_TOP_APPROVALS, ...IELTS_ROUND5_NEXT_APPROVALS,
-      ...IELTS_CET4_REUSABLE_SINGLE_SENSE_IDS,
+      ...IELTS_ROUND5_APPROVALS, ...IELTS_ROUND5_TOP_APPROVALS, ...IELTS_ROUND5_NEXT_APPROVALS, ...IELTS_ROUND6_APPROVALS, ...IELTS_ROUND7_APPROVALS,
+      ...IELTS_ROUND8_APPROVALS, ...IELTS_ROUND9_APPROVALS, ...IELTS_ROUND10_APPROVALS,
+      ...IELTS_ROUND11_APPROVALS,
+      ...IELTS_ROUND12_APPROVALS,
+      ...IELTS_ROUND13_APPROVALS,
+      ...IELTS_ROUND14_APPROVALS,
+      ...IELTS_ROUND15_APPROVALS,
+      ...IELTS_ROUND16_APPROVALS,
+      ...IELTS_ROUND17_APPROVALS,
+      ...IELTS_ROUND18_APPROVALS,
+      ...IELTS_ROUND19_APPROVALS,
+      ...IELTS_V2_APPROVALS,
     ],
+    reusableCandidateIds: IELTS_CET4_REUSABLE_SINGLE_SENSE_IDS,
     rejectedCandidateIds: IELTS_REJECTED_CANDIDATES,
     floatingBoundaryCandidateIds: [
       "办公室:office:noun", "发生:occur:verb", "学生:student:noun",
@@ -430,15 +863,29 @@ export const VOCABULARY_CANDIDATE_STRATEGIES: Readonly<Record<VocabularyId, Voca
       ...IELTS_ROUND5_FLOATING_APPROVALS,
       "匆忙:haste:noun", "附近的:neighboring:adjective", "联络:liaison:noun",
       "目的地:destination:noun", "瀑布:waterfall:noun",
+      "交通:traffic:noun", "文化:culture:noun", "开关:switch:noun", "冠军:champion:noun",
     ],
     candidateContextualRules: IELTS_ACTIVE_CONTEXTUAL_RULES,
   }),
   toefl: makeStrategy("toefl", "partial", {
     approvedCandidateIds: [
       ...TOEFL_STRICT_STABLE_IDS, ...TOEFL_ROUND2_CONTEXTUAL_IDS, ...TOEFL_ROUND4_APPROVALS,
-      ...TOEFL_ROUND5_APPROVALS, ...TOEFL_ROUND5_TOP_APPROVALS, ...Object.keys(TOEFL_ROUND5_CONTEXTUAL_RULES),
-      ...TOEFL_CET4_REUSABLE_SINGLE_SENSE_IDS,
+      ...TOEFL_ROUND5_APPROVALS, ...TOEFL_ROUND5_TOP_APPROVALS, ...TOEFL_ROUND6_APPROVALS, ...TOEFL_ROUND7_APPROVALS, ...Object.keys(TOEFL_ROUND5_CONTEXTUAL_RULES),
+      ...TOEFL_ROUND8_APPROVALS, ...TOEFL_ROUND9_APPROVALS, ...TOEFL_ROUND10_APPROVALS,
+      ...TOEFL_ROUND11_APPROVALS,
+      ...TOEFL_ROUND12_APPROVALS,
+      ...TOEFL_ROUND13_APPROVALS,
+      ...TOEFL_ROUND14_APPROVALS,
+      ...TOEFL_ROUND15_APPROVALS,
+      ...TOEFL_ROUND16_APPROVALS,
+      ...TOEFL_ROUND17_APPROVALS,
+      ...TOEFL_ROUND18_APPROVALS,
+      ...TOEFL_ROUND19_APPROVALS,
+      ...TOEFL_ROUND20_APPROVALS,
+      ...TOEFL_ROUND21_APPROVALS,
+      ...TOEFL_V2_APPROVALS,
     ],
+    reusableCandidateIds: TOEFL_CET4_REUSABLE_SINGLE_SENSE_IDS,
     rejectedCandidateIds: TOEFL_REJECTED_CANDIDATES,
     floatingBoundaryCandidateIds: [
       ...TOEFL_ROUND2_FLOATING_IDS, ...TOEFL_ROUND5_FLOATING_APPROVALS,
@@ -446,6 +893,7 @@ export const VOCABULARY_CANDIDATE_STRATEGIES: Readonly<Record<VocabularyId, Voca
       "胡须:beard:noun", "日记:journal:noun", "小溪:brook:noun", "记忆:memory:noun",
       "类似的:analogous:adjective", "气候的:climatic:adjective", "尸体:carcass:noun",
       "文件:document:noun", "显赫的:eminent:adjective",
+      "袭击:raid:noun", "青铜:bronze:noun",
     ],
     blockedTerms: TOEFL_EXTRA_BLOCKED_TERMS,
     candidateContextualRules: { ...TOEFL_ROUND2_CONTEXTUAL_RULES, ...TOEFL_ROUND5_CONTEXTUAL_RULES },
@@ -463,6 +911,7 @@ export function extendVocabularyCandidateStrategy(
 ): VocabularyCandidateStrategy {
   return makeStrategy(base.vocabularyId, base.status, {
     approvedCandidateIds: [...base.approvedCandidateIds, ...(extension.approvedCandidateIds ?? [])],
+    reusableCandidateIds: [...base.reusableCandidateIds, ...(extension.reusableCandidateIds ?? [])],
     rejectedCandidateIds: [...base.rejectedCandidateIds, ...(extension.rejectedCandidateIds ?? [])],
     floatingBoundaryCandidateIds: [...base.floatingBoundaryCandidateIds, ...(extension.floatingBoundaryCandidateIds ?? [])],
     contextualTerms: [...base.contextualTerms, ...(extension.contextualTerms ?? [])],
@@ -473,6 +922,11 @@ export function extendVocabularyCandidateStrategy(
       ...(extension.candidateContextualRules ?? {}),
     },
   });
+}
+
+/** Whether an exact CET4 tuple is waiting for independent target-pack review. */
+export function isCandidateReusableFromCet4(vocabularyId: VocabularyId, candidateId: string): boolean {
+  return getVocabularyCandidateStrategy(vocabularyId).reusableCandidateIds.has(candidateId);
 }
 
 export function candidateModeForVocabulary(
@@ -521,7 +975,10 @@ export function isCandidateApprovedForVocabulary(
   candidateId: string,
 ): boolean {
   const strategy = getVocabularyCandidateStrategy(vocabularyId);
-  return strategy.approvedCandidateIds.has(candidateId) && !strategy.rejectedCandidateIds.has(candidateId);
+  const term = candidateId.split(":", 1)[0];
+  return strategy.approvedCandidateIds.has(candidateId)
+    && !strategy.rejectedCandidateIds.has(candidateId)
+    && !strategy.blockedTerms.has(term);
 }
 
 export function isFloatingBoundaryCandidateApprovedForVocabulary(

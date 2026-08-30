@@ -74578,5 +74578,621 @@
     "forms": [
       "lobster"
     ]
+  },
+  {
+    "zh": "其实",
+    "en": "actually",
+    "lemma": "actually",
+    "meaning": "actually; in fact; really",
+    "partOfSpeech": "adverb",
+    "phonetic": "/'æktʃuәli/",
+    "forms": [
+      "actually"
+    ]
+  },
+  {
+    "zh": "原本",
+    "en": "originally",
+    "lemma": "originally",
+    "meaning": "originally",
+    "partOfSpeech": "adverb",
+    "phonetic": "/ә'ridʒәnli/",
+    "forms": [
+      "originally"
+    ]
+  },
+  {
+    "zh": "动作",
+    "en": "action",
+    "lemma": "action",
+    "meaning": "movement; motion; action",
+    "partOfSpeech": "noun",
+    "phonetic": "/'ækʃәn/",
+    "forms": [
+      "action"
+    ]
+  },
+  {
+    "zh": "随后",
+    "en": "subsequently",
+    "lemma": "subsequently",
+    "meaning": "afterward; later; subsequently; following that",
+    "partOfSpeech": "adverb",
+    "phonetic": "/'sʌbsikwәntli/",
+    "forms": [
+      "subsequently"
+    ]
+  },
+  {
+    "zh": "似乎",
+    "en": "seemingly",
+    "lemma": "seemingly",
+    "meaning": "it seems; seemingly; as if",
+    "partOfSpeech": "adverb",
+    "phonetic": "/'si:miŋli/",
+    "forms": [
+      "seemingly"
+    ]
+  },
+  {
+    "zh": "随即",
+    "en": "immediately",
+    "lemma": "immediately",
+    "meaning": "immediately",
+    "partOfSpeech": "adverb",
+    "phonetic": "/i'mi:diәtli/",
+    "forms": [
+      "immediately"
+    ]
+  },
+  {
+    "zh": "立刻",
+    "en": "immediately",
+    "lemma": "immediately",
+    "meaning": "immediately; at once; right away",
+    "partOfSpeech": "adverb",
+    "phonetic": "/i'mi:diәtli/",
+    "forms": [
+      "immediately"
+    ]
+  },
+  {
+    "zh": "偶尔",
+    "en": "occasionally",
+    "lemma": "occasionally",
+    "meaning": "occasionally",
+    "partOfSpeech": "adverb",
+    "phonetic": "/ә'keiʒәnli/",
+    "forms": [
+      "occasionally"
+    ]
+  },
+  {
+    "zh": "实话",
+    "en": "truth",
+    "lemma": "truth",
+    "meaning": "truth",
+    "partOfSpeech": "noun",
+    "phonetic": "/tru:θ/",
+    "forms": [
+      "truth"
+    ]
+  },
+  {
+    "zh": "办法",
+    "en": "means",
+    "lemma": "means",
+    "meaning": "way of handling sth; means; measure; (practical) solution to a problem",
+    "partOfSpeech": "noun",
+    "phonetic": "/mi:nz/",
+    "forms": [
+      "means"
+    ]
+  },
+  {
+    "zh": "香味",
+    "en": "fragrance",
+    "lemma": "fragrance",
+    "meaning": "fragrance",
+    "partOfSpeech": "noun",
+    "phonetic": "/'freigrәns/",
+    "forms": [
+      "fragrance"
+    ]
+  },
+  {
+    "zh": "打断",
+    "en": "interrupt",
+    "lemma": "interrupt",
+    "meaning": "to interrupt",
+    "partOfSpeech": "verb",
+    "phonetic": "/.intә'rʌpt/",
+    "forms": [
+      "interrupt"
+    ]
+  },
+  {
+    "zh": "确认",
+    "en": "confirm",
+    "lemma": "confirm",
+    "meaning": "to confirm",
+    "partOfSpeech": "verb",
+    "phonetic": "/kәn'fә:m/",
+    "forms": [
+      "confirm"
+    ]
+  },
+  {
+    "zh": "好奇",
+    "en": "inquisitive",
+    "lemma": "inquisitive",
+    "meaning": "inquisitive",
+    "partOfSpeech": "adjective",
+    "phonetic": "/in'kwizәtiv/",
+    "forms": [
+      "inquisitive"
+    ]
+  },
+  {
+    "zh": "一定",
+    "en": "definitely",
+    "lemma": "definitely",
+    "meaning": "surely; certainly; definitely",
+    "partOfSpeech": "adverb",
+    "phonetic": "/'definitli/",
+    "forms": [
+      "definitely"
+    ]
+  },
+  {
+    "zh": "模式",
+    "en": "mode",
+    "lemma": "mode",
+    "meaning": "mode; pattern; model",
+    "partOfSpeech": "noun",
+    "phonetic": "/mәud/",
+    "forms": [
+      "mode"
+    ]
+  },
+  {
+    "zh": "各种",
+    "en": "various",
+    "lemma": "various",
+    "meaning": "every kind of; all kinds of; various",
+    "partOfSpeech": "adjective",
+    "phonetic": "/'vєәriәs/",
+    "forms": [
+      "various"
+    ]
+  },
+  {
+    "zh": "玉米",
+    "en": "corn",
+    "lemma": "corn",
+    "meaning": "corn",
+    "partOfSpeech": "noun",
+    "phonetic": "/kɒ:n/",
+    "forms": [
+      "corn"
+    ]
+  },
+  {
+    "zh": "沙哑",
+    "en": "hoarse",
+    "lemma": "hoarse",
+    "meaning": "hoarse; husky; raspy",
+    "partOfSpeech": "adjective",
+    "phonetic": "/hɒ:s/",
+    "forms": [
+      "hoarse"
+    ]
+  },
+  {
+    "zh": "胸口",
+    "en": "chest",
+    "lemma": "chest",
+    "meaning": "chest",
+    "partOfSpeech": "noun",
+    "phonetic": "/tʃest/",
+    "forms": [
+      "chest"
+    ]
+  },
+  {
+    "zh": "身高",
+    "en": "height",
+    "lemma": "height",
+    "meaning": "(a person's) height",
+    "partOfSpeech": "noun",
+    "phonetic": "/hait/",
+    "forms": [
+      "height"
+    ]
+  },
+  {
+    "zh": "演员",
+    "en": "performer",
+    "lemma": "performer",
+    "meaning": "actor; actress; performer",
+    "partOfSpeech": "noun",
+    "phonetic": "/pә'fɒ:mә/",
+    "forms": [
+      "performer"
+    ]
+  },
+  {
+    "zh": "聪明",
+    "en": "intelligent",
+    "lemma": "intelligent",
+    "meaning": "intelligent; clever; bright",
+    "partOfSpeech": "adjective",
+    "phonetic": "/in'telidʒәnt/",
+    "forms": [
+      "intelligent"
+    ]
+  },
+  {
+    "zh": "景象",
+    "en": "scene",
+    "lemma": "scene",
+    "meaning": "scene",
+    "partOfSpeech": "noun",
+    "phonetic": "/si:n/",
+    "forms": [
+      "scene"
+    ]
+  },
+  {
+    "zh": "选项",
+    "en": "option",
+    "lemma": "option",
+    "meaning": "option; alternative; choice",
+    "partOfSpeech": "noun",
+    "phonetic": "/'ɒpʃәn/",
+    "forms": [
+      "option"
+    ]
+  },
+  {
+    "zh": "场景",
+    "en": "scene",
+    "lemma": "scene",
+    "meaning": "scene; scenario; situation; setting",
+    "partOfSpeech": "noun",
+    "phonetic": "/si:n/",
+    "forms": [
+      "scene"
+    ]
+  },
+  {
+    "zh": "打扰",
+    "en": "disturb",
+    "lemma": "disturb",
+    "meaning": "to disturb",
+    "partOfSpeech": "verb",
+    "phonetic": "/dis'tә:b/",
+    "forms": [
+      "disturb"
+    ]
+  },
+  {
+    "zh": "原先",
+    "en": "originally",
+    "lemma": "originally",
+    "meaning": "originally",
+    "partOfSpeech": "adverb",
+    "phonetic": "/ә'ridʒәnli/",
+    "forms": [
+      "originally"
+    ]
+  },
+  {
+    "zh": "顿时",
+    "en": "immediately",
+    "lemma": "immediately",
+    "meaning": "immediately; suddenly",
+    "partOfSpeech": "adverb",
+    "phonetic": "/i'mi:diәtli/",
+    "forms": [
+      "immediately"
+    ]
+  },
+  {
+    "zh": "透明",
+    "en": "transparent",
+    "lemma": "transparent",
+    "meaning": "transparent",
+    "partOfSpeech": "adjective",
+    "phonetic": "/træns'pærәnt/",
+    "forms": [
+      "transparent"
+    ]
+  },
+  {
+    "zh": "口感",
+    "en": "texture",
+    "lemma": "texture",
+    "meaning": "mouthfeel; texture (of food)",
+    "partOfSpeech": "noun",
+    "phonetic": "/'tekstʃә/",
+    "forms": [
+      "texture"
+    ]
+  },
+  {
+    "zh": "车厢",
+    "en": "carriage",
+    "lemma": "carriage",
+    "meaning": "carriage",
+    "partOfSpeech": "noun",
+    "phonetic": "/'kæridʒ/",
+    "forms": [
+      "carriage"
+    ]
+  },
+  {
+    "zh": "食材",
+    "en": "ingredient",
+    "lemma": "ingredient",
+    "meaning": "(food) ingredient",
+    "partOfSpeech": "noun",
+    "phonetic": "/in'gri:diәnt/",
+    "forms": [
+      "ingredient"
+    ]
+  },
+  {
+    "zh": "生菜",
+    "en": "lettuce",
+    "lemma": "lettuce",
+    "meaning": "lettuce",
+    "partOfSpeech": "noun",
+    "phonetic": "/'letis/",
+    "forms": [
+      "lettuce"
+    ]
+  },
+  {
+    "zh": "叹气",
+    "en": "sigh",
+    "lemma": "sigh",
+    "meaning": "to sigh",
+    "partOfSpeech": "verb",
+    "phonetic": "/sai/",
+    "forms": [
+      "sigh"
+    ]
+  },
+  {
+    "zh": "做完",
+    "en": "finish",
+    "lemma": "finish",
+    "meaning": "to finish",
+    "partOfSpeech": "verb",
+    "phonetic": "/'finiʃ/",
+    "forms": [
+      "finish"
+    ]
+  },
+  {
+    "zh": "半空",
+    "en": "midair",
+    "lemma": "midair",
+    "meaning": "midair",
+    "partOfSpeech": "noun",
+    "phonetic": "/.mid'єә/",
+    "forms": [
+      "midair"
+    ]
+  },
+  {
+    "zh": "并且",
+    "en": "besides",
+    "lemma": "besides",
+    "meaning": "and; besides; moreover; furthermore; in addition",
+    "partOfSpeech": "adverb",
+    "phonetic": "/bi'saidz/",
+    "forms": [
+      "besides"
+    ]
+  },
+  {
+    "zh": "喊道",
+    "en": "yell",
+    "lemma": "yell",
+    "meaning": "to yell",
+    "partOfSpeech": "verb",
+    "phonetic": "/jel/",
+    "forms": [
+      "yell"
+    ]
+  },
+  {
+    "zh": "意识到",
+    "en": "realize",
+    "lemma": "realize",
+    "meaning": "to be aware of; to realize",
+    "partOfSpeech": "verb",
+    "phonetic": "/'riәlaiz/",
+    "forms": [
+      "realize"
+    ]
+  },
+  {
+    "zh": "熟人",
+    "en": "acquaintance",
+    "lemma": "acquaintance",
+    "meaning": "acquaintance",
+    "partOfSpeech": "noun",
+    "phonetic": "/ә'kweintәns/",
+    "forms": [
+      "acquaintance"
+    ]
+  },
+  {
+    "zh": "实力",
+    "en": "strength",
+    "lemma": "strength",
+    "meaning": "strength",
+    "partOfSpeech": "noun",
+    "phonetic": "/streŋθ/",
+    "forms": [
+      "strength"
+    ]
+  },
+  {
+    "zh": "关上",
+    "en": "close",
+    "lemma": "close",
+    "meaning": "to close (a door)",
+    "partOfSpeech": "verb",
+    "phonetic": "/klәuz/",
+    "forms": [
+      "close"
+    ]
+  },
+  {
+    "zh": "画面",
+    "en": "scene",
+    "lemma": "scene",
+    "meaning": "scene",
+    "partOfSpeech": "noun",
+    "phonetic": "/si:n/",
+    "forms": [
+      "scene"
+    ]
+  },
+  {
+    "zh": "下肚",
+    "en": "consume",
+    "lemma": "consume",
+    "meaning": "to consume (food or drink); to eat; to drink",
+    "partOfSpeech": "verb",
+    "phonetic": "/kәn'sju:m/",
+    "forms": [
+      "consume"
+    ]
+  },
+  {
+    "zh": "类似",
+    "en": "analogous",
+    "lemma": "analogous",
+    "meaning": "similar; analogous",
+    "partOfSpeech": "adjective",
+    "phonetic": "/ә'nælәgәs/",
+    "forms": [
+      "analogous"
+    ]
+  },
+  {
+    "zh": "极光",
+    "en": "aurora",
+    "lemma": "aurora",
+    "meaning": "aurora (meteorology)",
+    "partOfSpeech": "noun",
+    "phonetic": "/ɒ:'rɒ:rә/",
+    "forms": [
+      "aurora"
+    ]
+  },
+  {
+    "zh": "考古",
+    "en": "archaeology",
+    "lemma": "archaeology",
+    "meaning": "archaeology",
+    "partOfSpeech": "noun",
+    "phonetic": "/.ɑ:ki'ɒlәdʒi/",
+    "forms": [
+      "archaeology"
+    ]
+  },
+  {
+    "zh": "神奇",
+    "en": "magical",
+    "lemma": "magical",
+    "meaning": "magical",
+    "partOfSpeech": "adjective",
+    "phonetic": "/'mædʒikәl/",
+    "forms": [
+      "magical"
+    ]
+  },
+  {
+    "zh": "起初",
+    "en": "originally",
+    "lemma": "originally",
+    "meaning": "originally; at first; at the outset",
+    "partOfSpeech": "adverb",
+    "phonetic": "/ә'ridʒәnli/",
+    "forms": [
+      "originally"
+    ]
+  },
+  {
+    "zh": "少年人",
+    "en": "youngster",
+    "lemma": "youngster",
+    "meaning": "(Tw) young people; youngster",
+    "partOfSpeech": "noun",
+    "phonetic": "/'jʌŋstә/",
+    "forms": [
+      "youngster"
+    ]
+  },
+  {
+    "zh": "幸运",
+    "en": "fortunate",
+    "lemma": "fortunate",
+    "meaning": "fortunate; lucky",
+    "partOfSpeech": "adjective",
+    "phonetic": "/'fɒ:tʃәnit/",
+    "forms": [
+      "fortunate"
+    ]
+  },
+  {
+    "zh": "胸膛",
+    "en": "chest",
+    "lemma": "chest",
+    "meaning": "chest",
+    "partOfSpeech": "noun",
+    "phonetic": "/tʃest/",
+    "forms": [
+      "chest"
+    ]
+  },
+  {
+    "zh": "从而",
+    "en": "thereby",
+    "lemma": "thereby",
+    "meaning": "thus; thereby",
+    "partOfSpeech": "adverb",
+    "phonetic": "/'ðєәbai/",
+    "forms": [
+      "thereby"
+    ]
+  },
+  {
+    "zh": "腰间",
+    "en": "waist",
+    "lemma": "waist",
+    "meaning": "waist",
+    "partOfSpeech": "noun",
+    "phonetic": "/weist/",
+    "forms": [
+      "waist"
+    ]
+  },
+  {
+    "zh": "意味着",
+    "en": "signify",
+    "lemma": "signify",
+    "meaning": "to signify",
+    "partOfSpeech": "verb",
+    "phonetic": "/'signifai/",
+    "forms": [
+      "signify"
+    ]
   }
 ]

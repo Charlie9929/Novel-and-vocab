@@ -45,6 +45,14 @@ export interface LocalContextWindow {
   right: string;
 }
 
+/** Optional, diagnostic-only candidate policy used by offline pilot tools. */
+export interface CandidatePolicyOverride {
+  isApproved: (candidateId: string) => boolean;
+  mode: (candidateId: string) => "stable" | "contextual" | "blocked";
+  /** Optional offline/pack-specific evidence for a contextual candidate. */
+  hasContextualEvidence?: (term: string, context: LocalContextWindow, candidateId: string) => boolean;
+}
+
 /**
  * A vocabulary entry shared by all vocabulary packs.
  *
@@ -154,6 +162,8 @@ export interface MatchedTerm {
    */
   confidence: MatchConfidence;
   candidateId: string;
+  /** Learning identity used by the vocabulary/SRS store. */
+  lemma?: string;
   /** True when a contextual candidate matched an explicit local allow rule. */
   contextEvidence?: boolean;
   selectionReason: CandidateSelectionReason;

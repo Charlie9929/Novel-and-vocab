@@ -85,6 +85,17 @@ describe("precision-first chapter replacement", () => {
     expect(result.replacements.map((item) => item.en)).toContain("notice");
   });
 
+  it("suppresses a replacement after local translation feedback", () => {
+    const sentence = "他注意到门开了。";
+    const result = replaceChapterTerms({ id: "feedback", title: "第一章", index: 0, text: sentence }, [
+      { zh: "注意到", en: "notice", meaning: "注意到", partOfSpeech: "verb" },
+    ], new Set(), 1, new Map(), "cet4", new Set([correctionKey("注意到", sentence)]));
+
+    expect(result.eligibleCount).toBe(0);
+    expect(result.replacements).toHaveLength(0);
+    expect(result.tokens).toEqual([{ kind: "text", value: sentence }]);
+  });
+
   it("uses positive evidence for 把手 and rejects the 把 + 手 construction", () => {
     const positive = ["他握住门把手。", "抽屉把手坏了。", "她抓住把手用力一拉。"];
     const negative = [

@@ -2,6 +2,7 @@ import {
   candidateIdFor,
   type Cet4Entry,
   type Chapter,
+  type CandidatePolicyOverride,
   type LocalContextWindow,
   type MatchedTerm,
   type SentenceSpan,
@@ -129,6 +130,7 @@ const PROTECTED_COMPOUNDS = [
   "自然光线",
   "眼睛不是眼睛",
   "不同地方",
+  "面对面",
 ];
 
 /** Character that sits next to a word and acts like a natural boundary. */
@@ -257,13 +259,14 @@ export function findTerms(
   extraProtectedTerms: string[] = [],
   corrections: ReadonlyMap<string, string> = new Map(),
   vocabularyId: VocabularyId = "cet4",
+  candidatePolicy?: CandidatePolicyOverride,
 ): MatchedTerm[] {
   const curatedEntries = getCuratedEntries(entries, vocabularyId);
   const dict = blacklist.size === 0
     ? getCachedDict(curatedEntries)
     : buildDictMap(curatedEntries.filter((e) => !blacklist.has(e.zh) && !blacklist.has(e.en)));
   const sentences = splitSentences(text);
-  const protectedRanges = buildProtectedRanges(text, extraProtectedTerms);
+  const protectedRanges = buildProtectedRanges(text, extraProtectedTerms, dict);
   const protectedCompoundRanges = buildProtectedCompoundRanges(text);
 
   // ---- path A: browser-native word segmentation ----
@@ -278,6 +281,7 @@ export function findTerms(
       protectedCompoundRanges,
       corrections,
       vocabularyId,
+      candidatePolicy,
     );
     // Browser segmentation can return a coarse span such as “很简单” or split
     // a useful compound such as “意大利人”. Merge the native result with the
@@ -295,13 +299,14 @@ export function findTerms(
       segments,
       uncertainScanStarts,
       vocabularyId,
+      candidatePolicy,
     );
     const mergedMatches = resolveOverlaps([...segmentedMatches, ...scannedMatches], text.length);
     if (mergedMatches.length > 0 || text.length === 0) return mergedMatches;
   }
 
   // ---- path B: character-scan fallback ----
-  return findTermsViaScan(text, dict, getDictionaryScanIndex(dict), sentences, protectedRanges, protectedCompoundRanges, corrections, segments, undefined, vocabularyId);
+  return findTermsViaScan(text, dict, getDictionaryScanIndex(dict), sentences, protectedRanges, protectedCompoundRanges, corrections, segments, undefined, vocabularyId, candidatePolicy);
 }
 
 function getCuratedEntries(entries: Cet4Entry[], vocabularyId: VocabularyId): Cet4Entry[] {
@@ -391,6 +396,7 @@ function findTermsViaSegments(
   protectedCompoundRanges: ProtectedRange[],
   corrections: ReadonlyMap<string, string>,
   vocabularyId: VocabularyId,
+  candidatePolicy?: CandidatePolicyOverride,
 ): MatchedTerm[] {
   const matches: MatchedTerm[] = [];
 
@@ -413,18 +419,20 @@ function findTermsViaSegments(
       entries,
       corrections.get(correctionKey(seg.segment, sentence)),
       buildLocalContext(text, start, end),
-      (candidateId) => isCandidateApprovedForVocabulary(vocabularyId, candidateId),
-      vocabularyId !== "cet4",
+      (candidateId) => candidatePolicy?.isApproved(candidateId) ?? isCandidateApprovedForVocabulary(vocabularyId, candidateId),
+      vocabularyId !== "cet4" && !candidatePolicy,
     );
     const entry = selected.entry;
     const selectedCandidateId = candidateIdFor(entry);
-    if (vocabularyId !== "cet4" && !isCandidateApprovedForVocabulary(vocabularyId, selectedCandidateId)) continue;
+    if (vocabularyId !== "cet4" && !(candidatePolicy?.isApproved(selectedCandidateId) ?? isCandidateApprovedForVocabulary(vocabularyId, selectedCandidateId))) continue;
     const selectedContext = buildLocalContext(text, start, end);
-    if (candidateModeForVocabulary(vocabularyId, selectedCandidateId) === "blocked") continue;
-    const contextEvidence = candidateModeForVocabulary(vocabularyId, selectedCandidateId) === "contextual"
-      ? hasContextualEvidenceForVocabulary(vocabularyId, seg.segment, selectedContext, selectedCandidateId)
+    const candidateMode = candidatePolicy?.mode(selectedCandidateId) ?? candidateModeForVocabulary(vocabularyId, selectedCandidateId);
+    if (candidateMode === "blocked") continue;
+    const contextEvidence = candidateMode === "contextual"
+      ? candidatePolicy?.hasContextualEvidence?.(seg.segment, selectedContext, selectedCandidateId)
+        ?? hasContextualEvidenceForVocabulary(vocabularyId, seg.segment, selectedContext, selectedCandidateId)
       : false;
-    if (candidateModeForVocabulary(vocabularyId, selectedCandidateId) === "contextual" && !contextEvidence) continue;
+    if (candidateMode === "contextual" && !contextEvidence) continue;
     matches.push({
       id: `${entry.zh}-${entry.en}-${start}`,
       zh: entry.zh,
@@ -440,6 +448,7 @@ function findTermsViaSegments(
       matchSource: "segment",
       confidence: selected.confidence,
       candidateId: selectedCandidateId,
+      lemma: entry.lemma ?? entry.en,
       contextEvidence,
       selectionReason: selected.reason,
     });
@@ -461,6 +470,7 @@ function findTermsViaScan(
   segments: SegmentSpan[] | null,
   scanStarts?: ReadonlySet<number>,
   vocabularyId: VocabularyId = "cet4",
+  candidatePolicy?: CandidatePolicyOverride,
 ): MatchedTerm[] {
   const candidates: MatchedTerm[] = [];
 
@@ -493,18 +503,20 @@ function findTermsViaScan(
         entries,
         corrections.get(correctionKey(candidate, sentence)),
         buildLocalContext(text, i, i + len),
-        (candidateId) => isCandidateApprovedForVocabulary(vocabularyId, candidateId),
-        vocabularyId !== "cet4",
+        (candidateId) => candidatePolicy?.isApproved(candidateId) ?? isCandidateApprovedForVocabulary(vocabularyId, candidateId),
+        vocabularyId !== "cet4" && !candidatePolicy,
       );
       const entry = selected.entry;
       const selectedCandidateId = candidateIdFor(entry);
-      if (vocabularyId !== "cet4" && !isCandidateApprovedForVocabulary(vocabularyId, selectedCandidateId)) continue;
+      if (vocabularyId !== "cet4" && !(candidatePolicy?.isApproved(selectedCandidateId) ?? isCandidateApprovedForVocabulary(vocabularyId, selectedCandidateId))) continue;
       const selectedContext = buildLocalContext(text, i, i + len);
-      if (candidateModeForVocabulary(vocabularyId, selectedCandidateId) === "blocked") continue;
-      const contextEvidence = candidateModeForVocabulary(vocabularyId, selectedCandidateId) === "contextual"
-        ? hasContextualEvidenceForVocabulary(vocabularyId, candidate, selectedContext, selectedCandidateId)
+      const candidateMode = candidatePolicy?.mode(selectedCandidateId) ?? candidateModeForVocabulary(vocabularyId, selectedCandidateId);
+      if (candidateMode === "blocked") continue;
+      const contextEvidence = candidateMode === "contextual"
+        ? candidatePolicy?.hasContextualEvidence?.(candidate, selectedContext, selectedCandidateId)
+          ?? hasContextualEvidenceForVocabulary(vocabularyId, candidate, selectedContext, selectedCandidateId)
         : false;
-      if (candidateModeForVocabulary(vocabularyId, selectedCandidateId) === "contextual" && !contextEvidence) continue;
+      if (candidateMode === "contextual" && !contextEvidence) continue;
       candidates.push({
         id: `${entry.zh}-${entry.en}-${i}`,
         zh: entry.zh,
@@ -520,6 +532,7 @@ function findTermsViaScan(
         matchSource: "scan",
         confidence: selected.confidence,
         candidateId: selectedCandidateId,
+        lemma: entry.lemma ?? entry.en,
         contextEvidence,
         selectionReason: selected.reason,
       });
@@ -601,6 +614,8 @@ function buildLocalContext(text: string, start: number, end: number): LocalConte
 function isContextuallyUnsafeTerm(text: string, term: string, start: number): boolean {
   if (term === "地点" && text.slice(start + term.length, start + term.length + 2) === "点头") return true;
   if (term === "得到" && text[start - 1] === "不" && text[start + term.length] === "了") return true;
+  if (term === "得到" && /(?:做|想|想象)$/.test(text.slice(Math.max(0, start - 2), start))) return true;
+  if (term === "相同" && (text[start - 1] === "不" || text.slice(Math.max(0, start - 2), start).endsWith("不尽"))) return true;
   if (term === "后来" && text[start - 1] === "饭") return true;
   if (term !== "样子") return false;
 
@@ -683,7 +698,11 @@ interface ProtectedRange {
   end: number;
 }
 
-function buildProtectedRanges(text: string, extraProtectedTerms: string[]): ProtectedRange[] {
+function buildProtectedRanges(
+  text: string,
+  extraProtectedTerms: string[],
+  dictionary?: Map<string, Cet4Entry[]>,
+): ProtectedRange[] {
   const ranges: ProtectedRange[] = [];
   const speakerPattern = /(?:^|\n|[“"。！？!?；;，,、\s])([一-鿿]{2,4})(?=[:：])/g;
   const namedPersonPattern = /([一-鿿]{2,4})(?=(小姐|先生|女士|夫人|老师|同学|医生|队长|经理|大人|殿下|哥|姐|叔|姨))/g;
@@ -696,6 +715,12 @@ function buildProtectedRanges(text: string, extraProtectedTerms: string[]): Prot
       const name = match[1];
       const nameStart = (match.index ?? 0) + match[0].lastIndexOf(name);
       if (pattern === speakerPattern && /[说道问答喊叫]$/.test(name)) continue;
+      // The action-name heuristic is useful for Chinese proper names, but it
+      // also catches ordinary adverbs/adjectives immediately before a speech
+      // verb (for example “轻声道” and “缓缓说道”). When the complete span is
+      // already a production dictionary term and at least one entry is not a
+      // noun, lexical matching is stronger evidence than the name heuristic.
+      if (pattern === actionNamePattern && dictionary?.get(name)?.some((entry) => entry.partOfSpeech !== "noun")) continue;
       // The action-name heuristic can otherwise treat phrases such as
       // “这个生物看起来” as a person's name. Determiners and pronouns are
       // strong evidence that this is ordinary prose instead.

@@ -882,6 +882,12 @@ button {
   grid-column: 1 / -1;
 }
 
+.sheet-actions .feedback-trigger {
+  grid-column: 1 / -1;
+  border-color: #d8d0c3;
+  color: #66736c;
+}
+
 .panel-view {
   flex: 1;
   min-height: 0;

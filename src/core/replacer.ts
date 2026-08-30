@@ -1,5 +1,6 @@
-import type { Cet4Entry, Chapter, MatchedTerm, QuizQuestion, ReplacedChapter, RenderToken, ReplacementToken, VocabularyId } from "./types";
+import type { CandidatePolicyOverride, Cet4Entry, Chapter, MatchedTerm, QuizQuestion, ReplacedChapter, RenderToken, ReplacementToken, VocabularyId } from "./types";
 import { findTerms } from "./tokenizer";
+import { correctionKey } from "./corrections";
 import { FLOATING_BOUNDARY_TERMS } from "../data/candidate-policy";
 import {
   candidateModeForVocabulary,
@@ -23,11 +24,14 @@ export function replaceChapterTerms(
   density = 2 / 3,
   corrections: ReadonlyMap<string, string> = new Map(),
   vocabularyId: VocabularyId = "cet4",
+  suppressedFeedbackKeys: ReadonlySet<string> = new Set(),
+  candidatePolicy?: CandidatePolicyOverride,
 ): ReplacedChapter {
-  const eligible = findTerms(chapter.text, entries, blacklist, [chapter.title], corrections, vocabularyId);
+  const eligible = findTerms(chapter.text, entries, blacklist, [chapter.title], corrections, vocabularyId, candidatePolicy)
+    .filter((match) => !suppressedFeedbackKeys.has(correctionKey(match.zh, match.sentence)));
   // Precision is the product requirement. Density controls how many safe
   // candidates are shown; it can never promote an ambiguous candidate.
-  const renderable = eligible.filter((match) => isReplacementSafe(match, vocabularyId));
+  const renderable = eligible.filter((match) => isReplacementSafe(match, vocabularyId, candidatePolicy));
   const selected = selectStableReplacements(chapter, renderable, density);
   const selectedByStart = new Map(selected.map((item) => [item.start, item]));
   const tokens: RenderToken[] = [];
@@ -56,7 +60,7 @@ export function replaceChapterTerms(
 }
 
 /** Shared eligibility gate for the reader and the private quality evaluator. */
-export function isReplacementSafe(match: MatchedTerm, vocabularyId: VocabularyId = "cet4"): boolean {
+export function isReplacementSafe(match: MatchedTerm, vocabularyId: VocabularyId = "cet4", candidatePolicy?: CandidatePolicyOverride): boolean {
   return match.confidence === "high"
     && (match.boundaryConfidence <= 1
       || match.contextEvidence === true
@@ -64,11 +68,11 @@ export function isReplacementSafe(match: MatchedTerm, vocabularyId: VocabularyId
         FLOATING_BOUNDARY_TERMS.has(match.zh)
         || isFloatingBoundaryCandidateApprovedForVocabulary(vocabularyId, match.candidateId)
       )))
-    && candidateModeForVocabulary(vocabularyId, match.candidateId) !== "blocked"
+    && (candidatePolicy?.mode(match.candidateId) ?? candidateModeForVocabulary(vocabularyId, match.candidateId)) !== "blocked"
     // A context rule or manual correction chooses a sense, but neither can
     // mint a production candidate. Rules and corrections are accepted only
     // after the exact candidate has evidence in this vocabulary's allowlist.
-    && isCandidateApprovedForVocabulary(vocabularyId, match.candidateId);
+    && (candidatePolicy?.isApproved(match.candidateId) ?? isCandidateApprovedForVocabulary(vocabularyId, match.candidateId));
 }
 
 export function createQuizQuestions(replacements: ReplacementToken[], count = 5): QuizQuestion[] {

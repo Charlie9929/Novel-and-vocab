@@ -1,6 +1,11 @@
 import cet4Map from "./cet4-map.json";
 import manifestJson from "./vocabulary-manifest.json";
-import type { Cet4Entry, LocalContextRule, PartOfSpeech, VocabularyId } from "../core/types";
+import { candidateIdFor, type Cet4Entry, type LocalContextRule, type PartOfSpeech, type VocabularyId } from "../core/types";
+import {
+  candidateModeForVocabulary,
+  isCandidateApprovedForVocabulary,
+  isCandidateReusableFromCet4,
+} from "./vocabulary-candidates";
 
 /** Stable identifiers persisted by the app and used to scope learning data. */
 export type { VocabularyId } from "../core/types";
@@ -76,6 +81,27 @@ export interface VocabularyData {
   entries: readonly VocabularyEntry[];
 }
 
+/**
+ * Lexical coverage of the reader's effective allowlist. This deliberately
+ * measures imported entries admitted by the precision gate, not official
+ * exam-list coverage or novel-event recall.
+ */
+export interface VocabularyCoverageStats {
+  vocabularyId: VocabularyId;
+  entryCount: number;
+  lemmaCount: number;
+  approvedEntryCount: number;
+  approvedCandidateCount: number;
+  approvedLemmaCount: number;
+  approvedStableEntryCount: number;
+  approvedContextualEntryCount: number;
+  nonCet4ApprovedEntryCount: number;
+  /** Exact CET4 overlap tuples waiting for target-pack review. */
+  reusableCandidateCount: number;
+  entryCoverage: number;
+  lemmaCoverage: number;
+}
+
 const manifest = manifestJson as VocabularyManifest;
 
 type RawMapModule = { default: readonly unknown[] };
@@ -142,6 +168,51 @@ export function isVocabularyPublishable(vocabularyId: VocabularyId): boolean {
     && source.licenseSnapshotPath !== null);
 }
 
+/** Return an auditable, runtime view of how much of one imported pack is usable. */
+export async function getVocabularyCoverageStats(vocabularyId: VocabularyId): Promise<VocabularyCoverageStats> {
+  const entries = await loadVocabularyEntries(vocabularyId);
+  const cet4Ids = vocabularyId === "cet4"
+    ? new Set<string>()
+    : new Set((await loadVocabularyEntries("cet4")).map((entry) => candidateIdFor(entry)));
+  const allLemmas = new Set<string>();
+  const approvedIds = new Set<string>();
+  const approvedLemmas = new Set<string>();
+  let approvedEntryCount = 0;
+  let approvedStableEntryCount = 0;
+  let approvedContextualEntryCount = 0;
+  let nonCet4ApprovedEntryCount = 0;
+  let reusableCandidateCount = 0;
+
+  for (const entry of entries) {
+    const lemma = entry.lemma.normalize("NFKC").trim().toLocaleLowerCase("en-US");
+    allLemmas.add(lemma);
+    const candidateId = candidateIdFor(entry);
+    if (isCandidateReusableFromCet4(vocabularyId, candidateId)) reusableCandidateCount += 1;
+    if (!isCandidateApprovedForVocabulary(vocabularyId, candidateId)) continue;
+    approvedEntryCount += 1;
+    approvedIds.add(candidateId);
+    approvedLemmas.add(lemma);
+    if (candidateModeForVocabulary(vocabularyId, candidateId) === "stable") approvedStableEntryCount += 1;
+    else approvedContextualEntryCount += 1;
+    if (vocabularyId !== "cet4" && !cet4Ids.has(candidateId)) nonCet4ApprovedEntryCount += 1;
+  }
+
+  return {
+    vocabularyId,
+    entryCount: entries.length,
+    lemmaCount: allLemmas.size,
+    approvedEntryCount,
+    approvedCandidateCount: approvedIds.size,
+    approvedLemmaCount: approvedLemmas.size,
+    approvedStableEntryCount,
+    approvedContextualEntryCount,
+    nonCet4ApprovedEntryCount,
+    reusableCandidateCount,
+    entryCoverage: entries.length === 0 ? 0 : approvedEntryCount / entries.length,
+    lemmaCoverage: allLemmas.size === 0 ? 0 : approvedLemmas.size / allLemmas.size,
+  };
+}
+
 /**
  * Load a vocabulary using the frozen common contract.  Missing imports throw
  * by default so a blank dictionary cannot masquerade as a usable release.
@@ -158,7 +229,8 @@ export async function loadVocabularyEntries(
     const dataset = getVocabularyManifest(id);
     throw new Error(`Vocabulary ${id} is ${dataset.status}; no validated local entries are available.`);
   }
-  return loadNormalizedEntries(id);
+  const entries = await loadNormalizedEntries(id);
+  return entries;
 }
 
 /** Return all metadata and the normalized entries, without hiding unavailable state. */

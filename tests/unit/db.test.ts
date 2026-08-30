@@ -19,8 +19,11 @@ import {
   saveBookRecord,
   getAllBookRecords,
   putSetting,
+  addVocabulary,
+  getTranslationFeedbackKeys,
 } from "../../src/core/db";
 import type { ReplacementToken } from "../../src/core/types";
+import { correctionKey } from "../../src/core/corrections";
 
 describe("local database v6", () => {
   beforeEach(async () => {
@@ -91,6 +94,43 @@ describe("local database v6", () => {
     expect(feedback[0].sourceSentence).toBe("这个游戏很有趣。");
     expect(feedback[0].reason).toBe("meaning");
     expect(feedback[0].userSuggestion).toBe("game");
+    expect(feedback[0].key).toBe(correctionKey("游戏", "这个游戏很有趣。"));
+    expect(await getTranslationFeedbackKeys("cet4")).toEqual([feedback[0].key]);
+  });
+
+  it("keeps one learning card per vocabulary lemma across books and occurrences", async () => {
+    const replacement = {
+      id: "run-1",
+      zh: "运行",
+      en: "run",
+      lemma: "run",
+      meaning: "运行",
+      partOfSpeech: "verb",
+      start: 0,
+      end: 2,
+      sentence: "系统运行。",
+      boundaryConfidence: 0,
+      candidates: [],
+      matchSource: "both",
+      confidence: "high",
+      candidateId: "运行:run:verb",
+      selectionReason: "priority",
+      kind: "replacement",
+      chapterId: "chapter-0",
+      chapterIndex: 0,
+    } as ReplacementToken;
+
+    await addVocabulary(replacement, "book-a", "cet6");
+    await addVocabulary({ ...replacement, id: "run-2", start: 10, sentence: "程序运行。" }, "book-b", "cet6");
+    await addVocabulary(replacement, "book-a", "ielts");
+
+    expect(await db.vocabulary.where("vocabularyId").equals("cet6").count()).toBe(1);
+    expect(await db.vocabulary.where("vocabularyId").equals("ielts").count()).toBe(1);
+    expect(await db.vocabulary.where("[vocabularyId+lemma]").equals(["cet6", "run"]).first()).toMatchObject({
+      vocabularyId: "cet6",
+      lemma: "run",
+      key: "cet6:run",
+    });
   });
 
   it("clears learning data while preserving global settings and file handles", async () => {

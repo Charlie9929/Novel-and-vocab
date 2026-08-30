@@ -10,6 +10,14 @@
 `private-input/public-domain/`，包括《儒林外史》《施公案》《警世通言》《镜花缘》和《老残游记》。
 这些完整正文不会提交到 GitHub；测试会在本地样本存在时运行，干净克隆没有样本时自动跳过这项本地审计。
 
+词库同文同章替换数基准使用 `private-input/quality/reader-benchmark-v1.json`（只含路径和指纹，正文不提交），运行：
+
+```sh
+npm run quality:benchmark-reader
+```
+
+该命令串行比较 CET4、CET6、IELTS、TOEFL，并检查高级词库总替换数是否达到 CET4、单书是否达到 CET4 的 90%。
+
 来源链接：
 
 - [儒林外史 #24032](https://www.gutenberg.org/ebooks/24032)

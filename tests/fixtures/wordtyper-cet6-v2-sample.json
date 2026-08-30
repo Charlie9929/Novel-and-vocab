@@ -1,0 +1,56 @@
+{
+  "words": [
+    {
+      "word": "continue",
+      "phonetic": "/kənˈtɪnjuː/",
+      "translations": [
+        "vi. 继续, 延续, 延长",
+        "vt. 使继续, 使延长"
+      ]
+    },
+    {
+      "word": "precede",
+      "phonetic": "/prɪˈsiːd/",
+      "translations": [
+        "vt. 在...之前, 优于, 较...优先",
+        "vi. 在前面"
+      ]
+    },
+    {
+      "word": "resume",
+      "phonetic": "/rɪˈzjuːm/",
+      "translations": [
+        "vi. 继续, 再开始"
+      ]
+    },
+    {
+      "word": "lump",
+      "phonetic": "/lʌmp/",
+      "translations": [
+        "n. 块, 瘤, 很多, 肿块, 笨人"
+      ]
+    },
+    {
+      "word": "facility",
+      "phonetic": "/fəˈsɪləti/",
+      "translations": [
+        "n. 容易, 灵巧, 设备"
+      ]
+    },
+    {
+      "word": "hardly",
+      "phonetic": "/ˈhɑːdli/",
+      "translations": [
+        "adv. 刚刚, 几乎不, 勉强是"
+      ]
+    },
+    {
+      "word": "switch",
+      "phonetic": "/swɪtʃ/",
+      "translations": [
+        "n. 开关, 电闸, 转换",
+        "vt. 转变, 切换"
+      ]
+    }
+  ]
+}

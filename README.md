@@ -43,7 +43,7 @@ http://localhost:5173
 
 如果 5173 被占用，Vite 会自动换端口，请看终端输出的实际地址。
 
-第一阶段的本地验收步骤见 [`LOCALHOST-QA.md`](LOCALHOST-QA.md)，包括四词库切换、学习数据隔离、清理操作、响应式宽度和 PWA 检查。当前版本只在 localhost 验收，未推送或部署。
+第一阶段的本地验收步骤见 [`LOCALHOST-QA.md`](LOCALHOST-QA.md)，包括四词库切换、学习数据隔离、清理操作、响应式宽度和 PWA 检查。发布前仍应先完成 localhost 验收；当前 `main` 已连接 Cloudflare Pages，推送后会触发自动构建。
 
 如果切换词库时仍看到旧的 `ConstraintError`，先用 `Ctrl+Shift+R` 强制刷新；这是浏览器还在使用旧前端脚本，不需要先清除本地学习数据。
 

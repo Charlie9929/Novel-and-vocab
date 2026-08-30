@@ -51588,5 +51588,555 @@
     "forms": [
       "gear"
     ]
+  },
+  {
+    "zh": "办法",
+    "en": "means",
+    "lemma": "means",
+    "meaning": "way of handling sth; means; measure; (practical) solution to a problem",
+    "partOfSpeech": "noun",
+    "phonetic": "/mi:nz/",
+    "forms": [
+      "means"
+    ]
+  },
+  {
+    "zh": "并且",
+    "en": "moreover",
+    "lemma": "moreover",
+    "meaning": "and; besides; moreover; furthermore; in addition",
+    "partOfSpeech": "adverb",
+    "phonetic": "/mɒ:'әuvә/",
+    "forms": [
+      "moreover"
+    ]
+  },
+  {
+    "zh": "不可能",
+    "en": "impossible",
+    "lemma": "impossible",
+    "meaning": "impossible; cannot",
+    "partOfSpeech": "adjective",
+    "phonetic": "/im'pɒsәbl/",
+    "forms": [
+      "impossible"
+    ]
+  },
+  {
+    "zh": "不一样",
+    "en": "different",
+    "lemma": "different",
+    "meaning": "different",
+    "partOfSpeech": "adjective",
+    "phonetic": "/'difәrәnt/",
+    "forms": [
+      "different"
+    ]
+  },
+  {
+    "zh": "察觉",
+    "en": "sense",
+    "lemma": "sense",
+    "meaning": "to sense",
+    "partOfSpeech": "verb",
+    "phonetic": "/sens/",
+    "forms": [
+      "sense"
+    ]
+  },
+  {
+    "zh": "成为",
+    "en": "become",
+    "lemma": "become",
+    "meaning": "to become; to turn into",
+    "partOfSpeech": "verb",
+    "phonetic": "/bi'kʌm/",
+    "forms": [
+      "become"
+    ]
+  },
+  {
+    "zh": "从而",
+    "en": "thereby",
+    "lemma": "thereby",
+    "meaning": "thus; thereby",
+    "partOfSpeech": "adverb",
+    "phonetic": "/'ðєәbai/",
+    "forms": [
+      "thereby"
+    ]
+  },
+  {
+    "zh": "打扰",
+    "en": "disturb",
+    "lemma": "disturb",
+    "meaning": "to disturb",
+    "partOfSpeech": "verb",
+    "phonetic": "/dis'tә:b/",
+    "forms": [
+      "disturb"
+    ]
+  },
+  {
+    "zh": "带走",
+    "en": "carry",
+    "lemma": "carry",
+    "meaning": "to carry; to take away",
+    "partOfSpeech": "verb",
+    "phonetic": "/'kæri/",
+    "forms": [
+      "carry"
+    ]
+  },
+  {
+    "zh": "地步",
+    "en": "degree",
+    "lemma": "degree",
+    "meaning": "stage; degree (to which a situation has evolved)",
+    "partOfSpeech": "noun",
+    "phonetic": "/di'gri:/",
+    "forms": [
+      "degree"
+    ]
+  },
+  {
+    "zh": "动作",
+    "en": "action",
+    "lemma": "action",
+    "meaning": "movement; motion; action",
+    "partOfSpeech": "noun",
+    "phonetic": "/'ækʃәn/",
+    "forms": [
+      "action"
+    ]
+  },
+  {
+    "zh": "兑换",
+    "en": "convert",
+    "lemma": "convert",
+    "meaning": "to convert",
+    "partOfSpeech": "verb",
+    "phonetic": "/kәn'vә:t/",
+    "forms": [
+      "convert"
+    ]
+  },
+  {
+    "zh": "方式",
+    "en": "method",
+    "lemma": "method",
+    "meaning": "way; method; manner; mode; pattern (of behavior etc)",
+    "partOfSpeech": "noun",
+    "phonetic": "/'meθәd/",
+    "forms": [
+      "method"
+    ]
+  },
+  {
+    "zh": "复杂",
+    "en": "complicated",
+    "lemma": "complicated",
+    "meaning": "complicated; complex",
+    "partOfSpeech": "adjective",
+    "phonetic": "/'kɒmplikeitid/",
+    "forms": [
+      "complicated"
+    ]
+  },
+  {
+    "zh": "尴尬",
+    "en": "awkward",
+    "lemma": "awkward",
+    "meaning": "awkward; embarrassed",
+    "partOfSpeech": "adjective",
+    "phonetic": "/'ɒ:kwәd/",
+    "forms": [
+      "awkward"
+    ]
+  },
+  {
+    "zh": "各种",
+    "en": "various",
+    "lemma": "various",
+    "meaning": "every kind of; all kinds of; various",
+    "partOfSpeech": "adjective",
+    "phonetic": "/'vєәriәs/",
+    "forms": [
+      "various"
+    ]
+  },
+  {
+    "zh": "管家",
+    "en": "steward",
+    "lemma": "steward",
+    "meaning": "(old) butler; steward",
+    "partOfSpeech": "noun",
+    "phonetic": "/'stju:wәd/",
+    "forms": [
+      "steward"
+    ]
+  },
+  {
+    "zh": "接过",
+    "en": "take",
+    "lemma": "take",
+    "meaning": "to take (sth proffered)",
+    "partOfSpeech": "verb",
+    "phonetic": "/teik/",
+    "forms": [
+      "take"
+    ]
+  },
+  {
+    "zh": "口感",
+    "en": "texture",
+    "lemma": "texture",
+    "meaning": "mouthfeel; texture (of food)",
+    "partOfSpeech": "noun",
+    "phonetic": "/'tekstʃә/",
+    "forms": [
+      "texture"
+    ]
+  },
+  {
+    "zh": "况且",
+    "en": "moreover",
+    "lemma": "moreover",
+    "meaning": "moreover",
+    "partOfSpeech": "adverb",
+    "phonetic": "/mɒ:'әuvә/",
+    "forms": [
+      "moreover"
+    ]
+  },
+  {
+    "zh": "每日",
+    "en": "daily",
+    "lemma": "daily",
+    "meaning": "daily",
+    "partOfSpeech": "adverb",
+    "phonetic": "/'deili/",
+    "forms": [
+      "daily"
+    ]
+  },
+  {
+    "zh": "模式",
+    "en": "mode",
+    "lemma": "mode",
+    "meaning": "mode; pattern; model",
+    "partOfSpeech": "noun",
+    "phonetic": "/mәud/",
+    "forms": [
+      "mode"
+    ]
+  },
+  {
+    "zh": "魔头",
+    "en": "monster",
+    "lemma": "monster",
+    "meaning": "monster; devil",
+    "partOfSpeech": "noun",
+    "phonetic": "/'mɒnstә/",
+    "forms": [
+      "monster"
+    ]
+  },
+  {
+    "zh": "拿到",
+    "en": "get",
+    "lemma": "get",
+    "meaning": "to get",
+    "partOfSpeech": "verb",
+    "phonetic": "/get/",
+    "forms": [
+      "get"
+    ]
+  },
+  {
+    "zh": "却是",
+    "en": "nevertheless",
+    "lemma": "nevertheless",
+    "meaning": "nevertheless",
+    "partOfSpeech": "adverb",
+    "phonetic": "/.nevәðә'les/",
+    "forms": [
+      "nevertheless"
+    ]
+  },
+  {
+    "zh": "确认",
+    "en": "confirm",
+    "lemma": "confirm",
+    "meaning": "to confirm",
+    "partOfSpeech": "verb",
+    "phonetic": "/kәn'fә:m/",
+    "forms": [
+      "confirm"
+    ]
+  },
+  {
+    "zh": "少年人",
+    "en": "youngster",
+    "lemma": "youngster",
+    "meaning": "(Tw) young people; youngster",
+    "partOfSpeech": "noun",
+    "phonetic": "/'jʌŋstә/",
+    "forms": [
+      "youngster"
+    ]
+  },
+  {
+    "zh": "身高",
+    "en": "height",
+    "lemma": "height",
+    "meaning": "(a person's) height",
+    "partOfSpeech": "noun",
+    "phonetic": "/hait/",
+    "forms": [
+      "height"
+    ]
+  },
+  {
+    "zh": "实力",
+    "en": "strength",
+    "lemma": "strength",
+    "meaning": "strength",
+    "partOfSpeech": "noun",
+    "phonetic": "/streŋθ/",
+    "forms": [
+      "strength"
+    ]
+  },
+  {
+    "zh": "食材",
+    "en": "ingredient",
+    "lemma": "ingredient",
+    "meaning": "(food) ingredient",
+    "partOfSpeech": "noun",
+    "phonetic": "/in'gri:diәnt/",
+    "forms": [
+      "ingredient"
+    ]
+  },
+  {
+    "zh": "手心",
+    "en": "palm",
+    "lemma": "palm",
+    "meaning": "palm (of one's hand)",
+    "partOfSpeech": "noun",
+    "phonetic": "/pɑ:m/",
+    "forms": [
+      "palm"
+    ]
+  },
+  {
+    "zh": "似乎",
+    "en": "seemingly",
+    "lemma": "seemingly",
+    "meaning": "it seems; seemingly; as if",
+    "partOfSpeech": "adverb",
+    "phonetic": "/'si:miŋli/",
+    "forms": [
+      "seemingly"
+    ]
+  },
+  {
+    "zh": "叹气",
+    "en": "sigh",
+    "lemma": "sigh",
+    "meaning": "to sigh",
+    "partOfSpeech": "verb",
+    "phonetic": "/sai/",
+    "forms": [
+      "sigh"
+    ]
+  },
+  {
+    "zh": "透明",
+    "en": "transparent",
+    "lemma": "transparent",
+    "meaning": "transparent",
+    "partOfSpeech": "adjective",
+    "phonetic": "/træns'pærәnt/",
+    "forms": [
+      "transparent"
+    ]
+  },
+  {
+    "zh": "弯腰",
+    "en": "stoop",
+    "lemma": "stoop",
+    "meaning": "to stoop",
+    "partOfSpeech": "verb",
+    "phonetic": "/stu:p/",
+    "forms": [
+      "stoop"
+    ]
+  },
+  {
+    "zh": "玩家",
+    "en": "player",
+    "lemma": "player",
+    "meaning": "player (of a game)",
+    "partOfSpeech": "noun",
+    "phonetic": "/'pleiә/",
+    "forms": [
+      "player"
+    ]
+  },
+  {
+    "zh": "相机",
+    "en": "camera",
+    "lemma": "camera",
+    "meaning": "camera (abbr. for 照相機|照相机[zhao4 xiang4 ji1])",
+    "partOfSpeech": "noun",
+    "phonetic": "/'kæmәrә/",
+    "forms": [
+      "camera"
+    ]
+  },
+  {
+    "zh": "香气",
+    "en": "fragrance",
+    "lemma": "fragrance",
+    "meaning": "fragrance",
+    "partOfSpeech": "noun",
+    "phonetic": "/'freigrәns/",
+    "forms": [
+      "fragrance"
+    ]
+  },
+  {
+    "zh": "香味",
+    "en": "fragrance",
+    "lemma": "fragrance",
+    "meaning": "fragrance",
+    "partOfSpeech": "noun",
+    "phonetic": "/'freigrәns/",
+    "forms": [
+      "fragrance"
+    ]
+  },
+  {
+    "zh": "信息",
+    "en": "information",
+    "lemma": "information",
+    "meaning": "information; news; message",
+    "partOfSpeech": "noun",
+    "phonetic": "/.infә'meiʃәn/",
+    "forms": [
+      "information"
+    ]
+  },
+  {
+    "zh": "形成",
+    "en": "form",
+    "lemma": "form",
+    "meaning": "to form; to take shape",
+    "partOfSpeech": "verb",
+    "phonetic": "/fɒ:m/",
+    "forms": [
+      "form"
+    ]
+  },
+  {
+    "zh": "性格",
+    "en": "nature",
+    "lemma": "nature",
+    "meaning": "nature",
+    "partOfSpeech": "noun",
+    "phonetic": "/'neitʃә/",
+    "forms": [
+      "nature"
+    ]
+  },
+  {
+    "zh": "胸口",
+    "en": "chest",
+    "lemma": "chest",
+    "meaning": "chest",
+    "partOfSpeech": "noun",
+    "phonetic": "/tʃest/",
+    "forms": [
+      "chest"
+    ]
+  },
+  {
+    "zh": "胸膛",
+    "en": "chest",
+    "lemma": "chest",
+    "meaning": "chest",
+    "partOfSpeech": "noun",
+    "phonetic": "/tʃest/",
+    "forms": [
+      "chest"
+    ]
+  },
+  {
+    "zh": "选项",
+    "en": "option",
+    "lemma": "option",
+    "meaning": "option; alternative; choice",
+    "partOfSpeech": "noun",
+    "phonetic": "/'ɒpʃәn/",
+    "forms": [
+      "option"
+    ]
+  },
+  {
+    "zh": "演员",
+    "en": "actor",
+    "lemma": "actor",
+    "meaning": "actor; actress; performer",
+    "partOfSpeech": "noun",
+    "phonetic": "/'æktә/",
+    "forms": [
+      "actor"
+    ]
+  },
+  {
+    "zh": "要不然",
+    "en": "otherwise",
+    "lemma": "otherwise",
+    "meaning": "otherwise",
+    "partOfSpeech": "adverb",
+    "phonetic": "/'ʌðәwaiz/",
+    "forms": [
+      "otherwise"
+    ]
+  },
+  {
+    "zh": "早饭",
+    "en": "breakfast",
+    "lemma": "breakfast",
+    "meaning": "breakfast",
+    "partOfSpeech": "noun",
+    "phonetic": "/'brekfәst/",
+    "forms": [
+      "breakfast"
+    ]
+  },
+  {
+    "zh": "长相",
+    "en": "appearance",
+    "lemma": "appearance",
+    "meaning": "appearance",
+    "partOfSpeech": "noun",
+    "phonetic": "/ә'piәrәns/",
+    "forms": [
+      "appearance"
+    ]
+  },
+  {
+    "zh": "主任",
+    "en": "director",
+    "lemma": "director",
+    "meaning": "director",
+    "partOfSpeech": "noun",
+    "phonetic": "/di'rektә/",
+    "forms": [
+      "director"
+    ]
   }
 ]

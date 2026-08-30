@@ -4,7 +4,7 @@ import { reviewSm2 } from "../core/sm2";
 
 interface ReviewPanelProps {
   words: VocabRecord[];
-  onReviewComplete: (results: Array<{ key: string; sm2: ReturnType<typeof reviewSm2> }>) => void;
+  onReviewComplete: (results: Array<{ lemma: string; sm2: ReturnType<typeof reviewSm2> }>) => void;
   onClose: () => void;
 }
 
@@ -13,7 +13,7 @@ const RATING_LABELS = ["完全忘记", "模糊", "勉强记得", "记得", "完�
 export function ReviewPanel({ words, onReviewComplete, onClose }: ReviewPanelProps) {
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
-  const [results, setResults] = useState<Array<{ key: string; sm2: ReturnType<typeof reviewSm2> }>>([]);
+  const [results, setResults] = useState<Array<{ lemma: string; sm2: ReturnType<typeof reviewSm2> }>>([]);
   const [done, setDone] = useState(false);
 
   const current = words[index];
@@ -21,7 +21,7 @@ export function ReviewPanel({ words, onReviewComplete, onClose }: ReviewPanelPro
   function handleRate(quality: number) {
     if (!current?.key) return;
     const newSm2 = reviewSm2(current.sm2, quality);
-    const nextResults = [...results, { key: current.key, sm2: newSm2 }];
+    const nextResults = [...results, { lemma: current.lemma, sm2: newSm2 }];
     setResults(nextResults);
 
     if (index + 1 < words.length) {

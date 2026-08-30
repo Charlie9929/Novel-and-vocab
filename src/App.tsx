@@ -18,6 +18,7 @@ import {
   getBlacklistTerms,
   getFileHandle,
   getContextCorrections,
+  getTranslationFeedbackKeys,
   getReadingProgress,
   getSetting,
   putSetting,
@@ -25,6 +26,7 @@ import {
   saveFileHandle,
   saveBookRecord,
   saveQuizHistory,
+  saveTranslationFeedback,
   saveReadingProgress,
   saveReplacementRecords,
   type ReadingProgressRecord,
@@ -50,6 +52,7 @@ import type {
   LocalNovel,
   QuizQuestion,
   ReplacementToken,
+  TranslationFeedbackReason,
   VocabularyId,
 } from "./core/types";
 import { DEFAULT_VOCABULARY_ID } from "./core/types";
@@ -141,6 +144,7 @@ export default function App() {
   const [isReviewing, setIsReviewing] = useState(false);
   const [shelf, setShelf] = useState<ShelfEntry[]>([]);
   const [corrections, setCorrections] = useState<Map<string, string>>(new Map());
+  const [suppressedFeedbackKeys, setSuppressedFeedbackKeys] = useState<Set<string>>(new Set());
   const [storageWarning, setStorageWarning] = useState("");
   const [readerPreferences, setReaderPreferences] = useState(DEFAULT_READER_PREFERENCES);
   const [isImmersive, setIsImmersive] = useState(false);
@@ -156,8 +160,16 @@ export default function App() {
   const densityValue = DENSITY_VALUES[densityLevel];
   const replacedChapter = useMemo(() => {
     if (!currentChapter || vocabularyEntries.length === 0) return null;
-    return replaceChapterTerms(currentChapter, vocabularyEntries, new Set(blacklist), densityValue, corrections, vocabularyId ?? DEFAULT_VOCABULARY_ID);
-  }, [blacklist, corrections, currentChapter, densityValue, vocabularyEntries, vocabularyId]);
+    return replaceChapterTerms(
+      currentChapter,
+      vocabularyEntries,
+      new Set(blacklist),
+      densityValue,
+      corrections,
+      vocabularyId ?? DEFAULT_VOCABULARY_ID,
+      suppressedFeedbackKeys,
+    );
+  }, [blacklist, corrections, currentChapter, densityValue, suppressedFeedbackKeys, vocabularyEntries, vocabularyId]);
 
   useEffect(() => {
     void initializeApp();
@@ -226,17 +238,19 @@ export default function App() {
 
   async function refreshLocalState(scope: VocabularyId = vocabularyId ?? DEFAULT_VOCABULARY_ID) {
     try {
-      const [blacklistTerms, words, savedDensity, shelfEntries, savedCorrections, savedReaderPreferences] = await Promise.all([
+      const [blacklistTerms, words, savedDensity, shelfEntries, savedCorrections, feedbackKeys, savedReaderPreferences] = await Promise.all([
         getBlacklistTerms(scope),
         db.vocabulary.where("vocabularyId").equals(scope).sortBy("createdAt").then((items) => items.reverse()),
         getSetting("replacementDensity"),
         getAllShelfEntries(scope),
         getContextCorrections(scope),
+        getTranslationFeedbackKeys(scope),
         getSetting(READER_PREFERENCES_KEY),
       ]);
       setBlacklist(blacklistTerms);
       setVocab(words);
       setCorrections(savedCorrections);
+      setSuppressedFeedbackKeys(new Set(feedbackKeys));
       if (savedDensity === "low" || savedDensity === "medium" || savedDensity === "high") {
         setDensityLevel(savedDensity);
       }
@@ -445,6 +459,21 @@ export default function App() {
     setSelectedWord(null);
   }
 
+  async function handleTranslationFeedback(
+    replacement: ReplacementToken,
+    reason: TranslationFeedbackReason,
+    userSuggestion = "",
+  ): Promise<void> {
+    if (!vocabularyId) return;
+    try {
+      const key = await saveTranslationFeedback(replacement, reason, userSuggestion, vocabularyId);
+      setSuppressedFeedbackKeys((current) => new Set(current).add(key));
+    } catch (error: unknown) {
+      reportStorageIssue(error);
+      throw error;
+    }
+  }
+
   async function handleRemoveBlacklist(term: string) {
     if (!vocabularyId) return;
     await removeBlacklistTerm(term, vocabularyId);
@@ -542,10 +571,10 @@ export default function App() {
     setIsReviewing(true);
   }
 
-  function handleReviewComplete(results: Array<{ key: string; sm2: Sm2State }>) {
+  function handleReviewComplete(results: Array<{ lemma: string; sm2: Sm2State }>) {
     if (!vocabularyId) return;
     for (const r of results) {
-      void db.vocabulary.where("[vocabularyId+key]").equals([vocabularyId, r.key]).modify({ sm2: r.sm2 });
+      void db.vocabulary.where("[vocabularyId+lemma]").equals([vocabularyId, r.lemma]).modify({ sm2: r.sm2 });
     }
   }
 
@@ -738,6 +767,7 @@ export default function App() {
         onClose={() => setSelectedWord(null)}
         onSave={(replacement) => void handleSaveWord(replacement)}
         onBlacklist={(replacement) => void handleBlacklist(replacement)}
+        onFeedback={(replacement, reason, userSuggestion) => handleTranslationFeedback(replacement, reason, userSuggestion)}
       />
       {quizQuestions ? (
         <QuizPanel

@@ -15,8 +15,12 @@ const diagnosticPath = resolve(args.get("--diagnostic") ?? "");
 const corpusDir = resolve(args.get("--corpus") ?? "/mnt/d/学习/阅读/小说");
 const stableProposalPath = args.get("--stable-proposal") ? resolve(args.get("--stable-proposal")) : null;
 const outputPath = resolve(args.get("--out") ?? `tests/private-input/quality/contextual-${vocabularyId}.json`);
+const batchSize = Number.parseInt(args.get("--limit") ?? "20", 10);
+const batchOffset = Number.parseInt(args.get("--offset") ?? "0", 10);
 if (!["cet6", "ielts", "toefl"].includes(vocabularyId)) throw new Error("--vocabulary must be cet6, ielts, or toefl");
 if (!args.get("--diagnostic")) throw new Error("Pass --diagnostic with a non-blind training detail report");
+if (!Number.isInteger(batchSize) || batchSize < 1 || batchSize > 20) throw new Error("--limit must be an integer between 1 and 20");
+if (!Number.isInteger(batchOffset) || batchOffset < 0) throw new Error("--offset must be a non-negative integer");
 
 const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
 const diagnostic = JSON.parse(await readFile(diagnosticPath, "utf8"));
@@ -181,16 +185,22 @@ for (const [term, termRows] of rowsByTerm) {
 }
 candidates.sort((left, right) => right.coveredTrainingMisses - left.coveredTrainingMisses
   || left.candidateId.localeCompare(right.candidateId, "zh-CN"));
+const selectedCandidates = candidates.slice(batchOffset, batchOffset + batchSize);
 await writeFile(outputPath, `${JSON.stringify({
   schemaVersion: 1,
   vocabularyId,
   blindRead: false,
   policy: "short adjacent CJK rule; >=2 book groups; >=1 development support; zero development/validation conflicts; covers a current training miss",
-  candidates,
+  batchOffset,
+  batchSize,
+  totalCandidates: candidates.length,
+  remainingCandidates: Math.max(0, candidates.length - batchOffset - selectedCandidates.length),
+  candidates: selectedCandidates,
 }, null, 2)}\n`, "utf8");
 console.log(JSON.stringify({
   vocabularyId,
-  proposed: candidates.length,
+  proposed: selectedCandidates.length,
+  totalCandidates: candidates.length,
   coveredTrainingMisses: candidates.reduce((sum, item) => sum + item.coveredTrainingMisses, 0),
   output: outputPath,
 }));
