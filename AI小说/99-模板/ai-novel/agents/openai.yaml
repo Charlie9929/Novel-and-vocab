@@ -1,0 +1,4 @@
+interface:
+  display_name: "AI 小说"
+  short_description: "按设定、大纲、场景和记忆持续创作长篇小说"
+  default_prompt: "在 AI小说/ 工作区中按项目设定推进小说，先检查已有记忆和章节状态，再执行用户指定的创作或审核动作。"

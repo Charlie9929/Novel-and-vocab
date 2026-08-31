@@ -50,6 +50,10 @@
     "quality:convert-cc-v2": "node scripts/convert-cc-cedict-v2.mjs",
     "quality:pilot-cet6-v2": "node scripts/run-cet6-v2-pilot.mjs",
     "quality:pilot-v2": "node scripts/run-cet6-v2-pilot.mjs",
+    "ai-novel:health": "node scripts/ai-novel/health.mjs",
+    "ai-novel:init": "node scripts/ai-novel/init-project.mjs",
+    "ai-novel:generate": "node scripts/ai-novel/generate.mjs",
+    "ai-novel:validate": "node scripts/ai-novel/validate-project.mjs",
     "quality:audit-vocabulary:strict": "node scripts/audit-vocabulary-sources.mjs --strict",
     "quality:audit-labels": "node scripts/audit-vocabulary-labels.mjs",
     "quality:audit-labels:strict": "node scripts/audit-vocabulary-labels.mjs --strict"
