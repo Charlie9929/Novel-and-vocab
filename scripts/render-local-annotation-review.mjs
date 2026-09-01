@@ -15,7 +15,7 @@ if (!packetPath) throw new Error("Pass --packet pointing to a generated annotati
 const inputPath = resolve(packetPath);
 const input = JSON.parse(await readFile(inputPath, "utf8"));
 if (!input || typeof input !== "object" || !Array.isArray(input.packet)) throw new Error("Packet must contain a packet array");
-if (!["cet4", "cet6", "ielts", "toefl"].includes(input.vocabularyId)) throw new Error(`Unknown vocabulary id: ${String(input.vocabularyId)}`);
+if (!["cet4", "cet6", "kaoyan", "ielts", "toefl"].includes(input.vocabularyId)) throw new Error(`Unknown vocabulary id: ${String(input.vocabularyId)}`);
 if (!["development", "validation", "blind"].includes(input.split)) throw new Error(`Unknown split: ${String(input.split)}`);
 
 for (const [index, row] of input.packet.entries()) {
@@ -39,6 +39,7 @@ const splitLabel = {
 const vocabularyLabel = {
   cet4: "CET4",
   cet6: "CET6",
+  kaoyan: "考研英语",
   ielts: "雅思（IELTS）",
   toefl: "托福（TOEFL）",
 }[input.vocabularyId];

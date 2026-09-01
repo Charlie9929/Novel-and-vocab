@@ -8,8 +8,8 @@ for (let index = 2; index < process.argv.length; index += 2) args.set(process.ar
 const sourcePath = resolve(args.get("--source") ?? "");
 const targetPath = resolve(args.get("--target") ?? "");
 const vocabularyId = args.get("--vocabulary");
-if (!sourcePath || !targetPath || !["cet6", "ielts", "toefl"].includes(vocabularyId)) {
-  throw new Error("Usage: --source <manifest> --target <manifest> --vocabulary cet6|ielts|toefl");
+if (!sourcePath || !targetPath || !["cet6", "kaoyan", "ielts", "toefl"].includes(vocabularyId)) {
+  throw new Error("Usage: --source <manifest> --target <manifest> --vocabulary cet6|kaoyan|ielts|toefl");
 }
 
 const source = JSON.parse(await readFile(sourcePath, "utf8"));

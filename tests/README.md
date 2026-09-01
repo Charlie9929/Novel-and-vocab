@@ -16,7 +16,7 @@
 npm run quality:benchmark-reader
 ```
 
-该命令串行比较 CET4、CET6、IELTS、TOEFL，并检查高级词库总替换数是否达到 CET4、单书是否达到 CET4 的 90%。
+该命令串行比较 CET4、CET6、考研英语、IELTS、TOEFL；它只生成开发者对照数据，用户界面仍只显示每章实际替换单词数。
 
 来源链接：
 

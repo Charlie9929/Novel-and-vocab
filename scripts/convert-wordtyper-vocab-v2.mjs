@@ -16,8 +16,8 @@ const outputPath = resolve(args.get("--out") ?? "tests/private-input/quality/cet
 const reportPath = resolve(args.get("--report") ?? "tests/private-input/quality/cet6-v2-report.json");
 const vocabularyId = args.get("--id") ?? "cet6";
 const manifestPath = resolve(args.get("--manifest") ?? "src/data/vocabulary-manifest.json");
-if (!inputPath || !["cet4", "cet6", "ielts", "toefl"].includes(vocabularyId)) {
-  throw new Error("Usage: node scripts/convert-wordtyper-vocab-v2.mjs --id <cet4|cet6|ielts|toefl> --input <source.json> [--out proposal.json --report report.json]");
+if (!inputPath || !["cet4", "cet6", "kaoyan", "ielts", "toefl"].includes(vocabularyId)) {
+  throw new Error("Usage: node scripts/convert-wordtyper-vocab-v2.mjs --id <cet4|cet6|kaoyan|ielts|toefl> --input <source.json> [--out proposal.json --report report.json]");
 }
 
 const input = resolve(inputPath);

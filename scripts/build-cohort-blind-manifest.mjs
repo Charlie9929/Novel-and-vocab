@@ -18,7 +18,7 @@ const blindCorpus = resolve(args.get("--blind-corpus") ?? "tests/private-input/q
 const combinedCorpus = resolve(args.get("--combined-corpus") ?? "tests/private-input/quality/cohort-corpus");
 const outputPath = resolve(args.get("--out") ?? `tests/private-input/quality/manifest-${vocabularyId}-cohort-blind.json`);
 const blindPerBook = Number.parseInt(args.get("--blind-per-book") ?? "120", 10);
-if (!["cet6", "ielts", "toefl"].includes(vocabularyId)) throw new Error("--vocabulary must be cet6, ielts, or toefl");
+if (!["cet6", "kaoyan", "ielts", "toefl"].includes(vocabularyId)) throw new Error("--vocabulary must be cet6, kaoyan, ielts, or toefl");
 if (!args.get("--training-manifest") || !args.get("--training-diagnostic")) throw new Error("Pass --training-manifest and --training-diagnostic");
 if (!Number.isInteger(blindPerBook) || blindPerBook < 40) throw new Error("--blind-per-book must be >= 40");
 

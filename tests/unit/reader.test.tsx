@@ -4,7 +4,7 @@ import { Reader } from "../../src/components/Reader";
 import { DEFAULT_READER_PREFERENCES } from "../../src/core/readerPreferences";
 
 describe("reader learning stats", () => {
-  it("keeps density and chapter learning counts visible above the article", () => {
+  it("keeps only the chapter replacement count visible above the article", () => {
     const noop = () => undefined;
     const chapter = { id: "chapter-1", title: "第一章", index: 0, text: "A short chapter." };
     const markup = renderToStaticMarkup(
@@ -15,8 +15,6 @@ describe("reader learning stats", () => {
         progressPercent={25}
         densityLevel="high"
         replacementCount={3}
-        vocabCount={8}
-        reviewDueCount={2}
         readerPreferences={DEFAULT_READER_PREFERENCES}
         isImmersive={false}
         autoStatus="idle"
@@ -35,9 +33,11 @@ describe("reader learning stats", () => {
     );
 
     expect(markup).toContain('class="stats-strip density-high"');
-    expect(markup).toContain("高密度");
-    expect(markup).toContain("本章替换 3");
-    expect(markup).toContain("生词本 8");
-    expect(markup).toContain("待复习 2");
+    expect(markup).toContain("本章替换 3 个单词");
+    expect(markup).not.toContain("低密度");
+    expect(markup).not.toContain("中密度");
+    expect(markup).not.toContain("高密度");
+    expect(markup).not.toContain("生词本");
+    expect(markup).not.toContain("待复习");
   });
 });

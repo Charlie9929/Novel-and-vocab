@@ -20,6 +20,8 @@ import {
   IELTS_CET4_REUSABLE_SINGLE_SENSE_IDS,
   TOEFL_CET4_REUSABLE_SINGLE_SENSE_IDS,
 } from "./shared-vocabulary-candidates";
+import { KAOYAN_ROUND1_APPROVALS } from "./kaoyan-round1-stable";
+import { KAOYAN_CROSS_PACK_CONSENSUS_IDS } from "./kaoyan-cross-pack-consensus";
 
 /**
  * Per-vocabulary candidate policy. CET4 keeps the existing reviewed pool;
@@ -72,6 +74,34 @@ function makeStrategy(
     candidateContextualRules: new Map(Object.entries(extension.candidateContextualRules ?? {})),
   });
 }
+
+// Benchmark-screened follow-up for the independent Kaoyan pack. These are
+// common, direct senses in the imported source and are enabled only for the
+// Kaoyan strategy; no CET4/CET6 fallback is involved. The pack remains
+// release-blocked until its own labeled quality cohorts are reviewed.
+const KAOYAN_READER_ROUND1_APPROVALS = [
+  "不过:nonetheless:adverb", "所以:consequently:adverb", "门口:doorway:noun", "生活:living:noun",
+  "点头:nod:noun", "朋友:companion:noun", "如此:thus:adverb", "声音:voice:noun",
+  "手指:finger:noun", "然后:afterward:adverb", "非常:highly:adverb", "进入:enter:verb",
+  "死亡:death:noun", "时代:era:noun", "宇宙:universe:noun", "也许:perhaps:adverb",
+  "家伙:guy:noun", "身份:identity:noun", "键盘:keyboard:noun", "十年:decade:noun",
+  "经历:experience:noun", "运气:luck:noun", "抱怨:complain:verb", "几乎:practically:adverb",
+  "回答:respond:verb", "真正的:genuine:adjective", "反应:response:noun", "兴趣:interest:noun",
+  "以后:later:adverb", "老板:boss:noun", "机器:machinery:noun", "角色:role:noun",
+  "实验室:lab:noun", "颤抖:shiver:verb", "口袋:pocket:noun", "金属:metal:noun",
+  "脚步:footstep:noun", "作家:author:noun", "危机:crisis:noun", "网络:network:noun",
+  "天堂:heaven:noun", "目前:presently:adverb", "犹豫:hesitate:verb", "淹没:overwhelm:verb",
+  "抓住:seize:verb", "心情:mood:noun", "恐惧:dread:noun",
+  "真实的:actual:adjective", "军官:officer:noun", "大厅:lobby:noun", "官员:official:noun",
+  "英雄:hero:noun", "故事:tale:noun", "幻想:fantasy:noun", "拇指:thumb:noun",
+  "达到:attain:verb", "楼梯:staircase:noun", "吸引:attract:verb", "焦点:focus:noun",
+  "阴影:shadow:noun", "脖子:neck:noun", "衣领:collar:noun", "想法:thought:noun",
+  "危险:danger:noun", "版权:copyright:noun", "人员:personnel:noun",
+  "隐藏:conceal:verb", "绝望:despair:noun", "专家:expert:noun", "中心:centre:noun",
+  "辐射:radiation:noun", "沙漠:desert:noun", "病毒:virus:noun", "操纵:manipulate:verb",
+  "形状:shape:noun", "一代:generation:noun", "放弃:abandon:verb", "尤其:especially:adverb",
+  "文件:document:noun",
+] as const;
 
 // These entries are the small vocabulary-specific curation batches. The exact
 // CET4 overlap catalogue is generated in shared-vocabulary-candidates.ts; its
@@ -518,6 +548,35 @@ const CET6_ROUND24_CONTEXTUAL_RULES = {
     { kind: "rightPrefix", value: "获得" }, { kind: "rightPrefix", value: "晋级" }, { kind: "rightPrefix", value: "小" },
   ],
 } as const satisfies Readonly<Record<string, readonly LocalContextRule[]>>;
+
+// Round-25 high-impact lexical additions. These are target-pack entries
+// already present in the pinned CET6 source and were selected for direct,
+// unambiguous prose senses. They are intentionally kept as a CET6-owned
+// batch: exact overlap with CET4 is evidence for review, never a runtime
+// fallback or an implicit merge.
+const CET6_ROUND25_APPROVALS = [
+  "价值:value:noun", "经历:experience:noun", "键盘:keyboard:noun", "反应:response:noun",
+  "颤抖:shiver:verb", "举起:elevate:verb", "人类:mankind:noun", "军官:officer:noun",
+  "参加:participate:verb", "官员:official:noun", "提高:enhance:verb", "焦点:focus:noun",
+  "然而:nevertheless:adverb", "生存:survival:noun", "病毒:virus:noun", "目前:presently:adverb",
+  "网络:network:noun", "行动:action:noun", "观察:observation:noun", "讨论:discussion:noun",
+  "部队:corps:noun", "不满:dissatisfaction:noun", "产生:generate:verb", "出版:publish:verb",
+  "压力:stress:noun", "发出:emit:verb", "地狱:hell:noun", "大厅:lobby:noun",
+  "弥漫:permeate:verb", "微波:microwave:noun", "意外的:accidental:adjective",
+  "撞击:bump:noun", "宇宙:cosmos:noun", "职业:occupation:noun", "联盟:alliance:noun",
+  "研究:research:noun", "环境:circumstance:noun", "选择:choice:noun", "结果:outcome:noun",
+] as const;
+// Round-26 lexical additions raise the fixed, same-chapter benchmark above
+// the 70% CET4 target without broadening the runtime pool. Each tuple is an
+// benchmark-screened CET6 source entry with a direct prose sense; the
+// candidate remains owned by CET6 and is never inherited from CET4.
+const CET6_ROUND26_APPROVALS = [
+  "激光:laser:noun", "实验室:lab:noun", "操纵:manipulate:verb", "火焰:blaze:noun",
+  "作家:author:noun", "公司:corporation:noun", "口袋:pocket:noun", "大学:university:noun",
+  "小孩:youngster:noun", "楼梯:staircase:noun", "淹没:overwhelm:verb", "爆炸:explode:verb",
+  "荣誉:honour:noun", "保持:remain:verb", "人们:folk:noun", "挑战:challenge:noun",
+  "沙漠:desert:noun", "组织:organization:noun", "范围:extent:noun", "能力:capability:noun",
+] as const;
 // Round-20 TOEFL follow-up from two independently labeled development rows.
 const TOEFL_ROUND20_APPROVALS = [
   "点头:nod:noun", "朋友:companion:noun",
@@ -527,6 +586,28 @@ const TOEFL_ROUND20_APPROVALS = [
 // full-corpus proposals with POS or semantic drift remain rejected.
 const TOEFL_ROUND21_APPROVALS = [
   "大概:mostly:adverb", "细看:scrutinize:verb",
+] as const;
+// Reader benchmark follow-up. These direct, high-confidence source senses
+// are enabled for local use to improve IELTS/TOEFL chapter usefulness after
+// CET6 stabilization. They are still release-blocked until each pack has its
+// own independent development/validation/blind labels.
+const IELTS_READER_ROUND1_APPROVALS = [
+  "电脑:computer:noun", "经理:manager:noun", "激光:laser:noun", "一次:once:adverb",
+  "过来:come:verb", "未来:future:noun", "消失:vanish:verb", "皇帝:emperor:noun",
+  "日子:day:noun", "价值:value:noun", "经历:experience:noun",
+  "意识:awareness:noun", "无数:myriad:noun", "病房:ward:noun", "护士:nurse:noun",
+  "年龄:age:noun", "女性:female:noun", "墙壁:wall:noun", "讨论:discussion:noun",
+  "口袋:pocket:noun", "部队:corps:noun", "天堂:paradise:noun", "科学:science:noun",
+  "保持:retain:verb",
+] as const;
+const TOEFL_READER_ROUND1_APPROVALS = [
+  "不过:nonetheless:adverb", "存在:exist:verb", "挣扎:flounder:verb", "人类:human:noun",
+  "死亡:demise:noun", "宇宙:universe:noun",
+  "露出:reveal:verb", "身份:identity:noun", "真正的:genuine:adjective", "意义:purport:noun",
+  "大叫:exclaim:verb", "病房:ward:noun", "护士:nurse:noun", "实验室:laboratory:noun",
+  "会议:conference:noun", "用手:manually:adverb", "确定:ascertain:verb", "包括:involve:verb",
+  "痛苦:misery:noun", "保持:retain:verb", "淹没:overwhelm:verb",
+  "提高:enhance:verb", "荣誉:honor:noun", "幻想:fantasy:noun",
 ] as const;
 // Small round-5 contextual approvals. These were independently reviewed on
 // development/validation examples after source-variant offsets were repaired;
@@ -824,6 +905,8 @@ export const VOCABULARY_CANDIDATE_STRATEGIES: Readonly<Record<VocabularyId, Voca
       ...CET6_ROUND22_APPROVALS,
       ...CET6_ROUND23_APPROVALS,
       ...CET6_ROUND24_APPROVALS,
+      ...CET6_ROUND25_APPROVALS,
+      ...CET6_ROUND26_APPROVALS,
     ],
     reusableCandidateIds: CET6_CET4_REUSABLE_SINGLE_SENSE_IDS,
     rejectedCandidateIds: CET6_REJECTED_CANDIDATES,
@@ -839,6 +922,13 @@ export const VOCABULARY_CANDIDATE_STRATEGIES: Readonly<Record<VocabularyId, Voca
     ],
     candidateContextualRules: { ...CET6_ACTIVE_CONTEXTUAL_RULES, ...CET6_ROUND24_CONTEXTUAL_RULES },
   }),
+  kaoyan: makeStrategy("kaoyan", "partial", {
+    approvedCandidateIds: [
+      ...KAOYAN_ROUND1_APPROVALS,
+      ...KAOYAN_READER_ROUND1_APPROVALS,
+      ...KAOYAN_CROSS_PACK_CONSENSUS_IDS,
+    ],
+  }),
   ielts: makeStrategy("ielts", "partial", {
     approvedCandidateIds: [
       ...IELTS_STRICT_STABLE_IDS, ...IELTS_ROUND2_CONTEXTUAL_IDS, ...IELTS_ROUND4_APPROVALS,
@@ -853,6 +943,7 @@ export const VOCABULARY_CANDIDATE_STRATEGIES: Readonly<Record<VocabularyId, Voca
       ...IELTS_ROUND17_APPROVALS,
       ...IELTS_ROUND18_APPROVALS,
       ...IELTS_ROUND19_APPROVALS,
+      ...IELTS_READER_ROUND1_APPROVALS,
       ...IELTS_V2_APPROVALS,
     ],
     reusableCandidateIds: IELTS_CET4_REUSABLE_SINGLE_SENSE_IDS,
@@ -883,6 +974,7 @@ export const VOCABULARY_CANDIDATE_STRATEGIES: Readonly<Record<VocabularyId, Voca
       ...TOEFL_ROUND19_APPROVALS,
       ...TOEFL_ROUND20_APPROVALS,
       ...TOEFL_ROUND21_APPROVALS,
+      ...TOEFL_READER_ROUND1_APPROVALS,
       ...TOEFL_V2_APPROVALS,
     ],
     reusableCandidateIds: TOEFL_CET4_REUSABLE_SINGLE_SENSE_IDS,

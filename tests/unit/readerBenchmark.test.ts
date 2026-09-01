@@ -46,6 +46,7 @@ describe("bounded reader benchmark", () => {
     const datasets = [
       { vocabularyId: "cet4", counts: [100, 100] },
       { vocabularyId: "cet6", counts: [90, 110] },
+      { vocabularyId: "kaoyan", counts: [95, 100] },
       { vocabularyId: "ielts", counts: [100, 100] },
       { vocabularyId: "toefl", counts: [90, 90] },
     ];

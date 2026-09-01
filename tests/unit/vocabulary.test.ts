@@ -33,8 +33,8 @@ import {
 } from "../../src/data/shared-vocabulary-candidates";
 
 describe("vocabulary loading contract", () => {
-  it("exposes the four stable ids", () => {
-    expect(VOCABULARY_IDS).toEqual(["cet4", "cet6", "ielts", "toefl"]);
+  it("exposes the stable vocabulary ids", () => {
+    expect(VOCABULARY_IDS).toEqual(["cet4", "cet6", "kaoyan", "ielts", "toefl"]);
     expect(assertVocabularyId("cet4")).toBe("cet4");
     expect(() => assertVocabularyId("commercial-book" as never)).toThrow("Unknown vocabulary id");
   });
@@ -48,9 +48,9 @@ describe("vocabulary loading contract", () => {
     expect(new Set(ids).size).toBe(entries.length);
   });
 
-  it("loads the three source-audited packs with their normalized counts", async () => {
-    const expectedCounts = { cet6: 5294, ielts: 4740, toefl: 6836 } as const;
-    for (const id of ["cet6", "ielts", "toefl"] as const) {
+  it("loads the source-audited packs with their normalized counts", async () => {
+    const expectedCounts = { cet6: 5294, kaoyan: 4729, ielts: 4740, toefl: 6836 } as const;
+    for (const id of ["cet6", "kaoyan", "ielts", "toefl"] as const) {
       expect(isVocabularyReady(id)).toBe(true);
       expect((await loadVocabularyEntries(id, { allowUnavailable: true })).length).toBe(expectedCounts[id]);
       expect((await loadVocabularyEntries(id)).length).toBe(expectedCounts[id]);
@@ -77,9 +77,31 @@ describe("vocabulary loading contract", () => {
     }
   });
 
+  it("keeps the post-CET6 reader batches isolated by target pack", async () => {
+    for (const [vocabularyId, candidateId, text] of [
+      ["cet6", "激光:laser:noun", "实验室里有激光。"],
+      ["kaoyan", "方法:method:noun", "这个方法很实用。"],
+      ["ielts", "电脑:computer:noun", "电脑已经打开。"],
+      ["toefl", "不过:nonetheless:adverb", "不过，他还是继续。"],
+    ] as const) {
+      const entries = await loadVocabularyEntries(vocabularyId);
+      expect(isCandidateApprovedForVocabulary(vocabularyId, candidateId)).toBe(true);
+      const result = replaceChapterTerms(
+        { id: `${vocabularyId}-reader-batch`, title: "测试", index: 0, text },
+        [...entries],
+        new Set(),
+        1,
+        new Map(),
+        vocabularyId,
+      );
+      expect(result.replacements.map((item) => item.candidateId)).toContain(candidateId);
+    }
+  });
+
   it("keeps a measurable precision-gated coverage floor outside CET4", async () => {
     const expectedMinimums = {
       cet6: { approvedEntryCount: 250, nonCet4ApprovedEntryCount: 150 },
+      kaoyan: { approvedEntryCount: 120, nonCet4ApprovedEntryCount: 50 },
       ielts: { approvedEntryCount: 200, nonCet4ApprovedEntryCount: 100 },
       toefl: { approvedEntryCount: 250, nonCet4ApprovedEntryCount: 150 },
     } as const;
@@ -88,7 +110,8 @@ describe("vocabulary loading contract", () => {
       expect(stats.entryCount).toBeGreaterThan(stats.approvedEntryCount);
       expect(stats.approvedCandidateCount).toBe(stats.approvedEntryCount);
       expect(stats.approvedLemmaCount).toBeGreaterThan(0);
-      expect(stats.reusableCandidateCount).toBeGreaterThan(0);
+      if (vocabularyId === "kaoyan") expect(stats.reusableCandidateCount).toBe(0);
+      else expect(stats.reusableCandidateCount).toBeGreaterThan(0);
       expect(stats.entryCoverage).toBeGreaterThanOrEqual(minimum.approvedEntryCount / stats.entryCount);
       expect(stats.approvedEntryCount).toBeGreaterThanOrEqual(minimum.approvedEntryCount);
       expect(stats.nonCet4ApprovedEntryCount).toBeGreaterThanOrEqual(minimum.nonCet4ApprovedEntryCount);
@@ -108,6 +131,7 @@ describe("vocabulary loading contract", () => {
     expect(getVocabularySources("ielts").map((source) => source.sourceId)).toEqual(["wordtyper-ielts-core"]);
     expect(isVocabularyPublishable("cet4")).toBe(false);
     expect(isVocabularyPublishable("cet6")).toBe(false);
+    expect(isVocabularyPublishable("kaoyan")).toBe(false);
     expect(isVocabularyPublishable("ielts")).toBe(false);
     expect(isVocabularyPublishable("toefl")).toBe(false);
   });

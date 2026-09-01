@@ -20,7 +20,7 @@ const outputPath = resolve(args.get("--out") ?? `tests/private-input/quality/man
 const developmentPerBook = positiveInteger(args.get("--development-per-book") ?? "24", "--development-per-book");
 const validationPerBook = positiveInteger(args.get("--validation-per-book") ?? "24", "--validation-per-book");
 const blindPerBook = positiveInteger(args.get("--blind-per-book") ?? "80", "--blind-per-book");
-if (!["cet6", "ielts", "toefl"].includes(vocabularyId)) throw new Error("--vocabulary must be cet6, ielts, or toefl");
+if (!["cet6", "kaoyan", "ielts", "toefl"].includes(vocabularyId)) throw new Error("--vocabulary must be cet6, kaoyan, ielts, or toefl");
 
 const hash = (value) => createHash("sha256").update(value).digest("hex");
 const decode = (buffer) => {

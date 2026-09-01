@@ -11,8 +11,6 @@ describe("settings panel", () => {
         densityLevel="medium"
         readerPreferences={DEFAULT_READER_PREFERENCES}
         replacementCount={3}
-        vocabCount={2}
-        reviewDueCount={1}
         onRemoveBlacklist={() => undefined}
         onClearData={() => undefined}
         onSetDensity={() => undefined}

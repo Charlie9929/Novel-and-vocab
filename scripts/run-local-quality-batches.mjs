@@ -24,7 +24,7 @@ const resumePath = args.get("--resume") ? resolve(args.get("--resume")) : null;
 
 if (!existsSync(corpus)) throw new Error(`Private corpus is required: ${corpus}`);
 if (!existsSync(manifestPath)) throw new Error(`Annotated local manifest is required: ${manifestPath}`);
-if (!(new Set(["cet4", "cet6", "ielts", "toefl"])).has(vocabularyId)) throw new Error(`Unknown vocabulary id: ${vocabularyId}`);
+if (!(new Set(["cet4", "cet6", "kaoyan", "ielts", "toefl"])).has(vocabularyId)) throw new Error(`Unknown vocabulary id: ${vocabularyId}`);
 if (!Number.isInteger(batchSize) || batchSize <= 0) throw new Error("--batch-size must be a positive integer");
 await mkdir(dirname(outputPath), { recursive: true });
 

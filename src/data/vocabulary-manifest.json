@@ -38,6 +38,23 @@
       "importReport": "./import-reports/cet6-map.report.json"
     },
     {
+      "vocabularyId": "kaoyan",
+      "displayName": "考研英语",
+      "description": "WordTyper/ECDICT 派生的考研英语核心词库",
+      "entryFile": "./kaoyan-map.json",
+      "entryCount": 4729,
+      "rawEntryCount": 4729,
+      "status": "available",
+      "coverage": "full",
+      "coverageNote": "已导入 4,729 条满足阅读器词性、中文词块与音标契约的考研英语核心词条；不宣称官方考试授权。",
+      "releaseReady": false,
+      "ipaVariant": "american",
+      "sourceIds": [
+        "wordtyper-kaoyan"
+      ],
+      "importReport": "./import-reports/kaoyan-map.report.json"
+    },
+    {
       "vocabularyId": "ielts",
       "displayName": "雅思",
       "description": "WordTyper/ECDICT 派生的雅思核心词库",
@@ -121,6 +138,23 @@
       "originalFileUrl": "https://raw.githubusercontent.com/grhliu/wordtyper-vocabularies/b5790cafcad1795873410e984c834ef1ddac20ac/vocabularies/ielts_core.json",
       "originalFileSha256": "faf6705f919ae9a6cd6270bdcf6ce47bab314f8d91a74dae6b6d7bac0c76bf3c",
       "importReportPath": "./import-reports/ielts-map.report.json",
+      "status": "imported",
+      "notes": "使用 convert-wordtyper-vocab.mjs 转换；拒绝缺少音标或阅读器支持词性的源行。考试名称仅为检索标签，不代表官方授权。"
+    },
+    {
+      "sourceId": "wordtyper-kaoyan",
+      "vocabularyId": "kaoyan",
+      "name": "WordTyper vocabularies / ECDICT-derived postgraduate entrance exam English",
+      "url": "https://github.com/grhliu/wordtyper-vocabularies",
+      "version": "2026-07-27 / main commit b5790caf",
+      "licenseStatus": "verified",
+      "licenseName": "MIT",
+      "licenseUrl": "https://opensource.org/license/mit/",
+      "licenseSnapshotPath": "./license-snapshots/wordtyper-ecdict-mit.json",
+      "originalFilePath": null,
+      "originalFileUrl": "https://raw.githubusercontent.com/grhliu/wordtyper-vocabularies/b5790cafcad1795873410e984c834ef1ddac20ac/vocabularies/kaoyan.json",
+      "originalFileSha256": "9948bf0e914010d7e4a125e09224ebebb1a3a1e82f618cd39716070e7eca7c44",
+      "importReportPath": "./import-reports/kaoyan-map.report.json",
       "status": "imported",
       "notes": "使用 convert-wordtyper-vocab.mjs 转换；拒绝缺少音标或阅读器支持词性的源行。考试名称仅为检索标签，不代表官方授权。"
     },

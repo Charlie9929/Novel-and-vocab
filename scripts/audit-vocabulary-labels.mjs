@@ -14,7 +14,7 @@ for (let index = 2; index < process.argv.length; index += 2) args.set(process.ar
 const manifestPath = resolve(args.get("--manifest") ?? process.env.QUALITY_MANIFEST ?? "tests/private-input/quality/manifest.json");
 const requestedVocabulary = args.get("--vocabulary") ?? process.env.QUALITY_VOCABULARY_ID;
 const strict = process.argv.includes("--strict");
-const vocabularyIds = ["cet4", "cet6", "ielts", "toefl"];
+const vocabularyIds = ["cet4", "cet6", "kaoyan", "ielts", "toefl"];
 const requiredSplits = ["development", "validation", "blind"];
 const requiredCategories = ["multiple-meaning", "multiple-pos", "overlap", "person-name", "book-title", "fixed-phrase"];
 const minReviewed = 600;

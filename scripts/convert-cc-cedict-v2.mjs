@@ -15,8 +15,8 @@ const vocabularyId = args.get("--id") ?? "cet6";
 const targetPath = args.get("--target-source") ? resolve(args.get("--target-source")) : null;
 const outputPath = resolve(args.get("--out") ?? `tests/private-input/quality/${vocabularyId}-cc-cedict-v2-proposal.json`);
 const reportPath = resolve(args.get("--report") ?? `tests/private-input/quality/${vocabularyId}-cc-cedict-v2-report.json`);
-if (!inputPath || !targetPath || !["cet6", "ielts", "toefl"].includes(vocabularyId)) {
-  throw new Error("Usage: node scripts/convert-cc-cedict-v2.mjs --id <cet6|ielts|toefl> --input <cc-cedict.txt[.gz]> --target-source <wordtyper-source.json>");
+if (!inputPath || !targetPath || !["cet6", "kaoyan", "ielts", "toefl"].includes(vocabularyId)) {
+  throw new Error("Usage: node scripts/convert-cc-cedict-v2.mjs --id <cet6|kaoyan|ielts|toefl> --input <cc-cedict.txt[.gz]> --target-source <wordtyper-source.json>");
 }
 
 const input = await readFile(resolve(inputPath));

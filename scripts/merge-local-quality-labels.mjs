@@ -9,7 +9,7 @@ const manifestPath = resolve(args.get("--manifest") ?? "tests/private-input/qual
 const labelPaths = (args.get("--labels") ?? "").split(",").filter(Boolean).map((path) => resolve(path));
 const vocabularyId = args.get("--vocabulary") ?? "cet4";
 if (!labelPaths.length) throw new Error("Pass comma-separated --labels files");
-if (!["cet4", "cet6", "ielts", "toefl"].includes(vocabularyId)) throw new Error(`Unknown vocabulary id: ${vocabularyId}`);
+if (!["cet4", "cet6", "kaoyan", "ielts", "toefl"].includes(vocabularyId)) throw new Error(`Unknown vocabulary id: ${vocabularyId}`);
 const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
 const labels = (await Promise.all(labelPaths.map(async (path) => JSON.parse(await readFile(path, "utf8"))))).flatMap((input) => input.labels ?? input);
 const samplesById = new Map((manifest.samples ?? []).map((sample) => [sample.id, sample]));

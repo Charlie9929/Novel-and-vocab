@@ -20,7 +20,7 @@ const args = new Map();
 for (let index = 2; index < process.argv.length; index += 2) args.set(process.argv[index], process.argv[index + 1]);
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const vocabularyId = args.get("--vocabulary") ?? args.get("--id") ?? "cet6";
-if (!["cet6", "ielts", "toefl"].includes(vocabularyId)) throw new Error("--vocabulary must be cet6, ielts, or toefl");
+if (!["cet6", "kaoyan", "ielts", "toefl"].includes(vocabularyId)) throw new Error("--vocabulary must be cet6, kaoyan, ielts, or toefl");
 const proposalPath = resolve(args.get("--proposal") ?? `tests/private-input/quality/${vocabularyId}-v2-proposal.json`);
 const corpusDir = resolve(args.get("--corpus") ?? "/mnt/d/学习/阅读/小说");
 const manifestPath = resolve(args.get("--quality-manifest") ?? "tests/private-input/quality/manifest.json");

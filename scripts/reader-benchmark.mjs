@@ -7,7 +7,7 @@
  */
 
 export const READER_BENCHMARK_SCHEMA_VERSION = 1;
-export const READER_BENCHMARK_VOCABULARIES = ["cet4", "cet6", "ielts", "toefl"];
+export const READER_BENCHMARK_VOCABULARIES = ["cet4", "cet6", "kaoyan", "ielts", "toefl"];
 
 export function validateBenchmarkManifest(value) {
   if (!isRecord(value)) return ["benchmark manifest must be an object"];

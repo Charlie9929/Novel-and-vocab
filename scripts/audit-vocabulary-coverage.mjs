@@ -17,7 +17,7 @@ const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const requestedVocabulary = process.argv.includes("--vocabulary")
   ? process.argv[process.argv.indexOf("--vocabulary") + 1]
   : undefined;
-const vocabularyIds = ["cet4", "cet6", "ielts", "toefl"];
+const vocabularyIds = ["cet4", "cet6", "kaoyan", "ielts", "toefl"];
 if (requestedVocabulary && !vocabularyIds.includes(requestedVocabulary)) {
   throw new Error(`Unknown vocabulary id: ${requestedVocabulary}`);
 }

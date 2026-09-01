@@ -29,6 +29,12 @@ export const VOCABULARY_OPTIONS: readonly VocabularyOption[] = [
     detail: "覆盖进阶表达。",
   },
   {
+    id: "kaoyan",
+    label: "考研英语",
+    description: "全国硕士研究生考试英语（项目整理）",
+    detail: "偏向考研阅读、学术表达与高频词义。",
+  },
+  {
     id: "ielts",
     label: "雅思",
     description: "IELTS 项目整理词库",

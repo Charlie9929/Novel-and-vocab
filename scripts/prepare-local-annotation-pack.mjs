@@ -14,7 +14,7 @@ const vocabularyId = args.get("--vocabulary") ?? "cet4";
 const outputPath = resolve(args.get("--out") ?? `tests/private-input/quality/annotation-${vocabularyId}-${split ?? "all"}.json`);
 if (!split || !["development", "validation", "blind"].includes(split)) throw new Error("--split must be development, validation, or blind");
 if (!Number.isInteger(limit) || limit < 1) throw new Error("--limit must be a positive integer");
-if (!["cet4", "cet6", "ielts", "toefl"].includes(vocabularyId)) throw new Error(`Unknown vocabulary id: ${vocabularyId}`);
+if (!["cet4", "cet6", "kaoyan", "ielts", "toefl"].includes(vocabularyId)) throw new Error(`Unknown vocabulary id: ${vocabularyId}`);
 
 function decode(buffer) {
   let text = new TextDecoder("utf-8", { fatal: false }).decode(buffer);

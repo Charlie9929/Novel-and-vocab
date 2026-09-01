@@ -1,7 +1,7 @@
 export type PartOfSpeech = "noun" | "verb" | "adjective" | "adverb";
 
-/** The four vocabulary scopes supported by the first public release. */
-export type VocabularyId = "cet4" | "cet6" | "ielts" | "toefl";
+/** Stable vocabulary scopes persisted in the reader and learning database. */
+export type VocabularyId = "cet4" | "cet6" | "kaoyan" | "ielts" | "toefl";
 
 export const DEFAULT_VOCABULARY_ID: VocabularyId = "cet4";
 

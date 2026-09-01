@@ -9,7 +9,7 @@ import { replaceChapterTerms } from "../../src/core/replacer";
  * every pack is loadable and wired into the same reader contract without
  * pretending that a structural check is a semantic quality score.
  */
-describe("four-vocabulary pack contract", () => {
+describe("vocabulary pack contract", () => {
   it("loads every manifest pack with deterministic normalized entries", async () => {
     for (const vocabularyId of VOCABULARY_IDS) {
       const manifest = getVocabularyManifest(vocabularyId);

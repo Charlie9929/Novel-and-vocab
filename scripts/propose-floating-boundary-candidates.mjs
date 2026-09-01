@@ -13,7 +13,7 @@ const vocabularyId = args.get("--vocabulary");
 const manifestPath = resolve(args.get("--manifest") ?? "tests/private-input/quality/manifest.json");
 const diagnosticPath = resolve(args.get("--diagnostic") ?? "");
 const outputPath = resolve(args.get("--out") ?? `tests/private-input/quality/floating-boundary-${vocabularyId}.json`);
-if (!["cet6", "ielts", "toefl"].includes(vocabularyId)) throw new Error("--vocabulary must be cet6, ielts, or toefl");
+if (!["cet6", "kaoyan", "ielts", "toefl"].includes(vocabularyId)) throw new Error("--vocabulary must be cet6, kaoyan, ielts, or toefl");
 if (!args.get("--diagnostic")) throw new Error("Pass --diagnostic with a non-blind training detail report");
 
 const manifest = JSON.parse(await readFile(manifestPath, "utf8"));

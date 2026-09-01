@@ -123,9 +123,11 @@ describe("local database v6", () => {
     await addVocabulary(replacement, "book-a", "cet6");
     await addVocabulary({ ...replacement, id: "run-2", start: 10, sentence: "程序运行。" }, "book-b", "cet6");
     await addVocabulary(replacement, "book-a", "ielts");
+    await addVocabulary(replacement, "book-a", "kaoyan");
 
     expect(await db.vocabulary.where("vocabularyId").equals("cet6").count()).toBe(1);
     expect(await db.vocabulary.where("vocabularyId").equals("ielts").count()).toBe(1);
+    expect(await db.vocabulary.where("vocabularyId").equals("kaoyan").count()).toBe(1);
     expect(await db.vocabulary.where("[vocabularyId+lemma]").equals(["cet6", "run"]).first()).toMatchObject({
       vocabularyId: "cet6",
       lemma: "run",

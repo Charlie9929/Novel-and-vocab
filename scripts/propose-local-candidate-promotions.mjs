@@ -10,7 +10,7 @@ const args = new Map();
 for (let index = 2; index < process.argv.length; index += 2) args.set(process.argv[index], process.argv[index + 1]);
 const manifestPath = resolve(args.get("--manifest") ?? "tests/private-input/quality/manifest.json");
 const vocabularyId = args.get("--vocabulary") ?? "cet4";
-const vocabularyIds = new Set(["cet4", "cet6", "ielts", "toefl"]);
+const vocabularyIds = new Set(["cet4", "cet6", "kaoyan", "ielts", "toefl"]);
 if (!vocabularyIds.has(vocabularyId)) throw new Error(`Unknown vocabulary id: ${vocabularyId}`);
 const outputPath = resolve(args.get("--out") ?? (
   vocabularyId === "cet4"

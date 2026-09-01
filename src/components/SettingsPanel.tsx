@@ -20,8 +20,9 @@ interface SettingsPanelProps {
   readerPreferences: ReaderPreferences;
   autoStatus: AutoReadingStatus;
   replacementCount: number;
-  vocabCount: number;
-  reviewDueCount: number;
+  /** Deprecated compatibility fields; settings UI intentionally does not render them. */
+  vocabCount?: number;
+  reviewDueCount?: number;
   onRemoveBlacklist: (term: string) => void;
   onClearData: () => void;
   onSetDensity: (level: DensityLevel) => void;
@@ -44,8 +45,6 @@ export function SettingsPanel({
   readerPreferences,
   autoStatus,
   replacementCount,
-  vocabCount,
-  reviewDueCount,
   onRemoveBlacklist,
   onClearData,
   onSetDensity,
@@ -157,7 +156,7 @@ export function SettingsPanel({
 
           <div className="reader-preference-footer">
             <p className="muted">
-              本章替换 {replacementCount} · 生词 {vocabCount} · 待复习 {reviewDueCount}
+              本章替换 {replacementCount} 个单词
             </p>
             <button
               className="secondary-button"
@@ -237,7 +236,7 @@ export function SettingsPanel({
         {isClearAllConfirming ? (
           <div className="danger-confirmation" role="alert">
             <strong>确认清除全部学习数据？</strong>
-            <p>将删除四个词库的阅读进度、生词、黑名单、复习和纠错记录；阅读排版设置与本地文件权限会保留。</p>
+            <p>将删除所有词库的阅读进度、生词、黑名单、复习和纠错记录；阅读排版设置与本地文件权限会保留。</p>
             <div className="reader-auto-settings-actions">
               <button
                 className="danger-button"

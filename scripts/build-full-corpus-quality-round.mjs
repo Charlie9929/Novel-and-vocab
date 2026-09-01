@@ -23,7 +23,7 @@ const developmentPerGroup = positiveInteger(args.get("--development-per-group") 
 const validationPerGroup = positiveInteger(args.get("--validation-per-group") ?? "24", "--validation-per-group");
 const blindPerGroup = positiveInteger(args.get("--blind-per-group") ?? "40", "--blind-per-group");
 const scanCharsPerStory = positiveInteger(args.get("--scan-chars-per-story") ?? "180000", "--scan-chars-per-story");
-if (!["cet6", "ielts", "toefl"].includes(vocabularyId)) throw new Error("--vocabulary must be cet6, ielts, or toefl");
+if (!["cet6", "kaoyan", "ielts", "toefl"].includes(vocabularyId)) throw new Error("--vocabulary must be cet6, kaoyan, ielts, or toefl");
 
 const base = JSON.parse(await readFile(baseManifestPath, "utf8"));
 const priorManifests = [base];

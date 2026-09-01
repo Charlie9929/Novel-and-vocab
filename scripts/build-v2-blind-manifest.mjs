@@ -24,7 +24,7 @@ const samplesPerBook = positiveInteger(args.get("--samples-per-book") ?? "80", "
 const bookStart = nonNegativeInteger(args.get("--book-start") ?? "0", "--book-start");
 const maxBooks = args.has("--max-books") ? positiveInteger(args.get("--max-books"), "--max-books") : null;
 
-if (!["cet6", "ielts", "toefl"].includes(vocabularyId)) throw new Error("--vocabulary must be cet6, ielts, or toefl");
+if (!["cet6", "kaoyan", "ielts", "toefl"].includes(vocabularyId)) throw new Error("--vocabulary must be cet6, kaoyan, ielts, or toefl");
 if (!args.get("--proposal") || !args.get("--review")) throw new Error("Pass --proposal and --review");
 if (benchmarkPath && qualityManifestPath) throw new Error("Use only one of --benchmark or --quality-manifest");
 if (samplesPerBook < 40) throw new Error("--samples-per-book must be at least 40");

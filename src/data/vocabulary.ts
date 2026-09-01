@@ -10,7 +10,7 @@ import {
 /** Stable identifiers persisted by the app and used to scope learning data. */
 export type { VocabularyId } from "../core/types";
 
-export const VOCABULARY_IDS: readonly VocabularyId[] = ["cet4", "cet6", "ielts", "toefl"];
+export const VOCABULARY_IDS: readonly VocabularyId[] = ["cet4", "cet6", "kaoyan", "ielts", "toefl"];
 
 export type VocabularyAvailability = "available" | "partial" | "not-imported" | "blocked";
 export type IpaVariant = "american" | "british";
@@ -112,6 +112,7 @@ type RawMapLoader = () => Promise<RawMapModule>;
  * small and avoiding a several-megabyte first request. */
 const rawMapLoaders: Partial<Record<Exclude<VocabularyId, "cet4">, RawMapLoader>> = {
   cet6: () => import("./cet6-map.json"),
+  kaoyan: () => import("./kaoyan-map.json"),
   ielts: () => import("./ielts-map.json"),
   toefl: () => import("./toefl-map.json"),
 };
@@ -125,7 +126,7 @@ const datasetById = new Map(manifest.datasets.map((dataset) => [dataset.vocabula
 const sourceById = new Map(manifest.sources.map((source) => [source.sourceId, source]));
 const entryCache = new Map<VocabularyId, readonly VocabularyEntry[]>();
 
-/** Return true for one of the four persisted vocabulary identifiers. */
+/** Return true for one of the persisted vocabulary identifiers. */
 export function isVocabularyId(value: unknown): value is VocabularyId {
   return typeof value === "string" && (VOCABULARY_IDS as readonly string[]).includes(value);
 }

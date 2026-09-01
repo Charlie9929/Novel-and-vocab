@@ -1,6 +1,6 @@
 # 沉浸式小说背单词
 
-移动优先的 React + Vite + TypeScript PWA。应用只在浏览器本地读取 `.txt` 或可复制文字的 `.pdf` 小说文件，把部分中文名词、动词、形容词替换成用户选择的 CET4、CET6、雅思或托福英文词条，支持点击释义、音标、生词本、黑名单、阅读进度和章节填空题。
+移动优先的 React + Vite + TypeScript PWA。应用只在浏览器本地读取 `.txt` 或可复制文字的 `.pdf` 小说文件，把部分中文名词、动词、形容词替换成用户选择的 CET4、CET6、考研英语、雅思或托福英文词条，支持点击释义、音标、生词本、黑名单、阅读进度和章节填空题。
 
 核心优势：
 
@@ -13,8 +13,8 @@
 - 导入时自动恢复 TXT 单换行段落，并根据 PDF 文字坐标合并物理换行；低置信或复杂版式会保守回退，扫描版 PDF 仍需 OCR。
 - 阅读页支持点击正文切换沉浸模式；字号、行距和左右边距统一在“设置”页调节，偏好保存在当前浏览器本地。
 - 小说全文不上传服务器，也不会在正常阅读时调用 AI API、云端翻译或分析服务。
-- 首次使用可选择 CET4、CET6、IELTS 或 TOEFL；词库和学习数据按 `VocabularyId` 隔离。
-- 使用本地、带来源审计的词库映射；CET6/IELTS/TOEFL 词库在选择后懒加载，生产入口会过滤反向释义碎片和高风险词项。
+- 首次使用可选择 CET4、CET6、考研英语、IELTS 或 TOEFL；词库和学习数据按 `VocabularyId` 隔离。
+- 使用本地、带来源审计的词库映射；CET6/考研英语/IELTS/TOEFL 词库在选择后懒加载，生产入口会过滤反向释义碎片和高风险词项。
 - 断词同时保留原生分词与本地扫描候选；冲突按本地候选网格、边界证据与明确语境规则决策。多义、多词性且没有可靠证据的项默认保留中文。
 - 默认使用沉浸模式：先建立本章全部高置信安全词的最大池，再按低/中/高分别显示约 `1/3`、`2/3`、`100%`；三档始终使用同一个安全池，不会为了增加数量强行加入低置信候选。
 - 点击英文单词显示中文释义、IPA 音标、原中文词和原句；CET4 保留 3,807 条源记录（规范化后 3,806 条唯一映射），显示候选均要求 IPA。
@@ -43,7 +43,7 @@ http://localhost:5173
 
 如果 5173 被占用，Vite 会自动换端口，请看终端输出的实际地址。
 
-第一阶段的本地验收步骤见 [`LOCALHOST-QA.md`](LOCALHOST-QA.md)，包括四词库切换、学习数据隔离、清理操作、响应式宽度和 PWA 检查。发布前仍应先完成 localhost 验收；当前 `main` 已连接 Cloudflare Pages，推送后会触发自动构建。
+第一阶段的本地验收步骤见 [`LOCALHOST-QA.md`](LOCALHOST-QA.md)，包括词库切换、学习数据隔离、清理操作、响应式宽度和 PWA 检查。发布前仍应先完成 localhost 验收；当前 `main` 已连接 Cloudflare Pages，推送后会触发自动构建。
 
 如果切换词库时仍看到旧的 `ConstraintError`，先用 `Ctrl+Shift+R` 强制刷新；这是浏览器还在使用旧前端脚本，不需要先清除本地学习数据。
 
@@ -55,7 +55,7 @@ npm run quality:render-annotation -- \
   --out tests/private-input/quality/review-cet6-development.html
 ```
 
-当前已生成 9 个检查页，都在 `tests/private-input/quality/`：每个词库各有 `development`、`validation`、`blind` 三页，例如 `review-cet6-development.html`、`review-ielts-validation.html`、`review-toefl-blind.html`。这是开发/内容审核人员的内部质检工具，不是普通用户的日常功能；直接双击 HTML 文件即可打开。页面里的黄色中文词要逐条判断“要不要换、换成哪个英文词，还是保留中文”，不需要自己填写英文。
+当前已生成的检查页都在 `tests/private-input/quality/`，供 CET6、雅思和托福的独立审核使用；考研英语已接入同一套离线审核流程，审核样本准备好后可按同样方式生成。它们是开发/内容审核人员的内部工具，不是普通用户的日常功能；普通用户只需关注阅读页显示的“本章替换 N 个单词”。
 
 ## 构建
 
@@ -85,6 +85,7 @@ npm run quality:repartition -- \
 NOVEL_CORPUS_DIR=/mnt/d/学习/阅读/小说 npm run quality:novels
 # 为其他词库生成各自的上下文检查包（不会覆盖 CET4 的检查结果）：
 node scripts/prepare-local-annotation-pack.mjs --vocabulary cet6 --split development --limit 240
+node scripts/prepare-local-annotation-pack.mjs --vocabulary kaoyan --split development --limit 240
 node scripts/prepare-local-annotation-pack.mjs --vocabulary ielts --split validation --limit 192
 node scripts/prepare-local-annotation-pack.mjs --vocabulary toefl --split blind --limit 240
 # 每条 packet 同时带有 targetOffsetStart/targetOffsetEnd，标注时按该相对 span 判断，避免同词重复出现时选错位置。
@@ -103,7 +104,7 @@ NOVEL_CORPUS_DIR=/mnt/d/学习/阅读/小说 npm run quality:novels:batches -- \
   --batch-size 4 --resume tests/private-input/quality/local-quality-cet4-batches.json
 # 与当前 Git 基线作同一盲测候选选择对照（不导出正文）：
 NOVEL_CORPUS_DIR=/mnt/d/学习/阅读/小说 npm run quality:baseline
-# 四库公开数据契约与来源门禁：
+# 五库公开数据契约与来源门禁：
 npm run quality:pack-contract
 npm run quality:audit-vocabulary
 npm run quality:audit-labels
@@ -113,7 +114,9 @@ npm run quality:audit-labels
 
 `QUALITY_SKIP_EXHAUSTIVE=1 npm run quality:novels` 只用于快速诊断标注指标，会跳过完整盲书逐章路径并改为报告-only；可配合 `QUALITY_DIAGNOSTIC_SPLITS=development,validation` 只检查允许调规则的分片。它不能作为发布门禁。只有显式设置 `QUALITY_USE_BASELINE_LABELS=1` 才会复用 CET4 标签做对照诊断，该结果不能作为其他词库的独立证据。正式门禁不能设置这些变量。
 
-质量门禁要求开发、验证与盲测按内容近似重复组件的 `bookGroupId` 隔离；四个词库分别以端到端替换精确率（边界、候选词和词性同时正确）达到 `99.5%`、覆盖率达到 `55%` 为发布条件，并同时报告实际替换数、覆盖率和 Wilson 95% 置信区间。缺少私有标注清单或未达到门槛会明确失败，不会伪造绿灯。
+质量门禁要求开发、验证与盲测按内容近似重复组件的 `bookGroupId` 隔离；五个词库分别以端到端替换精确率（边界、候选词和词性同时正确）达到 `99.5%`、覆盖率达到 `55%` 为内部发布条件。普通用户界面不展示这些内部指标，只展示每章实际替换单词数；缺少私有标注清单或未达到门槛会明确失败，不会伪造绿灯。
+
+固定阅读基准（5 种题材、每本 3 章、每章 4,500 字符、中密度）最近一次本地对照为：CET4 668、CET6 470、考研英语 501、IELTS 453、TOEFL 391 个替换。该数字仅用于研发调优，不作为考试官方覆盖率声明。
 
 ## 项目结构
 
@@ -131,9 +134,10 @@ src/
     sm2.ts          生词复习调度
     types.ts        核心类型
   data/
-    vocabulary.ts          四库加载契约与来源清单
+    vocabulary.ts          五库加载契约与来源清单
     cet4-map.json          CET4 兼容词表
     cet6-map.json          CET6 懒加载词表
+    kaoyan-map.json        考研英语懒加载词表
     ielts-map.json         IELTS 懒加载词表
     toefl-map.json         TOEFL 懒加载词表
   App.tsx           应用状态编排

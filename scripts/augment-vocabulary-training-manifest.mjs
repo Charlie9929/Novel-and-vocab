@@ -9,7 +9,7 @@ const vocabularyId = args.get("--vocabulary");
 const targetPath = resolve(args.get("--target") ?? "");
 const sourcePath = resolve(args.get("--source") ?? "tests/private-input/quality/manifest.json");
 const outputPath = resolve(args.get("--out") ?? "");
-if (!["cet6", "ielts", "toefl"].includes(vocabularyId)) throw new Error("--vocabulary must be cet6, ielts, or toefl");
+if (!["cet6", "kaoyan", "ielts", "toefl"].includes(vocabularyId)) throw new Error("--vocabulary must be cet6, kaoyan, ielts, or toefl");
 if (!args.get("--target") || !args.get("--out")) throw new Error("Pass --target and --out");
 
 const target = JSON.parse(await readFile(targetPath, "utf8"));

@@ -22,7 +22,7 @@ const report = args.get("--report") ?? process.env.QUALITY_REPORT_PATH;
 
 if (!existsSync(corpus)) throw new Error(`Private corpus is required: ${corpus}`);
 if (!existsSync(manifest)) throw new Error(`Annotated local manifest is required: ${manifest}`);
-if (!(new Set(["cet4", "cet6", "ielts", "toefl"])).has(vocabularyId)) throw new Error(`Unknown vocabulary id: ${vocabularyId}`);
+if (!(new Set(["cet4", "cet6", "kaoyan", "ielts", "toefl"])).has(vocabularyId)) throw new Error(`Unknown vocabulary id: ${vocabularyId}`);
 if (!Number.isInteger(chars) || chars < 1000 || chars > 200000) {
   throw new Error("--chars must be an integer between 1000 and 200000");
 }

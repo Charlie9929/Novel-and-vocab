@@ -23,7 +23,7 @@ const manifest = await readJson(manifestPath);
 const errors = [];
 const warnings = [];
 const blockingWarnings = [];
-const vocabularyIds = ["cet4", "cet6", "ielts", "toefl"];
+const vocabularyIds = ["cet4", "cet6", "kaoyan", "ielts", "toefl"];
 const partOfSpeech = new Set(["noun", "verb", "adjective", "adverb"]);
 
 function warn(message, { blocking = true } = {}) {

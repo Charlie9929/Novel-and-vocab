@@ -8,6 +8,7 @@ import { SettingsPanel } from "./components/SettingsPanel";
 import { VocabList } from "./components/VocabList";
 import { VocabularyPicker } from "./components/VocabularyPicker";
 import { WordSheet } from "./components/WordSheet";
+import { LEGACY_DEMO_FINGERPRINT } from "./core/demoNovel";
 import {
   addBlacklistTerm,
   addVocabulary,
@@ -23,6 +24,7 @@ import {
   getSetting,
   putSetting,
   removeBlacklistTerm,
+  removeBookData,
   saveFileHandle,
   saveBookRecord,
   saveQuizHistory,
@@ -211,6 +213,9 @@ export default function App() {
 
   async function initializeApp(): Promise<void> {
     try {
+      // Remove the retired built-in Journey-to-the-West demo from existing
+      // localhost shelves before loading the current book list.
+      await removeBookData(LEGACY_DEMO_FINGERPRINT);
       const savedVocabulary = await getSetting(VOCABULARY_SETTING_KEY);
       let nextVocabularyId: VocabularyId | null = isVocabularyId(savedVocabulary) ? savedVocabulary : null;
       // A pre-v6 user has learning records but no vocabulary setting. The v6
@@ -703,8 +708,6 @@ export default function App() {
           }}
           densityLevel={densityLevel}
           replacementCount={replacedChapter.replacements.length}
-          vocabCount={vocab.length}
-          reviewDueCount={vocab.filter((word) => word.sm2.dueAt <= Date.now()).length}
           onSelectWord={(replacement) => {
             setIsImmersive(false);
             setSelectedWord(replacement);
@@ -748,8 +751,6 @@ export default function App() {
             readerPreferences={readerPreferences}
             autoStatus={autoStatus}
             replacementCount={replacedChapter.replacements.length}
-            vocabCount={vocab.length}
-            reviewDueCount={vocab.filter((word) => word.sm2.dueAt <= Date.now()).length}
             onRemoveBlacklist={handleRemoveBlacklist}
             onClearData={() => void handleClearData()}
             onSetDensity={(level) => void handleSetDensity(level)}

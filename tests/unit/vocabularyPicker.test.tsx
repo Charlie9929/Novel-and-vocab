@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { VOCABULARY_OPTIONS, VocabularyPicker } from "../../src/components/VocabularyPicker";
 
 describe("vocabulary picker", () => {
-  it("shows all four vocabulary choices on first use", () => {
+  it("shows all vocabulary choices on first use", () => {
     const markup = renderToStaticMarkup(
       <VocabularyPicker currentVocabularyId={null} onChange={() => undefined} onCancel={() => undefined} />,
     );
@@ -14,7 +14,7 @@ describe("vocabulary picker", () => {
       expect(markup).toContain(option.label);
       expect(markup).toContain(`data-vocabulary-id=\"${option.id}\"`);
     }
-    expect(markup.match(/role="radio"/g)).toHaveLength(4);
+    expect(markup.match(/role="radio"/g)).toHaveLength(5);
     expect(markup).toContain("确认选择");
     expect(markup).toContain("稍后选择");
     expect(markup).not.toContain("不代表官方考试授权");

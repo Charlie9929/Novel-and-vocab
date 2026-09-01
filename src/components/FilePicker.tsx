@@ -135,7 +135,7 @@ export function FilePicker({ shelf, onLoaded, onResumeMissing }: FilePickerProps
       )}
 
       <button className="secondary-button" type="button" onClick={() => void loadDemo()} disabled={isReading}>
-        体验示例
+        打开《潮汐邮局》
       </button>
 
       {isReading && readProgress ? <ReadProgress progress={readProgress} /> : null}

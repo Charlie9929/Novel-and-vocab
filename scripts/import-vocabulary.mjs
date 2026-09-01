@@ -15,8 +15,8 @@ const inputPath = args.get("--input");
 const outputPath = args.get("--out");
 const reportPath = args.get("--report");
 const vocabularyId = args.get("--id");
-if (!inputPath || !outputPath || !["cet4", "cet6", "ielts", "toefl"].includes(vocabularyId)) {
-  throw new Error("Usage: node scripts/import-vocabulary.mjs --id <cet4|cet6|ielts|toefl> --input <local.json> --out <target.json> [--report <report.json>]");
+if (!inputPath || !outputPath || !["cet4", "cet6", "ielts", "toefl", "kaoyan"].includes(vocabularyId)) {
+  throw new Error("Usage: node scripts/import-vocabulary.mjs --id <cet4|cet6|ielts|toefl|kaoyan> --input <local.json> --out <target.json> [--report <report.json>]");
 }
 
 const source = JSON.parse(await readFile(resolve(inputPath), "utf8"));
@@ -78,4 +78,3 @@ function validate(value, index) {
   if (value.contextRules !== undefined && !Array.isArray(value.contextRules)) throw new Error(`Entry ${index}.contextRules is invalid.`);
   if (value.contextHints !== undefined && (!Array.isArray(value.contextHints) || value.contextHints.some((hint) => typeof hint !== "string" || hint.trim() === ""))) throw new Error(`Entry ${index}.contextHints is invalid.`);
 }
-

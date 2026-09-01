@@ -7,6 +7,7 @@
  * support in at least two books; a single-sense source term needs one
  * independently reviewed development example.
  */
+import { existsSync } from "node:fs";
 import { readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
@@ -18,7 +19,7 @@ const outputPath = resolve(args.get("--out") ?? `tests/private-input/quality/str
 const multiSenseBookSupport = Number.parseInt(args.get("--multi-sense-books") ?? "2", 10);
 const batchSize = Number.parseInt(args.get("--limit") ?? "20", 10);
 const batchOffset = Number.parseInt(args.get("--offset") ?? "0", 10);
-if (!["cet6", "ielts", "toefl"].includes(vocabularyId)) throw new Error("--vocabulary must be cet6, ielts, or toefl");
+if (!["cet6", "kaoyan", "ielts", "toefl"].includes(vocabularyId)) throw new Error("--vocabulary must be cet6, kaoyan, ielts, or toefl");
 if (!Number.isInteger(multiSenseBookSupport) || multiSenseBookSupport < 1) throw new Error("--multi-sense-books must be a positive integer");
 if (!Number.isInteger(batchSize) || batchSize < 1 || batchSize > 20) throw new Error("--limit must be an integer between 1 and 20");
 if (!Number.isInteger(batchOffset) || batchOffset < 0) throw new Error("--offset must be a non-negative integer");
@@ -61,7 +62,7 @@ const sharedSource = await readFile(new URL("../src/data/shared-vocabulary-candi
 const reusableCandidateIds = new Set();
 addQuotedCandidateIds(sharedSource, new RegExp(`(?:^|\\n)export const ${vocabularyPrefix}_CET4_[A-Z0-9_]+\\s*=`, "g"), reusableCandidateIds);
 for (const sourcePath of curatedSources) {
-  addQuotedCandidateIds(await readFile(sourcePath, "utf8"));
+  if (existsSync(sourcePath)) addQuotedCandidateIds(await readFile(sourcePath, "utf8"));
 }
 const candidatesByTerm = new Map();
 for (const entry of entries) {

@@ -17,7 +17,7 @@ const reviewPath = resolve(args.get("--review") ?? "");
 const corpusDir = resolve(args.get("--corpus") ?? "tests/private-input/quality/public-domain-corpus");
 const reportPath = resolve(args.get("--report") ?? `tests/private-input/quality/${vocabularyId}-v2-blind-report.json`);
 const blockedCurrentCandidateIds = new Set(String(args.get("--block-current-candidates") ?? "").split(",").map((value) => value.trim()).filter(Boolean));
-if (!["cet6", "ielts", "toefl"].includes(vocabularyId)) throw new Error("--vocabulary must be cet6, ielts, or toefl");
+if (!["cet6", "kaoyan", "ielts", "toefl"].includes(vocabularyId)) throw new Error("--vocabulary must be cet6, kaoyan, ielts, or toefl");
 for (const name of ["--manifest", "--labels", "--proposal", "--review"]) {
   if (!args.get(name)) throw new Error(`Pass ${name}`);
 }

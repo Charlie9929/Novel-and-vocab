@@ -703,6 +703,25 @@ export async function saveBookRecord(record: BookRegistryRecord): Promise<void> 
   await db.bookRegistry.put(record);
 }
 
+/** Remove one local book from the shelf and its book-scoped runtime records. */
+export async function removeBookData(fileFingerprint: string): Promise<void> {
+  await db.transaction("rw", [
+    db.readingProgress,
+    db.replacementRecords,
+    db.quizHistory,
+    db.fileHandles,
+    db.bookRegistry,
+  ], async () => {
+    await Promise.all([
+      db.readingProgress.where("fileFingerprint").equals(fileFingerprint).delete(),
+      db.replacementRecords.where("fileFingerprint").equals(fileFingerprint).delete(),
+      db.quizHistory.where("fileFingerprint").equals(fileFingerprint).delete(),
+      db.fileHandles.delete(fileFingerprint),
+      db.bookRegistry.delete(fileFingerprint),
+    ]);
+  });
+}
+
 export async function getBookRecord(id: string): Promise<BookRegistryRecord | undefined> {
   return db.bookRegistry.get(id);
 }

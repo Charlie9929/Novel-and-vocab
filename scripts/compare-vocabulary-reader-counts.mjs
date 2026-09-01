@@ -3,7 +3,7 @@
  * Compare reader replacement counts on the exact same novel chapters.
  *
  * This is a small, diagnostic-only command. It reads one bounded slice of
- * each selected chapter and evaluates the four packs serially, so it is safe
+ * each selected chapter and evaluates the packs serially, so it is safe
  * to run on a laptop without starting a corpus-wide quality job.
  */
 import { build } from "esbuild";

@@ -13,8 +13,8 @@ for (let index = 2; index < process.argv.length; index += 2) args.set(process.ar
 const inputPath = args.get("--input");
 const outputPath = args.get("--out");
 const vocabularyId = args.get("--id");
-if (!inputPath || !outputPath || !["cet4", "cet6", "ielts", "toefl"].includes(vocabularyId)) {
-  throw new Error("Usage: node scripts/convert-wordtyper-vocab.mjs --id <cet4|cet6|ielts|toefl> --input <source.json> --out <target.json>");
+if (!inputPath || !outputPath || !["cet4", "cet6", "ielts", "toefl", "kaoyan"].includes(vocabularyId)) {
+  throw new Error("Usage: node scripts/convert-wordtyper-vocab.mjs --id <cet4|cet6|ielts|toefl|kaoyan> --input <source.json> --out <target.json>");
 }
 
 const source = JSON.parse(await readFile(resolve(inputPath), "utf8"));

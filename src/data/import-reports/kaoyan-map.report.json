@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "dataset": "kaoyan",
+  "status": "available",
+  "rawEntryCount": 4729,
+  "normalizedEntryCount": 4729,
+  "duplicateLexicalTupleCount": 0,
+  "sourcePolicy": "local input only; source URL, license snapshot and original hash must be recorded separately",
+  "generatedBy": "scripts/import-vocabulary.mjs",
+  "assetSha256": "45c66813419b73d01e41f7a67b3b433efd8b046352d362dcf1a8f609f6524d58"
+}

@@ -119,8 +119,8 @@ function buildRequest() {
       chapter,
     ];
     return {
-      system: `你是长篇小说场景写作者。根据设定和章节任务，写出一版可审阅的场景草稿。只输出小说正文 Markdown，不要解释过程，不要添加“以下是草稿”等套话。保持人物动机、视角、时序和已确认事实一致；场景必须有具体行动、阻力、选择和结果。不要擅自改写项目设定。`,
-      user: `请把指定章节扩写成场景草稿。${shared}${readContext(files)}`,
+      system: `你是长篇小说场景写作者。根据设定和章节任务，写出一版可审阅的场景草稿。只输出小说正文 Markdown，不要解释过程，不要添加“以下是草稿”等套话。保持人物动机、视角、时序和已确认事实一致；场景必须有具体行动、阻力、选择和结果。不要擅自改写项目设定。本次只写约 700—900 个汉字，必须完整写到本章结尾，最后一句不能停在半句或省略号。正文还会被 CET4、CET6、考研英语、IELTS、TOEFL 五套中文词库分别标注：自然地使用项目配置和本章任务中列出的共同词、库专有词，让五库切换后有真实差异；专有词必须穿插在行动、对话、物件和心理过程中，不能单独写成词汇展示段。所有词都要边界干净、语义准确；绝不为凑替换数硬塞词、重复词或改变原意，也不要拆开人名、专名和固定短语。`,
+      user: `请把指定章节压缩成一篇完整的场景草稿，宁可少写背景，也要完成行动和结尾。${shared}${readContext(files)}`,
       responseFormat: undefined,
     };
   }
@@ -128,7 +128,7 @@ function buildRequest() {
   if (stage === "review") {
     const draft = resolveInput(args.draft, "draft");
     return {
-      system: `你是长篇小说连续性审核编辑。不要重写正文，只输出 Markdown 审核报告。按严重程度列出问题，并给出可执行的修改建议。至少检查：人物动机与状态、世界观规则、时间线、伏笔回收、章节任务、重复表达、节奏和事实冲突。没有问题的项目也要明确写“未发现”。`,
+      system: `你是长篇小说连续性审核编辑。不要重写正文，只输出一份完整、简洁的 Markdown 审核报告，控制在 700—1000 个汉字，最后必须有明确结论。按严重程度列出问题，并给出可执行的修改建议。至少检查：人物动机与状态、世界观规则、时间线、伏笔回收、章节任务、重复表达、节奏和事实冲突。没有问题的项目也要明确写“未发现”。`,
       user: `请审核指定草稿。${shared}${contextBlock("待审核草稿", readText(draft, 30000))}`,
       responseFormat: undefined,
     };
@@ -137,8 +137,8 @@ function buildRequest() {
   if (stage === "memory") {
     const draft = resolveInput(args.draft, "draft");
     return {
-      system: `你是小说项目的记忆维护器。只输出合法 JSON，不要 Markdown 代码围栏，不要额外文字。JSON 顶层必须包含四个数组：facts、characterStates、timelineEvents、openThreads、closedThreads。每个元素用简洁中文描述，并尽量带上来源或章节标识。只记录草稿中有依据的内容，不要猜测。`,
-      user: `请从指定草稿中提取可长期复用的连续性记忆。${shared}${contextBlock("待提取草稿", readText(draft, 30000))}`,
+      system: `你是小说项目的记忆维护器。只输出合法 JSON，不要 Markdown 代码围栏，不要额外文字。JSON 顶层必须包含五个数组：facts、characterStates、timelineEvents、openThreads、closedThreads。每个元素用简洁中文描述，并尽量带上来源或章节标识。只记录草稿中有依据的内容，不要猜测。`,
+      user: `请从指定草稿中提取最重要、可长期复用的连续性记忆。每个数组最多列 3 项；没有依据的类别就返回空数组。${shared}${contextBlock("待提取草稿", readText(draft, 30000))}`,
       responseFormat: { type: "json_object" },
     };
   }
@@ -180,7 +180,11 @@ if (!existsSync(projectDir) || !statSync(projectDir).isDirectory()) {
 }
 
 const request = buildRequest();
-const result = await chatCompletion(request, {
+const messages = [
+  { role: "system", content: request.system },
+  { role: "user", content: request.user },
+];
+const result = await chatCompletion(messages, {
   thinking: args.thinking === "enabled" ? "enabled" : "disabled",
   maxTokens: Number(args.maxTokens ?? (stage === "scene" ? 6000 : 3000)),
   temperature: Number(args.temperature ?? (stage === "review" || stage === "memory" ? 0.2 : 0.75)),
