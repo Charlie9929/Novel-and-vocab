@@ -3,6 +3,12 @@ import type { LocalNovel } from "./types";
 /** Fingerprint of the retired built-in Journey-to-the-West demo. */
 export const LEGACY_DEMO_FINGERPRINT = "demo-builtin-v1";
 
+/** Built-in samples that should not remain as stale shelf entries after an update. */
+export const RETIRED_DEMO_FINGERPRINTS = [
+  LEGACY_DEMO_FINGERPRINT,
+  "demo-builtin-v2-tide-post-office",
+] as const;
+
 /**
  * The built-in AI-novel sample is the complete three-chapter export, rather
  * than a short placeholder. It is bundled deliberately because the user

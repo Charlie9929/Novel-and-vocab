@@ -8,7 +8,7 @@ import { SettingsPanel } from "./components/SettingsPanel";
 import { VocabList } from "./components/VocabList";
 import { VocabularyPicker } from "./components/VocabularyPicker";
 import { WordSheet } from "./components/WordSheet";
-import { LEGACY_DEMO_FINGERPRINT } from "./core/demoNovel";
+import { RETIRED_DEMO_FINGERPRINTS } from "./core/demoNovel";
 import {
   addBlacklistTerm,
   addVocabulary,
@@ -213,9 +213,10 @@ export default function App() {
 
   async function initializeApp(): Promise<void> {
     try {
-      // Remove the retired built-in Journey-to-the-West demo from existing
-      // localhost shelves before loading the current book list.
-      await removeBookData(LEGACY_DEMO_FINGERPRINT);
+      // Remove retired built-in samples from existing localhost shelves before
+      // loading the current book list. This also clears the short Tide Post
+      // Office placeholder shipped briefly before the complete export.
+      await Promise.all(RETIRED_DEMO_FINGERPRINTS.map((fingerprint) => removeBookData(fingerprint)));
       const savedVocabulary = await getSetting(VOCABULARY_SETTING_KEY);
       let nextVocabularyId: VocabularyId | null = isVocabularyId(savedVocabulary) ? savedVocabulary : null;
       // A pre-v6 user has learning records but no vocabulary setting. The v6
