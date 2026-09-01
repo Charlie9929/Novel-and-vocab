@@ -25,13 +25,13 @@ export const VOCABULARY_OPTIONS: readonly VocabularyOption[] = [
   {
     id: "cet6",
     label: "CET6",
-    description: "大学英语六级（项目整理）",
+    description: "大学英语六级",
     detail: "覆盖进阶表达。",
   },
   {
     id: "kaoyan",
     label: "考研英语",
-    description: "全国硕士研究生考试英语（项目整理）",
+    description: "全国硕士研究生考试英语",
     detail: "偏向考研阅读、学术表达与高频词义。",
   },
   {
