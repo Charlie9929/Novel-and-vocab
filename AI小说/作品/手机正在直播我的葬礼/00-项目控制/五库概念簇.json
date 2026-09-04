@@ -1,0 +1,1768 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-04T07:22:52.334Z",
+  "sourceEntries": {
+    "cet4": 3807,
+    "cet6": 5294,
+    "kaoyan": 4729,
+    "ielts": 4740,
+    "toefl": 6836
+  },
+  "packs": [
+    "cet4",
+    "cet6",
+    "kaoyan",
+    "ielts",
+    "toefl"
+  ],
+  "clusters": [
+    {
+      "id": "现场行动",
+      "scene": "进入、检查、移动物件并留下可追踪结果",
+      "packCounts": {
+        "cet4": 81,
+        "cet6": 128,
+        "kaoyan": 118,
+        "ielts": 120,
+        "toefl": 141
+      },
+      "sharedConcepts": [
+        {
+          "zh": "移动",
+          "en": "move",
+          "lemmas": [
+            "move",
+            "removal",
+            "remove"
+          ],
+          "packs": [
+            "cet4",
+            "cet6",
+            "kaoyan",
+            "ielts",
+            "toefl"
+          ],
+          "shared": true
+        },
+        {
+          "zh": "离开",
+          "en": "away",
+          "lemmas": [
+            "away",
+            "depart",
+            "departure"
+          ],
+          "packs": [
+            "cet4",
+            "cet6",
+            "kaoyan",
+            "ielts",
+            "toefl"
+          ],
+          "shared": true
+        },
+        {
+          "zh": "放弃",
+          "en": "resign",
+          "lemmas": [
+            "resign",
+            "resignation",
+            "abandon"
+          ],
+          "packs": [
+            "cet4",
+            "cet6",
+            "kaoyan",
+            "ielts",
+            "toefl"
+          ],
+          "shared": true
+        },
+        {
+          "zh": "检查",
+          "en": "check",
+          "lemmas": [
+            "check",
+            "examine",
+            "inspect"
+          ],
+          "packs": [
+            "cet4",
+            "cet6",
+            "kaoyan",
+            "ielts",
+            "toefl"
+          ],
+          "shared": true
+        },
+        {
+          "zh": "释放",
+          "en": "discharge",
+          "lemmas": [
+            "discharge",
+            "release",
+            "liberation"
+          ],
+          "packs": [
+            "cet4",
+            "cet6",
+            "kaoyan",
+            "ielts",
+            "toefl"
+          ],
+          "shared": true
+        },
+        {
+          "zh": "记录",
+          "en": "record",
+          "lemmas": [
+            "record",
+            "recorder",
+            "log"
+          ],
+          "packs": [
+            "cet4",
+            "cet6",
+            "kaoyan",
+            "ielts",
+            "toefl"
+          ],
+          "shared": true
+        },
+        {
+          "zh": "入口",
+          "en": "entrance",
+          "lemmas": [
+            "entrance",
+            "entry"
+          ],
+          "packs": [
+            "cet4",
+            "cet6",
+            "kaoyan",
+            "ielts",
+            "toefl"
+          ],
+          "shared": true
+        },
+        {
+          "zh": "门厅",
+          "en": "hall",
+          "lemmas": [
+            "hall",
+            "foyer",
+            "hallway"
+          ],
+          "packs": [
+            "cet4",
+            "cet6",
+            "kaoyan",
+            "ielts",
+            "toefl"
+          ],
+          "shared": true
+        },
+        {
+          "zh": "放大",
+          "en": "amplify",
+          "lemmas": [
+            "amplify",
+            "magnify"
+          ],
+          "packs": [
+            "cet4",
+            "cet6",
+            "kaoyan",
+            "ielts",
+            "toefl"
+          ],
+          "shared": true
+        },
+        {
+          "zh": "装备",
+          "en": "equipment",
+          "lemmas": [
+            "equipment"
+          ],
+          "packs": [
+            "cet4",
+            "cet6",
+            "kaoyan",
+            "ielts",
+            "toefl"
+          ],
+          "shared": true
+        },
+        {
+          "zh": "放射",
+          "en": "radioactivity",
+          "lemmas": [
+            "radioactivity",
+            "radiate"
+          ],
+          "packs": [
+            "cet4",
+            "cet6",
+            "kaoyan",
+            "ielts",
+            "toefl"
+          ],
+          "shared": true
+        },
+        {
+          "zh": "可携带的",
+          "en": "portable",
+          "lemmas": [
+            "portable"
+          ],
+          "packs": [
+            "cet6",
+            "kaoyan",
+            "ielts",
+            "toefl"
+          ],
+          "shared": true
+        }
+      ]
+    },
+    {
+      "id": "机构责任",
+      "scene": "权限、规则与决定造成的责任和代价",
+      "packCounts": {
+        "cet4": 34,
+        "cet6": 92,
+        "kaoyan": 81,
+        "ielts": 79,
+        "toefl": 99
+      },
+      "sharedConcepts": [
+        {
+          "zh": "决定",
+          "en": "decide",
+          "lemmas": [
+            "decide",
+            "decision",
+            "determine"
+          ],
+          "packs": [
+            "cet4",
+            "cet6",
+            "kaoyan",
+            "ielts",
+            "toefl"
+          ],
+          "shared": true
+        },
+        {
+          "zh": "责任",
+          "en": "responsibility",
+          "lemmas": [
+            "responsibility",
+            "duty",
+            "liability"
+          ],
+          "packs": [
+            "cet4",
+            "cet6",
+            "kaoyan",
+            "ielts",
+            "toefl"
+          ],
+          "shared": true
+        },
+        {
+          "zh": "影响",
+          "en": "affect",
+          "lemmas": [
+            "affect",
+            "impact",
+            "influence"
+          ],
+          "packs": [
+            "cet4",
+            "cet6",
+            "kaoyan",
+            "ielts",
+            "toefl"
+          ],
+          "shared": true
+        },
+        {
+          "zh": "利益",
+          "en": "behalf",
+          "lemmas": [
+            "behalf",
+            "benefit"
+          ],
+          "packs": [
+            "cet4",
+            "cet6",
+            "kaoyan",
+            "ielts",
+            "toefl"
+          ],
+          "shared": true
+        },
+        {
+          "zh": "程序",
+          "en": "procedure",
+          "lemmas": [
+            "procedure",
+            "process"
+          ],
+          "packs": [
+            "cet4",
+            "cet6",
+            "kaoyan",
+            "ielts",
+            "toefl"
+          ],
+          "shared": true
+        },
+        {
+          "zh": "规则",
+          "en": "regulation",
+          "lemmas": [
+            "regulation",
+            "rule"
+          ],
+          "packs": [
+            "cet4",
+            "cet6",
+            "kaoyan",
+            "ielts",
+            "toefl"
+          ],
+          "shared": true
+        },
+        {
+          "zh": "证实",
+          "en": "confirm",
+          "lemmas": [
+            "confirm",
+            "confirmation"
+          ],
+          "packs": [
+            "cet4",
+            "cet6",
+            "kaoyan",
+            "ielts",
+            "toefl"
+          ],
+          "shared": true
+        },
+        {
+          "zh": "要求",
+          "en": "demand",
+          "lemmas": [
+            "demand",
+            "claim"
+          ],
+          "packs": [
+            "cet4",
+            "cet6",
+            "kaoyan",
+            "ielts",
+            "toefl"
+          ],
+          "shared": true
+        },
+        {
+          "zh": "赞成",
+          "en": "approval",
+          "lemmas": [
+            "approval",
+            "approve"
+          ],
+          "packs": [
+            "cet4",
+            "cet6",
+            "kaoyan",
+            "ielts",
+            "toefl"
+          ],
+          "shared": true
+        },
+        {
+          "zh": "兴趣",
+          "en": "interest",
+          "lemmas": [
+            "interest"
+          ],
+          "packs": [
+            "cet4",
+            "cet6",
+            "kaoyan",
+            "ielts",
+            "toefl"
+          ],
+          "shared": true
+        },
+        {
+          "zh": "系统",
+          "en": "system",
+          "lemmas": [
+            "system"
+          ],
+          "packs": [
+            "cet4",
+            "cet6",
+            "kaoyan",
+            "ielts",
+            "toefl"
+          ],
+          "shared": true
+        },
+        {
+          "zh": "授权",
+          "en": "warrant",
+          "lemmas": [
+            "warrant",
+            "authorize"
+          ],
+          "packs": [
+            "cet6",
+            "kaoyan",
+            "ielts",
+            "toefl"
+          ],
+          "shared": true
+        }
+      ]
+    },
+    {
+      "id": "档案论证",
+      "scene": "从文件、数据和来源拼出可反驳的结论",
+      "packCounts": {
+        "cet4": 30,
+        "cet6": 60,
+        "kaoyan": 55,
+        "ielts": 60,
+        "toefl": 61
+      },
+      "sharedConcepts": [
+        {
+          "zh": "解释",
+          "en": "explain",
+          "lemmas": [
+            "explain",
+            "explanation",
+            "interpret"
+          ],
+          "packs": [
+            "cet4",
+            "cet6",
+            "kaoyan",
+            "ielts",
+            "toefl"
+          ],
+          "shared": true
+        },
+        {
+          "zh": "证明",
+          "en": "justify",
+          "lemmas": [
+            "justify",
+            "prove",
+            "testify"
+          ],
+          "packs": [
+            "cet4",
+            "cet6",
+            "kaoyan",
+            "ielts",
+            "toefl"
+          ],
+          "shared": true
+        },
+        {
+          "zh": "记录",
+          "en": "record",
+          "lemmas": [
+            "record",
+            "recorder",
+            "log"
+          ],
+          "packs": [
+            "cet4",
+            "cet6",
+            "kaoyan",
+            "ielts",
+            "toefl"
+          ],
+          "shared": true
+        },
+        {
+          "zh": "根据",
+          "en": "evidence",
+          "lemmas": [
+            "evidence"
+          ],
+          "packs": [
+            "cet4",
+            "cet6",
+            "kaoyan",
+            "ielts",
+            "toefl"
+          ],
+          "shared": true
+        },
+        {
+          "zh": "反驳",
+          "en": "contradiction",
+          "lemmas": [
+            "contradiction",
+            "contradict",
+            "refute"
+          ],
+          "packs": [
+            "cet6",
+            "kaoyan",
+            "ielts",
+            "toefl"
+          ],
+          "shared": true
+        },
+        {
+          "zh": "证据",
+          "en": "proof",
+          "lemmas": [
+            "proof",
+            "witness"
+          ],
+          "packs": [
+            "cet4",
+            "cet6",
+            "kaoyan",
+            "toefl"
+          ],
+          "shared": true
+        },
+        {
+          "zh": "档案",
+          "en": "file",
+          "lemmas": [
+            "file",
+            "archives"
+          ],
+          "packs": [
+            "cet4",
+            "kaoyan",
+            "ielts",
+            "toefl"
+          ],
+          "shared": true
+        },
+        {
+          "zh": "辩护",
+          "en": "justification",
+          "lemmas": [
+            "justification",
+            "justify",
+            "vindicate"
+          ],
+          "packs": [
+            "cet6",
+            "kaoyan",
+            "ielts",
+            "toefl"
+          ],
+          "shared": true
+        },
+        {
+          "zh": "报告",
+          "en": "report",
+          "lemmas": [
+            "report",
+            "account"
+          ],
+          "packs": [
+            "cet4",
+            "kaoyan",
+            "ielts",
+            "toefl"
+          ],
+          "shared": true
+        },
+        {
+          "zh": "观点",
+          "en": "outlook",
+          "lemmas": [
+            "outlook",
+            "viewpoint"
+          ],
+          "packs": [
+            "cet4",
+            "cet6",
+            "kaoyan",
+            "toefl"
+          ],
+          "shared": true
+        },
+        {
+          "zh": "假设",
+          "en": "hypothesis",
+          "lemmas": [
+            "hypothesis",
+            "let",
+            "hypothesize"
+          ],
+          "packs": [
+            "cet6",
+            "kaoyan",
+            "ielts",
+            "toefl"
+          ],
+          "shared": true
+        },
+        {
+          "zh": "证人",
+          "en": "witness",
+          "lemmas": [
+            "witness",
+            "voucher"
+          ],
+          "packs": [
+            "cet6",
+            "kaoyan",
+            "ielts",
+            "toefl"
+          ],
+          "shared": true
+        }
+      ]
+    },
+    {
+      "id": "跨国公共服务",
+      "scene": "跨语言、跨边界协作解决公共问题",
+      "packCounts": {
+        "cet4": 23,
+        "cet6": 50,
+        "kaoyan": 50,
+        "ielts": 51,
+        "toefl": 53
+      },
+      "sharedConcepts": [
+        {
+          "zh": "边缘",
+          "en": "border",
+          "lemmas": [
+            "border",
+            "verge"
+          ],
+          "packs": [
+            "cet4",
+            "cet6",
+            "kaoyan",
+            "ielts",
+            "toefl"
+          ],
+          "shared": true
+        },
+        {
+          "zh": "请求",
+          "en": "application",
+          "lemmas": [
+            "application",
+            "request"
+          ],
+          "packs": [
+            "cet4",
+            "cet6",
+            "kaoyan",
+            "ielts",
+            "toefl"
+          ],
+          "shared": true
+        },
+        {
+          "zh": "边界",
+          "en": "boundary",
+          "lemmas": [
+            "boundary",
+            "frontier"
+          ],
+          "packs": [
+            "cet6",
+            "kaoyan",
+            "ielts",
+            "toefl"
+          ],
+          "shared": true
+        },
+        {
+          "zh": "翻译",
+          "en": "translate",
+          "lemmas": [
+            "translate",
+            "translation",
+            "rendering"
+          ],
+          "packs": [
+            "cet4",
+            "cet6",
+            "kaoyan",
+            "toefl"
+          ],
+          "shared": true
+        },
+        {
+          "zh": "解释",
+          "en": "interpretation",
+          "lemmas": [
+            "interpretation",
+            "interpret"
+          ],
+          "packs": [
+            "cet6",
+            "kaoyan",
+            "ielts",
+            "toefl"
+          ],
+          "shared": true
+        },
+        {
+          "zh": "中心",
+          "en": "centre",
+          "lemmas": [
+            "centre",
+            "center"
+          ],
+          "packs": [
+            "cet4",
+            "cet6",
+            "kaoyan",
+            "ielts"
+          ],
+          "shared": true
+        },
+        {
+          "zh": "应用",
+          "en": "application",
+          "lemmas": [
+            "application"
+          ],
+          "packs": [
+            "cet6",
+            "kaoyan",
+            "ielts",
+            "toefl"
+          ],
+          "shared": true
+        },
+        {
+          "zh": "回跳",
+          "en": "bound",
+          "lemmas": [
+            "bound"
+          ],
+          "packs": [
+            "cet6",
+            "kaoyan",
+            "ielts",
+            "toefl"
+          ],
+          "shared": true
+        },
+        {
+          "zh": "校园",
+          "en": "campus",
+          "lemmas": [
+            "campus"
+          ],
+          "packs": [
+            "cet6",
+            "kaoyan",
+            "ielts",
+            "toefl"
+          ],
+          "shared": true
+        },
+        {
+          "zh": "提供饮食及服务",
+          "en": "cater",
+          "lemmas": [
+            "cater"
+          ],
+          "packs": [
+            "cet6",
+            "kaoyan",
+            "ielts",
+            "toefl"
+          ],
+          "shared": true
+        },
+        {
+          "zh": "生态学",
+          "en": "ecology",
+          "lemmas": [
+            "ecology"
+          ],
+          "packs": [
+            "cet6",
+            "kaoyan",
+            "ielts",
+            "toefl"
+          ],
+          "shared": true
+        },
+        {
+          "zh": "苦差",
+          "en": "grind",
+          "lemmas": [
+            "grind"
+          ],
+          "packs": [
+            "cet6",
+            "kaoyan",
+            "ielts",
+            "toefl"
+          ],
+          "shared": true
+        }
+      ]
+    },
+    {
+      "id": "实验研究",
+      "scene": "观察材料、样本和数据，验证一个解释",
+      "packCounts": {
+        "cet4": 34,
+        "cet6": 70,
+        "kaoyan": 56,
+        "ielts": 64,
+        "toefl": 62
+      },
+      "sharedConcepts": [
+        {
+          "zh": "结果",
+          "en": "result",
+          "lemmas": [
+            "result",
+            "consequence",
+            "outcome"
+          ],
+          "packs": [
+            "cet4",
+            "cet6",
+            "kaoyan",
+            "ielts",
+            "toefl"
+          ],
+          "shared": true
+        },
+        {
+          "zh": "结构",
+          "en": "structure",
+          "lemmas": [
+            "structure",
+            "configuration",
+            "frame"
+          ],
+          "packs": [
+            "cet4",
+            "cet6",
+            "kaoyan",
+            "ielts",
+            "toefl"
+          ],
+          "shared": true
+        },
+        {
+          "zh": "分析",
+          "en": "analyse",
+          "lemmas": [
+            "analyse",
+            "analysis",
+            "analyze"
+          ],
+          "packs": [
+            "cet4",
+            "cet6",
+            "kaoyan",
+            "ielts",
+            "toefl"
+          ],
+          "shared": true
+        },
+        {
+          "zh": "方法",
+          "en": "means",
+          "lemmas": [
+            "means",
+            "method"
+          ],
+          "packs": [
+            "cet4",
+            "cet6",
+            "kaoyan",
+            "ielts",
+            "toefl"
+          ],
+          "shared": true
+        },
+        {
+          "zh": "观察",
+          "en": "observe",
+          "lemmas": [
+            "observe",
+            "observation",
+            "observance"
+          ],
+          "packs": [
+            "cet4",
+            "cet6",
+            "kaoyan",
+            "ielts",
+            "toefl"
+          ],
+          "shared": true
+        },
+        {
+          "zh": "织物",
+          "en": "fabric",
+          "lemmas": [
+            "fabric"
+          ],
+          "packs": [
+            "cet4",
+            "cet6",
+            "kaoyan",
+            "ielts",
+            "toefl"
+          ],
+          "shared": true
+        },
+        {
+          "zh": "实验室",
+          "en": "lab",
+          "lemmas": [
+            "lab",
+            "laboratory"
+          ],
+          "packs": [
+            "cet6",
+            "kaoyan",
+            "ielts",
+            "toefl"
+          ],
+          "shared": true
+        },
+        {
+          "zh": "实验",
+          "en": "experiment",
+          "lemmas": [
+            "experiment",
+            "laboratory",
+            "experimentation"
+          ],
+          "packs": [
+            "cet4",
+            "cet6",
+            "kaoyan",
+            "ielts"
+          ],
+          "shared": true
+        },
+        {
+          "zh": "织物的",
+          "en": "texture",
+          "lemmas": [
+            "texture"
+          ],
+          "packs": [
+            "cet6",
+            "kaoyan",
+            "ielts",
+            "toefl"
+          ],
+          "shared": true
+        },
+        {
+          "zh": "材料",
+          "en": "material",
+          "lemmas": [
+            "material",
+            "stuff"
+          ],
+          "packs": [
+            "cet4",
+            "cet6",
+            "kaoyan",
+            "ielts"
+          ],
+          "shared": true
+        },
+        {
+          "zh": "泡沫",
+          "en": "foam",
+          "lemmas": [
+            "foam"
+          ],
+          "packs": [
+            "cet6",
+            "kaoyan",
+            "ielts",
+            "toefl"
+          ],
+          "shared": true
+        },
+        {
+          "zh": "历史",
+          "en": "history",
+          "lemmas": [
+            "history"
+          ],
+          "packs": [
+            "cet4",
+            "cet6",
+            "kaoyan",
+            "ielts"
+          ],
+          "shared": true
+        }
+      ]
+    }
+  ],
+  "chapterPlans": [
+    {
+      "chapter": 1,
+      "outline": "第001章-手机正在直播我的葬礼.md",
+      "task": "许砚在收到解雇通知后确认陌生手机的葬礼直播不是恶作剧，并保住手机与自己的行动自由。",
+      "sceneActions": [
+        {
+          "conceptCluster": "现场行动",
+          "storyFunction": "让角色通过“进入、检查、移动物件并留下可追踪结果”直接推进本章主任务：许砚在收到解雇通知后确认陌生手机的葬礼直播不是恶作剧，并保住手机与自己的行动自由。",
+          "concepts": [
+            {
+              "zh": "移动",
+              "packs": [
+                "cet4",
+                "cet6",
+                "kaoyan",
+                "ielts",
+                "toefl"
+              ],
+              "lemmas": [
+                "move",
+                "removal",
+                "remove"
+              ]
+            },
+            {
+              "zh": "离开",
+              "packs": [
+                "cet4",
+                "cet6",
+                "kaoyan",
+                "ielts",
+                "toefl"
+              ],
+              "lemmas": [
+                "away",
+                "depart",
+                "departure"
+              ]
+            },
+            {
+              "zh": "放弃",
+              "packs": [
+                "cet4",
+                "cet6",
+                "kaoyan",
+                "ielts",
+                "toefl"
+              ],
+              "lemmas": [
+                "resign",
+                "resignation",
+                "abandon"
+              ]
+            },
+            {
+              "zh": "检查",
+              "packs": [
+                "cet4",
+                "cet6",
+                "kaoyan",
+                "ielts",
+                "toefl"
+              ],
+              "lemmas": [
+                "check",
+                "examine",
+                "inspect"
+              ]
+            },
+            {
+              "zh": "释放",
+              "packs": [
+                "cet4",
+                "cet6",
+                "kaoyan",
+                "ielts",
+                "toefl"
+              ],
+              "lemmas": [
+                "discharge",
+                "release",
+                "liberation"
+              ]
+            },
+            {
+              "zh": "记录",
+              "packs": [
+                "cet4",
+                "cet6",
+                "kaoyan",
+                "ielts",
+                "toefl"
+              ],
+              "lemmas": [
+                "record",
+                "recorder",
+                "log"
+              ]
+            },
+            {
+              "zh": "入口",
+              "packs": [
+                "cet4",
+                "cet6",
+                "kaoyan",
+                "ielts",
+                "toefl"
+              ],
+              "lemmas": [
+                "entrance",
+                "entry"
+              ]
+            },
+            {
+              "zh": "门厅",
+              "packs": [
+                "cet4",
+                "cet6",
+                "kaoyan",
+                "ielts",
+                "toefl"
+              ],
+              "lemmas": [
+                "hall",
+                "foyer",
+                "hallway"
+              ]
+            }
+          ]
+        },
+        {
+          "conceptCluster": "档案论证",
+          "storyFunction": "让“从文件、数据和来源拼出可反驳的结论”制造阻力、选择或可见结果，不写背景讲解",
+          "concepts": [
+            {
+              "zh": "根据",
+              "packs": [
+                "cet4",
+                "cet6",
+                "kaoyan",
+                "ielts",
+                "toefl"
+              ],
+              "lemmas": [
+                "evidence"
+              ]
+            },
+            {
+              "zh": "反驳",
+              "packs": [
+                "cet6",
+                "kaoyan",
+                "ielts",
+                "toefl"
+              ],
+              "lemmas": [
+                "contradiction",
+                "contradict",
+                "refute"
+              ]
+            },
+            {
+              "zh": "证据",
+              "packs": [
+                "cet4",
+                "cet6",
+                "kaoyan",
+                "toefl"
+              ],
+              "lemmas": [
+                "proof",
+                "witness"
+              ]
+            },
+            {
+              "zh": "档案",
+              "packs": [
+                "cet4",
+                "kaoyan",
+                "ielts",
+                "toefl"
+              ],
+              "lemmas": [
+                "file",
+                "archives"
+              ]
+            },
+            {
+              "zh": "辩护",
+              "packs": [
+                "cet6",
+                "kaoyan",
+                "ielts",
+                "toefl"
+              ],
+              "lemmas": [
+                "justification",
+                "justify",
+                "vindicate"
+              ]
+            },
+            {
+              "zh": "报告",
+              "packs": [
+                "cet4",
+                "kaoyan",
+                "ielts",
+                "toefl"
+              ],
+              "lemmas": [
+                "report",
+                "account"
+              ]
+            },
+            {
+              "zh": "观点",
+              "packs": [
+                "cet4",
+                "cet6",
+                "kaoyan",
+                "toefl"
+              ],
+              "lemmas": [
+                "outlook",
+                "viewpoint"
+              ]
+            },
+            {
+              "zh": "假设",
+              "packs": [
+                "cet6",
+                "kaoyan",
+                "ielts",
+                "toefl"
+              ],
+              "lemmas": [
+                "hypothesis",
+                "let",
+                "hypothesize"
+              ]
+            }
+          ]
+        }
+      ],
+      "expectedByVocabulary": {
+        "cet4": 13,
+        "cet6": 14,
+        "kaoyan": 16,
+        "ielts": 14,
+        "toefl": 16
+      },
+      "rule": "只在剧情本来需要的位置自然使用；概念不合场景就后移，不得让人物讲词汇或知识点。"
+    },
+    {
+      "chapter": 2,
+      "outline": "第002章-原片没有死.md",
+      "task": "许砚和沈梨用合法可得的公开元数据、原始文件副本和许葵的受害者收据，证明“泄密”说法来自剪辑而非许砚。",
+      "sceneActions": [
+        {
+          "conceptCluster": "机构责任",
+          "storyFunction": "让角色通过“权限、规则与决定造成的责任和代价”直接推进本章主任务：许砚和沈梨用合法可得的公开元数据、原始文件副本和许葵的受害者收据，证明“泄密”说法来自剪辑而非许砚。",
+          "concepts": [
+            {
+              "zh": "赞成",
+              "packs": [
+                "cet4",
+                "cet6",
+                "kaoyan",
+                "ielts",
+                "toefl"
+              ],
+              "lemmas": [
+                "approval",
+                "approve"
+              ]
+            },
+            {
+              "zh": "兴趣",
+              "packs": [
+                "cet4",
+                "cet6",
+                "kaoyan",
+                "ielts",
+                "toefl"
+              ],
+              "lemmas": [
+                "interest"
+              ]
+            },
+            {
+              "zh": "系统",
+              "packs": [
+                "cet4",
+                "cet6",
+                "kaoyan",
+                "ielts",
+                "toefl"
+              ],
+              "lemmas": [
+                "system"
+              ]
+            },
+            {
+              "zh": "授权",
+              "packs": [
+                "cet6",
+                "kaoyan",
+                "ielts",
+                "toefl"
+              ],
+              "lemmas": [
+                "warrant",
+                "authorize"
+              ]
+            },
+            {
+              "zh": "决定",
+              "packs": [
+                "cet4",
+                "cet6",
+                "kaoyan",
+                "ielts",
+                "toefl"
+              ],
+              "lemmas": [
+                "decide",
+                "decision",
+                "determine"
+              ]
+            },
+            {
+              "zh": "责任",
+              "packs": [
+                "cet4",
+                "cet6",
+                "kaoyan",
+                "ielts",
+                "toefl"
+              ],
+              "lemmas": [
+                "responsibility",
+                "duty",
+                "liability"
+              ]
+            },
+            {
+              "zh": "影响",
+              "packs": [
+                "cet4",
+                "cet6",
+                "kaoyan",
+                "ielts",
+                "toefl"
+              ],
+              "lemmas": [
+                "affect",
+                "impact",
+                "influence"
+              ]
+            },
+            {
+              "zh": "利益",
+              "packs": [
+                "cet4",
+                "cet6",
+                "kaoyan",
+                "ielts",
+                "toefl"
+              ],
+              "lemmas": [
+                "behalf",
+                "benefit"
+              ]
+            }
+          ]
+        },
+        {
+          "conceptCluster": "跨国公共服务",
+          "storyFunction": "让“跨语言、跨边界协作解决公共问题”制造阻力、选择或可见结果，不写背景讲解",
+          "concepts": [
+            {
+              "zh": "苦差",
+              "packs": [
+                "cet6",
+                "kaoyan",
+                "ielts",
+                "toefl"
+              ],
+              "lemmas": [
+                "grind"
+              ]
+            },
+            {
+              "zh": "边缘",
+              "packs": [
+                "cet4",
+                "cet6",
+                "kaoyan",
+                "ielts",
+                "toefl"
+              ],
+              "lemmas": [
+                "border",
+                "verge"
+              ]
+            },
+            {
+              "zh": "请求",
+              "packs": [
+                "cet4",
+                "cet6",
+                "kaoyan",
+                "ielts",
+                "toefl"
+              ],
+              "lemmas": [
+                "application",
+                "request"
+              ]
+            },
+            {
+              "zh": "边界",
+              "packs": [
+                "cet6",
+                "kaoyan",
+                "ielts",
+                "toefl"
+              ],
+              "lemmas": [
+                "boundary",
+                "frontier"
+              ]
+            },
+            {
+              "zh": "翻译",
+              "packs": [
+                "cet4",
+                "cet6",
+                "kaoyan",
+                "toefl"
+              ],
+              "lemmas": [
+                "translate",
+                "translation",
+                "rendering"
+              ]
+            },
+            {
+              "zh": "解释",
+              "packs": [
+                "cet6",
+                "kaoyan",
+                "ielts",
+                "toefl"
+              ],
+              "lemmas": [
+                "interpretation",
+                "interpret"
+              ]
+            },
+            {
+              "zh": "中心",
+              "packs": [
+                "cet4",
+                "cet6",
+                "kaoyan",
+                "ielts"
+              ],
+              "lemmas": [
+                "centre",
+                "center"
+              ]
+            },
+            {
+              "zh": "应用",
+              "packs": [
+                "cet6",
+                "kaoyan",
+                "ielts",
+                "toefl"
+              ],
+              "lemmas": [
+                "application"
+              ]
+            }
+          ]
+        }
+      ],
+      "expectedByVocabulary": {
+        "cet4": 11,
+        "cet6": 16,
+        "kaoyan": 16,
+        "ielts": 15,
+        "toefl": 15
+      },
+      "rule": "只在剧情本来需要的位置自然使用；概念不合场景就后移，不得让人物讲词汇或知识点。"
+    },
+    {
+      "chapter": 3,
+      "outline": "第003章-直播别停.md",
+      "task": "许砚在品牌发布会现场公开原始证据，承受唐骁夺手机和反咬的压力，让真实对话与证据可复核地留下，并完成报案。",
+      "sceneActions": [
+        {
+          "conceptCluster": "档案论证",
+          "storyFunction": "让角色通过“从文件、数据和来源拼出可反驳的结论”直接推进本章主任务：许砚在品牌发布会现场公开原始证据，承受唐骁夺手机和反咬的压力，让真实对话与证据可复核地留下，并完成报案。",
+          "concepts": [
+            {
+              "zh": "反驳",
+              "packs": [
+                "cet6",
+                "kaoyan",
+                "ielts",
+                "toefl"
+              ],
+              "lemmas": [
+                "contradiction",
+                "contradict",
+                "refute"
+              ]
+            },
+            {
+              "zh": "证据",
+              "packs": [
+                "cet4",
+                "cet6",
+                "kaoyan",
+                "toefl"
+              ],
+              "lemmas": [
+                "proof",
+                "witness"
+              ]
+            },
+            {
+              "zh": "档案",
+              "packs": [
+                "cet4",
+                "kaoyan",
+                "ielts",
+                "toefl"
+              ],
+              "lemmas": [
+                "file",
+                "archives"
+              ]
+            },
+            {
+              "zh": "辩护",
+              "packs": [
+                "cet6",
+                "kaoyan",
+                "ielts",
+                "toefl"
+              ],
+              "lemmas": [
+                "justification",
+                "justify",
+                "vindicate"
+              ]
+            },
+            {
+              "zh": "报告",
+              "packs": [
+                "cet4",
+                "kaoyan",
+                "ielts",
+                "toefl"
+              ],
+              "lemmas": [
+                "report",
+                "account"
+              ]
+            },
+            {
+              "zh": "观点",
+              "packs": [
+                "cet4",
+                "cet6",
+                "kaoyan",
+                "toefl"
+              ],
+              "lemmas": [
+                "outlook",
+                "viewpoint"
+              ]
+            },
+            {
+              "zh": "假设",
+              "packs": [
+                "cet6",
+                "kaoyan",
+                "ielts",
+                "toefl"
+              ],
+              "lemmas": [
+                "hypothesis",
+                "let",
+                "hypothesize"
+              ]
+            },
+            {
+              "zh": "证人",
+              "packs": [
+                "cet6",
+                "kaoyan",
+                "ielts",
+                "toefl"
+              ],
+              "lemmas": [
+                "witness",
+                "voucher"
+              ]
+            }
+          ]
+        },
+        {
+          "conceptCluster": "实验研究",
+          "storyFunction": "让“观察材料、样本和数据，验证一个解释”制造阻力、选择或可见结果，不写背景讲解",
+          "concepts": [
+            {
+              "zh": "实验",
+              "packs": [
+                "cet4",
+                "cet6",
+                "kaoyan",
+                "ielts"
+              ],
+              "lemmas": [
+                "experiment",
+                "laboratory",
+                "experimentation"
+              ]
+            },
+            {
+              "zh": "织物的",
+              "packs": [
+                "cet6",
+                "kaoyan",
+                "ielts",
+                "toefl"
+              ],
+              "lemmas": [
+                "texture"
+              ]
+            },
+            {
+              "zh": "材料",
+              "packs": [
+                "cet4",
+                "cet6",
+                "kaoyan",
+                "ielts"
+              ],
+              "lemmas": [
+                "material",
+                "stuff"
+              ]
+            },
+            {
+              "zh": "泡沫",
+              "packs": [
+                "cet6",
+                "kaoyan",
+                "ielts",
+                "toefl"
+              ],
+              "lemmas": [
+                "foam"
+              ]
+            },
+            {
+              "zh": "历史",
+              "packs": [
+                "cet4",
+                "cet6",
+                "kaoyan",
+                "ielts"
+              ],
+              "lemmas": [
+                "history"
+              ]
+            },
+            {
+              "zh": "结果",
+              "packs": [
+                "cet4",
+                "cet6",
+                "kaoyan",
+                "ielts",
+                "toefl"
+              ],
+              "lemmas": [
+                "result",
+                "consequence",
+                "outcome"
+              ]
+            },
+            {
+              "zh": "结构",
+              "packs": [
+                "cet4",
+                "cet6",
+                "kaoyan",
+                "ielts",
+                "toefl"
+              ],
+              "lemmas": [
+                "structure",
+                "configuration",
+                "frame"
+              ]
+            },
+            {
+              "zh": "分析",
+              "packs": [
+                "cet4",
+                "cet6",
+                "kaoyan",
+                "ielts",
+                "toefl"
+              ],
+              "lemmas": [
+                "analyse",
+                "analysis",
+                "analyze"
+              ]
+            }
+          ]
+        }
+      ],
+      "expectedByVocabulary": {
+        "cet6": 14,
+        "kaoyan": 16,
+        "ielts": 14,
+        "toefl": 13,
+        "cet4": 10
+      },
+      "rule": "只在剧情本来需要的位置自然使用；概念不合场景就后移，不得让人物讲词汇或知识点。"
+    }
+  ],
+  "rule": "目标由生产端自动进入章节动作；不让用户逐词选择，也不在正文中写词汇教学段。"
+}

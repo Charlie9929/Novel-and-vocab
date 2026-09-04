@@ -21,6 +21,7 @@ import {
   putSetting,
   addVocabulary,
   getTranslationFeedbackKeys,
+  migrateReadingProgressFingerprint,
 } from "../../src/core/db";
 import type { ReplacementToken } from "../../src/core/types";
 import { correctionKey } from "../../src/core/corrections";
@@ -315,5 +316,16 @@ describe("local database v6", () => {
     await saveReadingProgress({ vocabularyId: "ielts", fileFingerprint: "book-1", fileName: "一本书.txt", chapterIndex: 0, scrollPercent: 0, updatedAt: 1 });
     await clearCurrentVocabularyData("ielts");
     expect(await getAllBookRecords()).toHaveLength(1);
+  });
+
+  it("moves the complete Tide demo progress to its stable builtin key", async () => {
+    await saveReadingProgress({ vocabularyId: "cet4", fileFingerprint: "demo-old", fileName: "旧试读.txt", chapterIndex: 1, scrollPercent: 37, updatedAt: 9 });
+    await saveReadingProgress({ vocabularyId: "toefl", fileFingerprint: "demo-old", fileName: "旧试读.txt", chapterIndex: 2, scrollPercent: 12, updatedAt: 10 });
+    await migrateReadingProgressFingerprint("demo-old", "builtin:tide-post-office", "潮汐邮局.txt");
+
+    expect(await getReadingProgress("demo-old", "cet4")).toBeUndefined();
+    expect(await getReadingProgress("builtin:tide-post-office", "cet4")).toMatchObject({ chapterIndex: 1, scrollPercent: 37, fileName: "潮汐邮局.txt" });
+    expect(await getReadingProgress("builtin:tide-post-office", "toefl")).toMatchObject({ chapterIndex: 2, scrollPercent: 12 });
+    expect(await getAllBookRecords()).toContainEqual(expect.objectContaining({ id: "builtin:tide-post-office", source: "builtin-ai" }));
   });
 });

@@ -1,0 +1,90 @@
+[
+  {
+    "id": "tide-post-office",
+    "title": "潮汐邮局",
+    "description": "外婆离世后，林遥在退潮时发现一间只收未寄出信件的邮局。",
+    "genre": "urban-romance",
+    "genreLabel": "现实奇幻",
+    "lengthTier": "short",
+    "chapterCount": 3,
+    "chineseCharacterCount": 22462,
+    "minimumReplacementsPerChapter": 60,
+    "contentVersion": "v3",
+    "coverUrl": "/ai-novels/tide-post-office/cover.v2.webp",
+    "contentUrl": "/ai-novels/tide-post-office/content.v3.json",
+    "supportedVocabularyIds": ["cet4", "cet6", "kaoyan", "ielts", "toefl"],
+    "annotationUrls": {
+      "cet4": "/ai-novels/tide-post-office/annotations.cet4.v3.json",
+      "cet6": "/ai-novels/tide-post-office/annotations.cet6.v3.json",
+      "kaoyan": "/ai-novels/tide-post-office/annotations.kaoyan.v3.json",
+      "ielts": "/ai-novels/tide-post-office/annotations.ielts.v3.json",
+      "toefl": "/ai-novels/tide-post-office/annotations.toefl.v3.json"
+    }
+  },
+  {
+    "id": "zero-buyback-agreement",
+    "title": "签字即归零",
+    "description": "签约前十八小时，风险负责人发现一欧元回购条款，核心许可可能在零点后归零。",
+    "genre": "business",
+    "genreLabel": "豪门商战",
+    "lengthTier": "short",
+    "chapterCount": 3,
+    "chineseCharacterCount": 38545,
+    "minimumReplacementsPerChapter": 60,
+    "contentVersion": "v4",
+    "coverUrl": "/ai-novels/zero-buyback-agreement/cover.v2.webp",
+    "contentUrl": "/ai-novels/zero-buyback-agreement/content.v4.json",
+    "supportedVocabularyIds": ["cet4", "cet6", "kaoyan", "ielts", "toefl"],
+    "annotationUrls": {
+      "cet4": "/ai-novels/zero-buyback-agreement/annotations.cet4.v4.json",
+      "cet6": "/ai-novels/zero-buyback-agreement/annotations.cet6.v4.json",
+      "kaoyan": "/ai-novels/zero-buyback-agreement/annotations.kaoyan.v4.json",
+      "ielts": "/ai-novels/zero-buyback-agreement/annotations.ielts.v4.json",
+      "toefl": "/ai-novels/zero-buyback-agreement/annotations.toefl.v4.json"
+    }
+  },
+  {
+    "id": "orbital-greenhouse-quota",
+    "title": "末日空间站：氧气只剩十八小时",
+    "description": "补给舱还在路上，轨道温室的氧气只够十八小时；调度员必须用一次交会窗口救下六个人。",
+    "genre": "science-fiction",
+    "genreLabel": "末日科幻",
+    "lengthTier": "short",
+    "chapterCount": 3,
+    "chineseCharacterCount": 22615,
+    "minimumReplacementsPerChapter": 60,
+    "contentVersion": "v3",
+    "coverUrl": "/ai-novels/orbital-greenhouse-quota/cover.v2.webp",
+    "contentUrl": "/ai-novels/orbital-greenhouse-quota/content.v3.json",
+    "supportedVocabularyIds": ["cet4", "cet6", "kaoyan", "ielts", "toefl"],
+    "annotationUrls": {
+      "cet4": "/ai-novels/orbital-greenhouse-quota/annotations.cet4.v3.json",
+      "cet6": "/ai-novels/orbital-greenhouse-quota/annotations.cet6.v3.json",
+      "kaoyan": "/ai-novels/orbital-greenhouse-quota/annotations.kaoyan.v3.json",
+      "ielts": "/ai-novels/orbital-greenhouse-quota/annotations.ielts.v3.json",
+      "toefl": "/ai-novels/orbital-greenhouse-quota/annotations.toefl.v3.json"
+    }
+  },
+  {
+    "id": "funeral-livestream",
+    "title": "手机正在直播我的葬礼",
+    "description": "刚被公司当成泄密替罪羊，我捡到的手机却正在直播自己的葬礼；要洗清罪名，只能把操盘者逼到镜头前。",
+    "genre": "urban-suspense",
+    "genreLabel": "都市悬疑",
+    "lengthTier": "short",
+    "chapterCount": 3,
+    "chineseCharacterCount": 27727,
+    "minimumReplacementsPerChapter": 60,
+    "contentVersion": "v3",
+    "coverUrl": "/ai-novels/funeral-livestream/cover.v1.webp",
+    "contentUrl": "/ai-novels/funeral-livestream/content.v3.json",
+    "supportedVocabularyIds": ["cet4", "cet6", "kaoyan", "ielts", "toefl"],
+    "annotationUrls": {
+      "cet4": "/ai-novels/funeral-livestream/annotations.cet4.v3.json",
+      "cet6": "/ai-novels/funeral-livestream/annotations.cet6.v3.json",
+      "kaoyan": "/ai-novels/funeral-livestream/annotations.kaoyan.v3.json",
+      "ielts": "/ai-novels/funeral-livestream/annotations.ielts.v3.json",
+      "toefl": "/ai-novels/funeral-livestream/annotations.toefl.v3.json"
+    }
+  }
+]

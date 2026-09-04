@@ -1,0 +1,7 @@
+interface:
+  display_name: "项目 AI 小说"
+  short_description: "以压缩上下文和逻辑门禁低成本生成并维护五库共文小说"
+  default_prompt: "Use $ai-novel to advance a novel in AI小说/ with bounded context, continuity gates, and a cost-aware workflow."
+
+policy:
+  allow_implicit_invocation: true

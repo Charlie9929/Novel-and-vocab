@@ -8,6 +8,18 @@ export const DEFAULT_VOCABULARY_ID: VocabularyId = "cet4";
 /** Where a book's text comes from.  AI books are a second-phase source. */
 export type NovelSource = "builtin-ai" | "local";
 
+export type LengthTier = "short" | "medium" | "long";
+
+export type GenreId =
+  | "urban-romance"
+  | "business"
+  | "mystery"
+  | "crime"
+  | "historical-intrigue"
+  | "xianxia"
+  | "science-fiction"
+  | "infinite-flow";
+
 export type PageTurnMode = "vertical" | "horizontal" | "simulation";
 
 export type ReaderBackgroundId =
@@ -127,6 +139,65 @@ export interface LocalNovel {
   text: string;
   layout?: NovelLayoutMeta;
 }
+
+/** Lightweight catalog data bundled with the app shell. */
+export interface BuiltinNovelManifest {
+  id: string;
+  title: string;
+  description: string;
+  genre: GenreId;
+  genreLabel: string;
+  lengthTier: LengthTier;
+  chapterCount: number;
+  chineseCharacterCount: number;
+  contentVersion: string;
+  coverUrl: string;
+  contentUrl: string;
+  supportedVocabularyIds: VocabularyId[];
+  annotationUrls: Record<VocabularyId, string>;
+  /** A release gate for the reader-facing high-density experience. */
+  minimumReplacementsPerChapter?: number;
+}
+
+/** One shared Chinese base text. Vocabulary packs never duplicate it. */
+export interface BuiltinNovelContent {
+  schemaVersion: 1;
+  bookId: string;
+  contentVersion: string;
+  chapters: Chapter[];
+}
+
+export interface AnnotatedOccurrence {
+  id: string;
+  chapterId: string;
+  start: number;
+  end: number;
+  zh: string;
+  lemma: string;
+  display: string;
+  meaning: string;
+  partOfSpeech: PartOfSpeech;
+  phonetic: string;
+  sentence: string;
+  /** Stable 0..1 ordering; low/medium/high show the first 33%/67%/100%. */
+  densityRank: number;
+}
+
+export interface BuiltinNovelAnnotations {
+  schemaVersion: 1;
+  bookId: string;
+  contentVersion: string;
+  vocabularyId: VocabularyId;
+  occurrences: AnnotatedOccurrence[];
+}
+
+export type OpenedNovel =
+  | (LocalNovel & { source: "local" })
+  | (LocalNovel & {
+      source: "builtin-ai";
+      manifest: BuiltinNovelManifest;
+      annotations: BuiltinNovelAnnotations;
+    });
 
 export interface Chapter {
   id: string;

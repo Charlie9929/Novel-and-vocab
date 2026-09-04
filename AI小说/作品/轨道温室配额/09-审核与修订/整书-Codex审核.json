@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "gate": "pass",
+  "chapters": [1, 2, 3],
+  "blockers": [],
+  "warnings": [
+    {
+      "位置": "第001章、第002章",
+      "类型": "篇幅",
+      "当前事实": "两章分别约 4084、4836 个非空白字符，高于 3800 警戒线。",
+      "冲突依据": "仍在单次生成输出上限内，内容推动了故障定位和维修决策；为压缩字数追加调用的收益低于成本。",
+      "严重度": "warning",
+      "最小修复方向": "保留现稿，后续批次收紧字数提示。"
+    },
+    {
+      "位置": "整书结尾",
+      "类型": "整书闭环",
+      "当前事实": "旁路阀微漏由遥测、盘点、工单和实体检查共同定位；维修、配额、飞控交会和合同复盘均有结果。",
+      "冲突依据": "六名乘员安全、种源保活、主角代价和事故复盘入口全部完成，未用新灾难替代结局。",
+      "严重度": "warning",
+      "最小修复方向": "无需修复。"
+    }
+  ],
+  "semanticChecks": {
+    "causality": "pass",
+    "timeline": "pass",
+    "knowledgeAndPermissions": "pass",
+    "evidenceChain": "pass",
+    "pov": "pass",
+    "webNovelRhythm": "pass",
+    "fiveVocabularyNaturalness": "pass",
+    "endingClosure": "pass",
+    "forbiddenCrossBookTerms": "pass"
+  },
+  "reviewer": "Codex",
+  "rewritePass": "用户授权的一轮网文感重写已完成；第001章 v03、第002章 v02、第003章 v02 为最新草稿并通过确定性门禁。",
+  "reviewedAt": "2026-09-04"
+}

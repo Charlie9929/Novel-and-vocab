@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "gate": "pass",
+  "chapters": [1, 2, 3],
+  "blockers": [],
+  "warnings": [
+    {
+      "位置": "第001章开头",
+      "类型": "时间线",
+      "当前事实": "正文从 15:29 开始，项目时间线起点为 15:30。",
+      "冲突依据": "相差一分钟，不影响行动顺序或倒计时。",
+      "严重度": "warning",
+      "最小修复方向": "后续版本统一采用 15:30；本次不触发付费修订。"
+    },
+    {
+      "位置": "第002章末尾",
+      "类型": "篇幅",
+      "当前事实": "定点截尾后约 2898 个非空白字符。",
+      "冲突依据": "达到最低长度且未超过成本警戒线，略低于 2800—3500 目标区间的上沿要求不构成 blocker。",
+      "严重度": "warning",
+      "最小修复方向": "保持现状，避免为字数额外付费扩写。"
+    },
+    {
+      "位置": "整书结尾",
+      "类型": "整书闭环",
+      "当前事实": "E1—E4 证据链支持回购风险，宋曼青暂停签约并启动独立调查，唐栖真承担项目席位代价。",
+      "冲突依据": "核心事件、责任线索、主角目标和阶段性代价均已回答，调查后续明确延期而非假完结。",
+      "严重度": "warning",
+      "最小修复方向": "无需修复。"
+    }
+  ],
+  "semanticChecks": {
+    "causality": "pass",
+    "timeline": "pass",
+    "knowledgeAndPermissions": "pass",
+    "evidenceChain": "pass",
+    "pov": "pass",
+    "webNovelRhythm": "pass",
+    "fiveVocabularyNaturalness": "pass",
+    "endingClosure": "pass",
+    "forbiddenCrossBookTerms": "pass"
+  },
+  "reviewer": "Codex",
+  "rewritePass": "用户授权的一轮网文感重写已完成；第001章 v02、第002章 v03、第003章 v03 为最新草稿并通过确定性门禁。",
+  "reviewedAt": "2026-09-04"
+}

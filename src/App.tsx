@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { BottomNav, type AppTab } from "./components/BottomNav";
+import { AiNovelShelf } from "./components/AiNovelShelf";
+import { AiNovelReview } from "./components/AiNovelReview";
 import { FilePicker, type ShelfEntry } from "./components/FilePicker";
 import { QuizPanel } from "./components/QuizPanel";
 import { Reader } from "./components/Reader";
@@ -8,7 +10,13 @@ import { SettingsPanel } from "./components/SettingsPanel";
 import { VocabList } from "./components/VocabList";
 import { VocabularyPicker } from "./components/VocabularyPicker";
 import { WordSheet } from "./components/WordSheet";
-import { RETIRED_DEMO_FINGERPRINTS } from "./core/demoNovel";
+import {
+  builtinFingerprint,
+  LEGACY_TIDE_FINGERPRINT,
+  loadBuiltinNovel,
+  replaceAnnotatedChapter,
+  RETIRED_DEMO_FINGERPRINTS,
+} from "./core/builtinNovel";
 import {
   addBlacklistTerm,
   addVocabulary,
@@ -23,6 +31,7 @@ import {
   getReadingProgress,
   getSetting,
   putSetting,
+  migrateReadingProgressFingerprint,
   removeBlacklistTerm,
   removeBookData,
   saveFileHandle,
@@ -50,8 +59,10 @@ import type { Sm2State } from "./core/sm2";
 import { splitChapters } from "./core/tokenizer";
 import type {
   AutoReadingStatus,
+  BuiltinNovelManifest,
   Cet4Entry,
   LocalNovel,
+  OpenedNovel,
   QuizQuestion,
   ReplacementToken,
   TranslationFeedbackReason,
@@ -59,6 +70,7 @@ import type {
 } from "./core/types";
 import { DEFAULT_VOCABULARY_ID } from "./core/types";
 import { isVocabularyId, loadVocabularyEntries } from "./data/vocabulary";
+import { BUILTIN_NOVELS } from "./data/builtin-novels";
 
 const VOCABULARY_SETTING_KEY = "vocabularyId";
 
@@ -132,7 +144,8 @@ export default function App() {
   const [vocabularyEntries, setVocabularyEntries] = useState<Cet4Entry[]>([]);
   const [isVocabularyLoading, setIsVocabularyLoading] = useState(false);
   const [vocabularyError, setVocabularyError] = useState("");
-  const [novel, setNovel] = useState<LocalNovel | null>(null);
+  const [novel, setNovel] = useState<OpenedNovel | null>(null);
+  const [libraryView, setLibraryView] = useState<"home" | "ai-novels">("home");
   const [activeTab, setActiveTab] = useState<AppTab>("reader");
   const [chapterIndex, setChapterIndex] = useState(0);
   const [progressPercent, setProgressPercent] = useState(0);
@@ -145,6 +158,7 @@ export default function App() {
   const [densityLevel, setDensityLevel] = useState<DensityLevel>(DEFAULT_DENSITY);
   const [isReviewing, setIsReviewing] = useState(false);
   const [shelf, setShelf] = useState<ShelfEntry[]>([]);
+  const [aiNovelProgress, setAiNovelProgress] = useState<ReadingProgressRecord[]>([]);
   const [corrections, setCorrections] = useState<Map<string, string>>(new Map());
   const [suppressedFeedbackKeys, setSuppressedFeedbackKeys] = useState<Set<string>>(new Set());
   const [storageWarning, setStorageWarning] = useState("");
@@ -155,13 +169,25 @@ export default function App() {
   const sessionNovelsRef = useRef(new Map<string, LocalNovel>());
   const progressSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const latestProgressRef = useRef({ chapterIndex: 0, scrollPercent: 0, paragraphIndex: undefined as number | undefined, paragraphOffset: undefined as number | undefined });
+  const isAiReviewMode = typeof window !== "undefined"
+    && new URLSearchParams(window.location.search).get("review") === "ai-novels";
 
   const chapters = useMemo(() => (novel ? splitChapters(novel.text) : []), [novel]);
   const currentChapter = chapters[chapterIndex] ?? chapters[0];
 
   const densityValue = DENSITY_VALUES[densityLevel];
   const replacedChapter = useMemo(() => {
-    if (!currentChapter || vocabularyEntries.length === 0) return null;
+    if (!currentChapter) return null;
+    if (novel?.source === "builtin-ai") {
+      return replaceAnnotatedChapter(
+        currentChapter,
+        novel.annotations,
+        densityLevel,
+        new Set(blacklist),
+        suppressedFeedbackKeys,
+      );
+    }
+    if (vocabularyEntries.length === 0) return null;
     return replaceChapterTerms(
       currentChapter,
       vocabularyEntries,
@@ -171,7 +197,7 @@ export default function App() {
       vocabularyId ?? DEFAULT_VOCABULARY_ID,
       suppressedFeedbackKeys,
     );
-  }, [blacklist, corrections, currentChapter, densityValue, suppressedFeedbackKeys, vocabularyEntries, vocabularyId]);
+  }, [blacklist, corrections, currentChapter, densityLevel, densityValue, novel, suppressedFeedbackKeys, vocabularyEntries, vocabularyId]);
 
   useEffect(() => {
     void initializeApp();
@@ -217,6 +243,11 @@ export default function App() {
       // loading the current book list. This also clears the short Tide Post
       // Office placeholder shipped briefly before the complete export.
       await Promise.all(RETIRED_DEMO_FINGERPRINTS.map((fingerprint) => removeBookData(fingerprint)));
+      await migrateReadingProgressFingerprint(
+        LEGACY_TIDE_FINGERPRINT,
+        builtinFingerprint("tide-post-office"),
+        "潮汐邮局.txt",
+      );
       const savedVocabulary = await getSetting(VOCABULARY_SETTING_KEY);
       let nextVocabularyId: VocabularyId | null = isVocabularyId(savedVocabulary) ? savedVocabulary : null;
       // A pre-v6 user has learning records but no vocabulary setting. The v6
@@ -272,21 +303,35 @@ export default function App() {
           sessionNovel: sessionNovelsRef.current.get(progress.fileFingerprint),
         });
       }
-      setShelf(entries);
+      setShelf(entries.filter((entry) => !entry.progress.fileFingerprint.startsWith("builtin:")));
+      setAiNovelProgress(shelfEntries.filter((entry) => entry.fileFingerprint.startsWith("builtin:")));
     } catch (error: unknown) {
       reportStorageIssue(error);
     }
   }
 
   async function handleNovelLoaded(nextNovel: LocalNovel, nextHandle: FileSystemFileHandle | null) {
+    await handleOpenedNovel({ ...nextNovel, source: "local" }, nextHandle);
+  }
+
+  async function handleBuiltinNovelLoaded(manifest: BuiltinNovelManifest) {
+    if (!vocabularyId) return;
+    const nextNovel = await loadBuiltinNovel(manifest, vocabularyId);
+    await handleOpenedNovel(nextNovel, null);
+  }
+
+  async function handleOpenedNovel(nextNovel: OpenedNovel, nextHandle: FileSystemFileHandle | null) {
     if (!vocabularyId) return;
     const scope = vocabularyId;
     if (progressSaveTimerRef.current !== null) {
       clearTimeout(progressSaveTimerRef.current);
       progressSaveTimerRef.current = null;
     }
-    sessionNovelsRef.current.clear();
-    sessionNovelsRef.current.set(nextNovel.fingerprint, nextNovel);
+    if (nextNovel.source === "local") {
+      sessionNovelsRef.current.clear();
+      const { source: _source, ...localNovel } = nextNovel;
+      sessionNovelsRef.current.set(nextNovel.fingerprint, localNovel);
+    }
     setIsImmersive(false);
     setAutoStatus("idle");
     setQuizOrigin(null);
@@ -305,7 +350,7 @@ export default function App() {
     try {
       await saveBookRecord({
         id: nextNovel.fingerprint,
-        source: "local",
+        source: nextNovel.source,
         fileFingerprint: nextNovel.fingerprint,
         fileName: nextNovel.fileName,
         fileSize: nextNovel.fileSize,
@@ -643,6 +688,8 @@ export default function App() {
     setStorageWarning("本地学习记录暂时不可用，但不影响阅读。刷新或更换浏览器后可恢复保存。");
   }
 
+  if (isAiReviewMode) return <AiNovelReview manifests={BUILTIN_NOVELS} />;
+
   if (!vocabularyId) {
     return (
       <main className="app-shell centered-shell">
@@ -656,6 +703,21 @@ export default function App() {
   }
 
   if (!novel || !currentChapter || !replacedChapter) {
+    if (libraryView === "ai-novels") {
+      return (
+        <main className="app-shell centered-shell">
+          {storageWarning ? <p className="storage-warning" role="alert">{storageWarning}</p> : null}
+          <AiNovelShelf
+            manifests={BUILTIN_NOVELS}
+            vocabularyId={vocabularyId}
+            progress={aiNovelProgress}
+            onOpen={handleBuiltinNovelLoaded}
+            onBack={() => setLibraryView("home")}
+            onVocabularyChange={handleVocabularyChange}
+          />
+        </main>
+      );
+    }
     return (
       <main className="app-shell centered-shell">
         {storageWarning ? <p className="storage-warning" role="alert">{storageWarning}</p> : null}
@@ -673,6 +735,7 @@ export default function App() {
             shelf={shelf}
             onLoaded={handleNovelLoaded}
             onResumeMissing={handleResumeMissing}
+            onOpenAiNovels={() => setLibraryView("ai-novels")}
           />
         )}
       </main>
@@ -684,7 +747,7 @@ export default function App() {
       {activeTab !== "reader" ? (
         <div className="top-bar">
           <div>
-            <span className="eyebrow">本地文件</span>
+            <span className="eyebrow">{novel.source === "builtin-ai" ? "词境故事" : "本地文件"}</span>
             <strong>{novel.fileName}</strong>
           </div>
           <button type="button" onClick={handleReturnToShelf}>

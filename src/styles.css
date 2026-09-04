@@ -178,6 +178,61 @@ button {
   text-align: center;
 }
 
+.ai-novel-entry-button {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 68px;
+  border-color: #b8d8cf;
+  padding: 10px 14px;
+  background: linear-gradient(135deg, #f0faf8, #fffaf1);
+  text-align: left;
+}
+
+.ai-novel-entry-button:active {
+  background: #e6f5f0;
+}
+
+.ai-novel-entry-icon {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 14px;
+  background: #14615c;
+  color: #fffdf8;
+  font-family: "STKaiti", "KaiTi", serif;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.ai-novel-entry-copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.ai-novel-entry-copy strong {
+  color: #174d49;
+  font-size: 16px;
+}
+
+.ai-novel-entry-copy small {
+  overflow: hidden;
+  color: #66736c;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ai-novel-entry-arrow {
+  color: #14615c;
+  font-size: 22px;
+  font-weight: 700;
+}
+
 .storage-warning {
   width: min(520px, 100%);
   margin: 0 18px 10px;

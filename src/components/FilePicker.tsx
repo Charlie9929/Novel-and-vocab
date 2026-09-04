@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { getFileHandle } from "../core/db";
-import { makeDemoNovel } from "../core/demoNovel";
 import type { NovelReadProgress } from "../core/fileReader";
 import { pickNovelViaFsa, readFromHandle, supportsFsa } from "../core/fsa";
 import type { LocalNovel } from "../core/types";
@@ -17,9 +16,10 @@ interface FilePickerProps {
   shelf: ShelfEntry[];
   onLoaded: (novel: LocalNovel, handle: FileSystemFileHandle | null) => void | Promise<void>;
   onResumeMissing: (onProgress: (progress: NovelReadProgress) => void) => Promise<void> | void;
+  onOpenAiNovels: () => void;
 }
 
-export function FilePicker({ shelf, onLoaded, onResumeMissing }: FilePickerProps) {
+export function FilePicker({ shelf, onLoaded, onResumeMissing, onOpenAiNovels }: FilePickerProps) {
   const [error, setError] = useState("");
   const [isReading, setIsReading] = useState(false);
   const [readProgress, setReadProgress] = useState<NovelReadProgress | null>(null);
@@ -75,18 +75,6 @@ export function FilePicker({ shelf, onLoaded, onResumeMissing }: FilePickerProps
     }
   }
 
-  async function loadDemo() {
-    setError("");
-    setIsReading(true);
-    try {
-      await onLoaded(makeDemoNovel(), null);
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "读取失败。");
-    } finally {
-      setIsReading(false);
-    }
-  }
-
   const hasShelf = shelf.length > 0;
 
   return (
@@ -134,8 +122,13 @@ export function FilePicker({ shelf, onLoaded, onResumeMissing }: FilePickerProps
         </>
       )}
 
-      <button className="secondary-button" type="button" onClick={() => void loadDemo()} disabled={isReading}>
-        打开《潮汐邮局》
+      <button className="secondary-button ai-novel-entry-button" type="button" onClick={onOpenAiNovels} disabled={isReading}>
+        <span className="ai-novel-entry-icon" aria-hidden="true">阅</span>
+        <span className="ai-novel-entry-copy">
+          <strong>词境故事</strong>
+          <small>让词汇跟着情节被记住</small>
+        </span>
+        <span className="ai-novel-entry-arrow" aria-hidden="true">→</span>
       </button>
 
       {isReading && readProgress ? <ReadProgress progress={readProgress} /> : null}

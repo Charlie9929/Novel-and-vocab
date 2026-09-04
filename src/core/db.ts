@@ -677,6 +677,47 @@ export async function getAllShelfEntries(vocabularyId: VocabularyId = DEFAULT_SC
   return entries.reverse();
 }
 
+/**
+ * Move a formerly bundled demo onto the stable builtin book key without
+ * dropping per-vocabulary reading progress. Occurrence history is rebuilt
+ * from the new reviewed annotations when the book opens.
+ */
+export async function migrateReadingProgressFingerprint(
+  previousFingerprint: string,
+  nextFingerprint: string,
+  fileName: string,
+): Promise<void> {
+  if (previousFingerprint === nextFingerprint) return;
+  await db.transaction("rw", [db.readingProgress, db.replacementRecords, db.quizHistory, db.bookRegistry], async () => {
+    const previousRows = await db.readingProgress.where("fileFingerprint").equals(previousFingerprint).toArray();
+    for (const previous of previousRows) {
+      const scope = scopeOf(previous.vocabularyId);
+      const existing = await db.readingProgress.get([scope, nextFingerprint]);
+      if (!existing || previous.updatedAt > existing.updatedAt) {
+        await db.readingProgress.put({
+          ...previous,
+          vocabularyId: scope,
+          fileFingerprint: nextFingerprint,
+          fileName,
+        });
+      }
+      await db.readingProgress.delete([scope, previousFingerprint]);
+    }
+    await Promise.all([
+      db.replacementRecords.where("fileFingerprint").equals(previousFingerprint).delete(),
+      db.quizHistory.where("fileFingerprint").equals(previousFingerprint).delete(),
+      db.bookRegistry.delete(previousFingerprint),
+    ]);
+    await db.bookRegistry.put({
+      id: nextFingerprint,
+      source: "builtin-ai",
+      fileFingerprint: nextFingerprint,
+      fileName,
+      updatedAt: Date.now(),
+    });
+  });
+}
+
 export async function getContextCorrections(vocabularyId: VocabularyId = DEFAULT_SCOPE): Promise<Map<string, string>> {
   const records = await db.contextCorrections.where("vocabularyId").equals(vocabularyId).toArray();
   return new Map(records.map((item) => [item.key, item.selectedEnglish]));
