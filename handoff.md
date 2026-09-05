@@ -1,12 +1,21 @@
 # 项目交接摘要
 
-更新时间：2026-09-04（Asia/Shanghai）
+更新时间：2026-09-05（Asia/Shanghai）
 
 ## 当前产品状态
 
 - 当前工作重点是 AI 小说阅读体验：网文节奏、前情交代、完整闭环、数字与参数克制，以及五库标注准确率。
-- localhost 仅用于本地复查；当前没有新的部署、推送或发布确认。
+- 当前版本已完成本地复查所需构建并推送到 GitHub `main`；尚未进行本轮 Cloudflare 部署，等待用户在 localhost 最终验收。
 - AI 小说资源的运行时入口是 `src/data/builtin-novel-catalog.json` 和 `public/ai-novels/`。
+
+## 本轮最新状态（2026-09-05）
+
+- AI 小说入口已由“AI 小说”改为“词境故事”，首页入口增加故事化副标题，书架增加首屏说明、四部故事/五套词库/每章 60+ 词汇信息、篇幅切换、封面卡片、类型标签、序号和续读状态；阅读页内置小说来源标签同步为“词境故事”。
+- 用户确认《手机正在直播我的葬礼》的段落阅读观感最好。后续生成、续写和修订以该篇为排版参考：普通叙事段落以手机端两三行为目标，通常约 45—90 个汉字；完整对话、动作链或情绪转折确有必要时才保留长段。现有另外三篇不因这条规则返修。
+- 该段落规则已写入 `AI小说/00-项目控制/小说文风硬规则.md`、本文件、`scripts/ai-novel/generate.mjs` 和 `scripts/ai-novel/rewrite-active-novels.mjs`；批量重写器的本地段落整理也已收紧到约 90—120 字的拆分目标，不会自动改动现有导出稿。
+- 本地校验：`npm run build`、`npm run ai-novel:test`、`npm run ai-novel:validate`、`npm test -- --run` 均通过；完整测试为 156 passed / 1 skipped，AI 小说专项为 10 passed。
+- 当前版本已通过专用 SSH 密钥推送到 GitHub `main`，提交为 [`eabcb64b7a4514dafbf26c30963bdca0621794c8`](https://github.com/Charlie9929/Novel-and-vocab/commit/eabcb64b7a4514dafbf26c30963bdca0621794c8)。
+- 下一步：用户在 localhost 复查“词境故事”入口和四本书架；确认无误后再部署，再准备小红书首发内容。小红书文案初稿已在对话中给出，主标题为“背单词终于不用啃词表了，我把它写进了小说里”。
 
 ## 当前保留的四本短篇
 
