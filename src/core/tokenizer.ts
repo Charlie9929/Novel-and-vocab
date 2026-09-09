@@ -309,6 +309,58 @@ export function findTerms(
   return findTermsViaScan(text, dict, getDictionaryScanIndex(dict), sentences, protectedRanges, protectedCompoundRanges, corrections, segments, undefined, vocabularyId, candidatePolicy);
 }
 
+export interface UnmappedSegmentDiagnostics {
+  strategy: "intl-segmenter" | "unavailable";
+  occurrenceCount: number;
+  uniqueSegmentCount: number;
+  chineseCharacterCount: number;
+}
+
+/**
+ * Count candidate-like Chinese segments that are absent from the active
+ * vocabulary. This is a bounded heuristic for offline coverage diagnosis,
+ * not a claim that every unknown segment should become a vocabulary entry.
+ * The result intentionally omits the segment text to keep reports private.
+ */
+export function countUnmappedCandidateLikeSegments(
+  text: string,
+  entries: Cet4Entry[],
+  vocabularyId: VocabularyId = "cet4",
+): UnmappedSegmentDiagnostics {
+  const segments = trySegmentChinese(text);
+  if (!segments) {
+    return {
+      strategy: "unavailable",
+      occurrenceCount: 0,
+      uniqueSegmentCount: 0,
+      chineseCharacterCount: 0,
+    };
+  }
+
+  const dict = buildDictMap(getCuratedEntries(entries, vocabularyId));
+  const uniqueSegments = new Set<string>();
+  let occurrenceCount = 0;
+  let chineseCharacterCount = 0;
+
+  for (const segment of segments) {
+    const value = segment.segment;
+    const length = [...value].length;
+    if (length < 2 || length > 8 || ![...value].every(isCJKChar)) continue;
+    if (dict.has(value) || isBlockedTerm(value)) continue;
+    if (FUNCTION_WORD.has(value[0])) continue;
+    uniqueSegments.add(value);
+    occurrenceCount += 1;
+    chineseCharacterCount += length;
+  }
+
+  return {
+    strategy: "intl-segmenter",
+    occurrenceCount,
+    uniqueSegmentCount: uniqueSegments.size,
+    chineseCharacterCount,
+  };
+}
+
 function getCuratedEntries(entries: Cet4Entry[], vocabularyId: VocabularyId): Cet4Entry[] {
   // The curated override table was built from CET4 evidence. Applying it to
   // another pack silently replaces that pack's reviewed candidate IDs (for

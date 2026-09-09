@@ -20,20 +20,25 @@ import {
   IELTS_CET4_REUSABLE_SINGLE_SENSE_IDS,
   TOEFL_CET4_REUSABLE_SINGLE_SENSE_IDS,
 } from "./shared-vocabulary-candidates";
+import {
+  CET6_CROSS_PACK_STABLE_OVERLAP_IDS,
+  IELTS_CROSS_PACK_STABLE_OVERLAP_IDS,
+  KAOYAN_CROSS_PACK_STABLE_OVERLAP_IDS,
+  TOEFL_CROSS_PACK_STABLE_OVERLAP_IDS,
+} from "./cross-pack-stable-overlap";
 import { KAOYAN_ROUND1_APPROVALS } from "./kaoyan-round1-stable";
 import { KAOYAN_CROSS_PACK_CONSENSUS_IDS } from "./kaoyan-cross-pack-consensus";
 
 /**
- * Per-vocabulary candidate policy. CET4 keeps the existing reviewed pool;
- * imported packs add only their own independently reviewed batches. An exact
- * CET4 overlap is reusable only for a target-pack term that has one lexical
- * sense; multi-sense overlap remains gated by the target pack's own review.
- * Every occurrence still goes through boundary/context safety checks.
+ * Per-vocabulary candidate policy. Each pack keeps its independently reviewed
+ * batches and can additionally reuse exact tuples already stable-approved in
+ * at least two other packs when the target pack has one lexical sense. Every
+ * occurrence still goes through boundary/context safety checks.
  */
 export interface VocabularyCandidateStrategy {
   vocabularyId: VocabularyId;
   approvedCandidateIds: ReadonlySet<string>;
-  /** Exact CET4 tuples that may seed this pack's independent review queue. */
+  /** Exact CET4 tuples tracked as reuse evidence for this pack. */
   reusableCandidateIds: ReadonlySet<string>;
   rejectedCandidateIds: ReadonlySet<string>;
   floatingBoundaryCandidateIds: ReadonlySet<string>;
@@ -887,7 +892,9 @@ const TOEFL_REJECTED_CANDIDATES = [
 ] as const;
 
 export const VOCABULARY_CANDIDATE_STRATEGIES: Readonly<Record<VocabularyId, VocabularyCandidateStrategy>> = Object.freeze({
-  cet4: makeStrategy("cet4", "ready", { approvedCandidateIds: [...APPROVED_CANDIDATE_IDS] }),
+  cet4: makeStrategy("cet4", "ready", {
+    approvedCandidateIds: [...APPROVED_CANDIDATE_IDS],
+  }),
   cet6: makeStrategy("cet6", "partial", {
     approvedCandidateIds: [
       ...CET6_ROUND2_APPROVALS, ...CET6_ROUND2_CONTEXTUAL_APPROVALS, ...CET6_STRICT_STABLE_IDS,
@@ -907,6 +914,14 @@ export const VOCABULARY_CANDIDATE_STRATEGIES: Readonly<Record<VocabularyId, Voca
       ...CET6_ROUND24_APPROVALS,
       ...CET6_ROUND25_APPROVALS,
       ...CET6_ROUND26_APPROVALS,
+      // Exact CET4 overlaps with one source sense are safe to reuse in this
+      // pack after the reader-coverage expansion review. They still pass the
+      // normal boundary and confidence gates at every occurrence.
+      ...CET6_CET4_REUSABLE_SINGLE_SENSE_IDS,
+      // Exact tuples already stable-approved in two other imported packs and
+      // single-sense in CET6. Contextual and blocked terms are excluded by the
+      // generated source and still remain subject to runtime safety checks.
+      ...CET6_CROSS_PACK_STABLE_OVERLAP_IDS,
     ],
     reusableCandidateIds: CET6_CET4_REUSABLE_SINGLE_SENSE_IDS,
     rejectedCandidateIds: CET6_REJECTED_CANDIDATES,
@@ -927,6 +942,7 @@ export const VOCABULARY_CANDIDATE_STRATEGIES: Readonly<Record<VocabularyId, Voca
       ...KAOYAN_ROUND1_APPROVALS,
       ...KAOYAN_READER_ROUND1_APPROVALS,
       ...KAOYAN_CROSS_PACK_CONSENSUS_IDS,
+      ...KAOYAN_CROSS_PACK_STABLE_OVERLAP_IDS,
     ],
   }),
   ielts: makeStrategy("ielts", "partial", {
@@ -945,6 +961,11 @@ export const VOCABULARY_CANDIDATE_STRATEGIES: Readonly<Record<VocabularyId, Voca
       ...IELTS_ROUND19_APPROVALS,
       ...IELTS_READER_ROUND1_APPROVALS,
       ...IELTS_V2_APPROVALS,
+      // Expand runtime coverage with exact, single-sense CET4 overlaps. The
+      // imported IELTS entry must still exist and the occurrence remains
+      // subject to contextual and boundary safety checks.
+      ...IELTS_CET4_REUSABLE_SINGLE_SENSE_IDS,
+      ...IELTS_CROSS_PACK_STABLE_OVERLAP_IDS,
     ],
     reusableCandidateIds: IELTS_CET4_REUSABLE_SINGLE_SENSE_IDS,
     rejectedCandidateIds: IELTS_REJECTED_CANDIDATES,
@@ -976,6 +997,11 @@ export const VOCABULARY_CANDIDATE_STRATEGIES: Readonly<Record<VocabularyId, Voca
       ...TOEFL_ROUND21_APPROVALS,
       ...TOEFL_READER_ROUND1_APPROVALS,
       ...TOEFL_V2_APPROVALS,
+      // Expand runtime coverage with exact, single-sense CET4 overlaps. The
+      // imported TOEFL entry must still exist and the occurrence remains
+      // subject to contextual and boundary safety checks.
+      ...TOEFL_CET4_REUSABLE_SINGLE_SENSE_IDS,
+      ...TOEFL_CROSS_PACK_STABLE_OVERLAP_IDS,
     ],
     reusableCandidateIds: TOEFL_CET4_REUSABLE_SINGLE_SENSE_IDS,
     rejectedCandidateIds: TOEFL_REJECTED_CANDIDATES,
@@ -1016,7 +1042,7 @@ export function extendVocabularyCandidateStrategy(
   });
 }
 
-/** Whether an exact CET4 tuple is waiting for independent target-pack review. */
+/** Whether an exact CET4 tuple is tracked as reusable evidence for this pack. */
 export function isCandidateReusableFromCet4(vocabularyId: VocabularyId, candidateId: string): boolean {
   return getVocabularyCandidateStrategy(vocabularyId).reusableCandidateIds.has(candidateId);
 }

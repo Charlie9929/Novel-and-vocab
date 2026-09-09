@@ -2,13 +2,13 @@ import type { CandidatePolicyOverride, Cet4Entry, Chapter, MatchedTerm, QuizQues
 import { findTerms } from "./tokenizer";
 import { correctionKey } from "./corrections";
 import { FLOATING_BOUNDARY_TERMS } from "../data/candidate-policy";
+import { DENSITY_VALUES } from "./density";
 import {
   candidateModeForVocabulary,
   isCandidateApprovedForVocabulary,
   isFloatingBoundaryCandidateApprovedForVocabulary,
 } from "../data/vocabulary-candidates";
 
-const MAX_REPLACEMENTS_PER_SENTENCE = 2;
 const MAX_REPLACEMENTS_PER_CHINESE_TERM = 2;
 
 interface ParagraphSpan {
@@ -21,7 +21,7 @@ export function replaceChapterTerms(
   chapter: Chapter,
   entries: Cet4Entry[],
   blacklist: Set<string>,
-  density = 2 / 3,
+  density = DENSITY_VALUES.medium,
   corrections: ReadonlyMap<string, string> = new Map(),
   vocabularyId: VocabularyId = "cet4",
   suppressedFeedbackKeys: ReadonlySet<string> = new Set(),
@@ -93,6 +93,65 @@ export function createQuizQuestions(replacements: ReplacementToken[], count = 5)
   }));
 }
 
+export interface ReplacementPipelineDiagnostics {
+  eligibleCandidates: number;
+  safeCandidates: number;
+  rejectedCandidates: number;
+  rejectedByBoundaryOrConfidence: number;
+  rejectedByPolicy: number;
+  maximalCandidates: number;
+  selectedCandidates: number;
+  omittedByChapterTermLimit: number;
+  omittedByDensity: number;
+  chapterTermLimit: number;
+}
+
+/**
+ * Offline-only diagnostics for explaining where reader coverage is lost.
+ * This returns counts and candidate metadata only; it never includes source
+ * text or sentences in the report.
+ */
+export function analyzeReplacementPipeline(
+  chapter: Chapter,
+  entries: Cet4Entry[],
+  blacklist: Set<string>,
+  density = DENSITY_VALUES.medium,
+  corrections: ReadonlyMap<string, string> = new Map(),
+  vocabularyId: VocabularyId = "cet4",
+  suppressedFeedbackKeys: ReadonlySet<string> = new Set(),
+  candidatePolicy?: CandidatePolicyOverride,
+): ReplacementPipelineDiagnostics {
+  const eligible = findTerms(chapter.text, entries, blacklist, [chapter.title], corrections, vocabularyId, candidatePolicy)
+    .filter((match) => !suppressedFeedbackKeys.has(correctionKey(match.zh, match.sentence)));
+  const safe = eligible.filter((match) => isReplacementSafe(match, vocabularyId, candidatePolicy));
+  const maximal = buildMaximalSafeSelection(chapter, safe);
+  const selected = selectStableReplacements(chapter, safe, density);
+
+  let rejectedByBoundaryOrConfidence = 0;
+  let rejectedByPolicy = 0;
+  for (const match of eligible) {
+    if (isReplacementSafe(match, vocabularyId, candidatePolicy)) continue;
+    if (match.confidence !== "high" || !hasSafeBoundary(match)) {
+      rejectedByBoundaryOrConfidence += 1;
+    } else {
+      rejectedByPolicy += 1;
+    }
+  }
+
+  return {
+    eligibleCandidates: eligible.length,
+    safeCandidates: safe.length,
+    rejectedCandidates: eligible.length - safe.length,
+    rejectedByBoundaryOrConfidence,
+    rejectedByPolicy,
+    maximalCandidates: maximal.length,
+    selectedCandidates: selected.length,
+    omittedByChapterTermLimit: safe.length - maximal.length,
+    omittedByDensity: maximal.length - selected.length,
+    chapterTermLimit: MAX_REPLACEMENTS_PER_CHINESE_TERM,
+  };
+}
+
 function selectStableReplacements(chapter: Chapter, matches: MatchedTerm[], density: number): ReplacementToken[] {
   if (matches.length === 0) return [];
   const maximal = buildMaximalSafeSelection(chapter, matches);
@@ -107,11 +166,10 @@ function selectStableReplacements(chapter: Chapter, matches: MatchedTerm[], dens
   }));
 }
 
-/** Build one deterministic, cap-respecting pool shared by all density levels. */
+/** Build one deterministic, chapter-term-capped pool shared by all density levels. */
 function buildMaximalSafeSelection(chapter: Chapter, matches: MatchedTerm[]): MatchedTerm[] {
   const paragraphSpans = splitParagraphSpans(chapter.text);
   const selected = new Map<string, MatchedTerm>();
-  const sentenceCounts = new Map<string, number>();
   const termCounts = new Map<string, number>();
 
   // Round-robin paragraphs so the maximal pool is distributed through a
@@ -123,14 +181,14 @@ function buildMaximalSafeSelection(chapter: Chapter, matches: MatchedTerm[]): Ma
   for (let round = 0; round < maxRounds; round += 1) {
     for (const items of paragraphMatches) {
       const match = items[round];
-      if (match) addIfLimitsAllow(selected, sentenceCounts, termCounts, match);
+      if (match) addIfLimitsAllow(selected, termCounts, match);
     }
   }
 
   // A match can sit outside a paragraph span after unusual line formatting;
   // include it deterministically as a final fallback.
   for (const match of [...matches].sort(qualitySort)) {
-    addIfLimitsAllow(selected, sentenceCounts, termCounts, match);
+    addIfLimitsAllow(selected, termCounts, match);
   }
 
   return [...selected.values()];
@@ -180,18 +238,18 @@ function isInsideRange(match: MatchedTerm, range: ParagraphSpan): boolean {
 
 function addIfLimitsAllow(
   selected: Map<string, MatchedTerm>,
-  sentenceCounts: Map<string, number>,
   termCounts: Map<string, number>,
   match: MatchedTerm,
 ): void {
   if (selected.has(match.id)) return;
-  const sentenceKey = match.sentence || `range-${match.start}`;
-  const sentenceCount = sentenceCounts.get(sentenceKey) ?? 0;
   const termCount = termCounts.get(match.zh) ?? 0;
-  if (sentenceCount >= MAX_REPLACEMENTS_PER_SENTENCE || termCount >= MAX_REPLACEMENTS_PER_CHINESE_TERM) return;
+  if (termCount >= MAX_REPLACEMENTS_PER_CHINESE_TERM) return;
   selected.set(match.id, match);
-  sentenceCounts.set(sentenceKey, sentenceCount + 1);
   termCounts.set(match.zh, termCount + 1);
+}
+
+function hasSafeBoundary(match: MatchedTerm): boolean {
+  return match.boundaryConfidence <= 1 || match.contextEvidence === true;
 }
 
 function stableScore(input: string): number {

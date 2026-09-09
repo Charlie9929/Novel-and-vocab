@@ -8,8 +8,9 @@ import { Reader } from "./components/Reader";
 import { ReviewPanel } from "./components/ReviewPanel";
 import { SettingsPanel } from "./components/SettingsPanel";
 import { VocabList } from "./components/VocabList";
-import { VocabularyPicker } from "./components/VocabularyPicker";
+import { VOCABULARY_OPTIONS, VocabularyPicker } from "./components/VocabularyPicker";
 import { WordSheet } from "./components/WordSheet";
+import { HomeIntro } from "./components/HomeIntro";
 import {
   builtinFingerprint,
   LEGACY_TIDE_FINGERPRINT,
@@ -692,12 +693,16 @@ export default function App() {
 
   if (!vocabularyId) {
     return (
-      <main className="app-shell centered-shell">
+      <main className="app-shell home-shell">
         {storageWarning ? <p className="storage-warning" role="alert">{storageWarning}</p> : null}
-        <VocabularyPicker
-          currentVocabularyId={null}
-          onChange={handleVocabularyChange}
-        />
+        <HomeIntro />
+        <section className="home-onboarding" aria-label="选择学习词库">
+          <VocabularyPicker
+            currentVocabularyId={null}
+            onChange={handleVocabularyChange}
+            className="home-first-vocabulary"
+          />
+        </section>
       </main>
     );
   }
@@ -719,13 +724,8 @@ export default function App() {
       );
     }
     return (
-      <main className="app-shell centered-shell">
+      <main className="app-shell home-shell">
         {storageWarning ? <p className="storage-warning" role="alert">{storageWarning}</p> : null}
-        <VocabularyPicker
-          currentVocabularyId={vocabularyId}
-          onChange={handleVocabularyChange}
-          onClearCurrentData={() => void handleClearCurrentVocabularyData()}
-        />
         {vocabularyError ? (
           <p className="error-text" role="alert">{vocabularyError}</p>
         ) : isVocabularyLoading ? (
@@ -733,11 +733,19 @@ export default function App() {
         ) : (
           <FilePicker
             shelf={shelf}
+            vocabularyLabel={VOCABULARY_OPTIONS.find((option) => option.id === vocabularyId)?.label ?? vocabularyId}
             onLoaded={handleNovelLoaded}
             onResumeMissing={handleResumeMissing}
             onOpenAiNovels={() => setLibraryView("ai-novels")}
           />
         )}
+        <section className="home-vocabulary-settings" aria-label="当前学习词库">
+          <VocabularyPicker
+            currentVocabularyId={vocabularyId}
+            onChange={handleVocabularyChange}
+            onClearCurrentData={() => void handleClearCurrentVocabularyData()}
+          />
+        </section>
       </main>
     );
   }

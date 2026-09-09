@@ -16,20 +16,20 @@
       "remainingUnique": 4919
     },
     "ielts": {
-      "uniqueCandidates": 4690,
-      "reusableFromCet4": 301,
-      "reusableSingleSense": 234,
-      "remainingUnique": 4389
+      "uniqueCandidates": 4740,
+      "reusableFromCet4": 305,
+      "reusableSingleSense": 238,
+      "remainingUnique": 4435
     },
     "toefl": {
-      "uniqueCandidates": 6780,
-      "reusableFromCet4": 226,
-      "reusableSingleSense": 150,
-      "remainingUnique": 6554
+      "uniqueCandidates": 6836,
+      "reusableFromCet4": 230,
+      "reusableSingleSense": 154,
+      "remainingUnique": 6606
     }
   },
   "crossImportedPackOverlap": {
-    "atLeastTwoPacks": 4767,
+    "atLeastTwoPacks": 4786,
     "allThreePacks": 2174
   },
   "output": "src/data/shared-vocabulary-candidates.ts"

@@ -108,6 +108,13 @@ NOVEL_CORPUS_DIR=/mnt/d/学习/阅读/小说 npm run quality:baseline
 npm run quality:pack-contract
 npm run quality:audit-vocabulary
 npm run quality:audit-labels
+# 诊断本地小说覆盖率损失（只输出统计，不保存小说正文或未知词片段）：
+npm run quality:audit-reader-coverage -- \
+  --benchmark tests/private-input/quality/reader-benchmark-v1.json \
+  --out tests/private-input/quality/reader-coverage-diagnostic.json
+# 也可以只诊断一份本地小说；报告仍然只包含统计数量：
+npm run quality:audit-reader-coverage -- \
+  --file /path/to/novel.txt --chapters 5 --chars 4500 --vocabulary ielts
 ```
 
 `quality:audit-corpus` 当前只审计可解码的 TXT；PDF 需先本地提取为文本才能参加近似重复检测。`quality:expand` 可为既有 split 增加偏移样本，但盲测标签不参与规则或允许词表选择。候选进入生产允许词表前必须有开发集重复证据、验证集负例筛查和 Sol 审查记录。
@@ -116,7 +123,9 @@ npm run quality:audit-labels
 
 质量门禁要求开发、验证与盲测按内容近似重复组件的 `bookGroupId` 隔离；五个词库分别以端到端替换精确率（边界、候选词和词性同时正确）达到 `99.5%`、覆盖率达到 `55%` 为内部发布条件。普通用户界面不展示这些内部指标，只展示每章实际替换单词数；缺少私有标注清单或未达到门槛会明确失败，不会伪造绿灯。
 
-固定阅读基准（5 种题材、每本 3 章、每章 4,500 字符、中密度）最近一次本地对照为：CET4 668、CET6 470、考研英语 501、IELTS 453、TOEFL 391 个替换。该数字仅用于研发调优，不作为考试官方覆盖率声明。
+固定阅读基准（5 种题材、每本 3 章、每章 4,500 字符、中密度）当前本地对照为：CET4 1002、CET6 707、考研英语 717、IELTS 718、TOEFL 571 个替换。该数字仅用于研发调优，不作为考试官方覆盖率声明；每次词库或密度规则变化后都应重新生成该对照。
+
+`quality:audit-reader-coverage` 会分别报告词库未命中的候选式中文片段（近似诊断）、未通过边界/置信度或允许策略的候选、章节内同词上限过滤数量，以及低/中/高密度下的实际替换数量。当前替换规则取消了单句替换数量上限，但同一中文词在同一章节、同一词库视图内最多替换两次。跨词库稳定交集由 `quality:build-cross-pack-overlap` 生成：仅复用其他至少两个词库已稳定通过的同一词义，并要求目标词库只有一个词义。
 
 ## 项目结构
 

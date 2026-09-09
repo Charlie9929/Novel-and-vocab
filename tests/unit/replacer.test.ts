@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { isReplacementSafe, replaceChapterTerms } from "../../src/core/replacer";
+import { analyzeReplacementPipeline, isReplacementSafe, replaceChapterTerms } from "../../src/core/replacer";
 import { APPROVED_CANDIDATES } from "../../src/data/approved-candidates";
 import { DENSITY_VALUES } from "../../src/core/density";
 import entries from "../../src/data/cet4-map.json";
 import { correctionKey } from "../../src/core/corrections";
 import { findTerms } from "../../src/core/tokenizer";
-import type { Cet4Entry } from "../../src/core/types";
+import type { CandidatePolicyOverride, Cet4Entry } from "../../src/core/types";
 import { PRODUCTION_BLOCKED_TERMS } from "../../src/data/candidate-policy";
 import { applyCuratedEntryOverrides } from "../../src/data/curated-overrides";
 
@@ -13,6 +13,11 @@ const ambiguousEntries: Cet4Entry[] = [
   { zh: "选择", en: "choice", meaning: "选择", partOfSpeech: "noun", priority: 10 },
   { zh: "选择", en: "choose", meaning: "选择", partOfSpeech: "verb", priority: 20 },
 ];
+
+const approvedTestPolicy: CandidatePolicyOverride = {
+  isApproved: () => true,
+  mode: () => "stable",
+};
 
 function sourceForApproval(candidateId: string): string {
   const [zh, en, partOfSpeech] = candidateId.split(":");
@@ -51,7 +56,7 @@ function sourceForApproval(candidateId: string): string {
 
 describe("precision-first chapter replacement", () => {
   it("keeps the nested safe-pool density values", () => {
-    expect(DENSITY_VALUES).toEqual({ low: 1 / 3, medium: 2 / 3, high: 1 });
+    expect(DENSITY_VALUES).toEqual({ low: 1 / 3, medium: 0.85, high: 1 });
   });
 
   it("keeps every production approval traceable to a real lexical tuple", () => {
@@ -83,6 +88,20 @@ describe("precision-first chapter replacement", () => {
       { zh: "注意到", en: "notice", meaning: "注意到", partOfSpeech: "verb" },
     ], new Set(), 1);
     expect(result.replacements.map((item) => item.en)).toContain("notice");
+  });
+
+  it("allows more than two different replacements in one sentence", () => {
+    const testEntries: Cet4Entry[] = [
+      { zh: "甲词", en: "alpha", meaning: "甲词", partOfSpeech: "noun" },
+      { zh: "乙词", en: "beta", meaning: "乙词", partOfSpeech: "noun" },
+      { zh: "丙词", en: "gamma", meaning: "丙词", partOfSpeech: "noun" },
+    ];
+    const chapter = { id: "sentence-cap", title: "第一章", index: 0, text: "甲词，乙词，丙词。" };
+    const result = replaceChapterTerms(chapter, testEntries, new Set(), 1, new Map(), "cet4", new Set(), approvedTestPolicy);
+
+    expect(result.replacements.map((item) => item.en).sort()).toEqual(["alpha", "beta", "gamma"]);
+    expect(result.tokens.map((token) => token.kind === "replacement" ? token.value : token.value).join(""))
+      .toBe("alpha，beta，gamma。");
   });
 
   it("suppresses a replacement after local translation feedback", () => {
@@ -149,6 +168,38 @@ describe("precision-first chapter replacement", () => {
     const result = replaceChapterTerms(chapter, entries as Cet4Entry[], new Set(), DENSITY_VALUES.high);
 
     expect(result.replacements.filter((item) => item.candidateId === "系统:system:noun")).toHaveLength(2);
+  });
+
+  it("keeps the chapter-level term limit independent for each vocabulary", () => {
+    const testEntries: Cet4Entry[] = [
+      { zh: "甲词", en: "alpha", meaning: "甲词", partOfSpeech: "noun" },
+    ];
+    const chapter = { id: "vocabulary-limit", title: "第一章", index: 0, text: "甲词。甲词。甲词。" };
+    const cet4 = replaceChapterTerms(chapter, testEntries, new Set(), 1, new Map(), "cet4", new Set(), approvedTestPolicy);
+    const cet6 = replaceChapterTerms(chapter, testEntries, new Set(), 1, new Map(), "cet6", new Set(), approvedTestPolicy);
+
+    expect(cet4.replacements).toHaveLength(2);
+    expect(cet6.replacements).toHaveLength(2);
+  });
+
+  it("reports the chapter term limit separately from density", () => {
+    const testEntries: Cet4Entry[] = [
+      { zh: "甲词", en: "alpha", meaning: "甲词", partOfSpeech: "noun" },
+      { zh: "乙词", en: "beta", meaning: "乙词", partOfSpeech: "noun" },
+      { zh: "丙词", en: "gamma", meaning: "丙词", partOfSpeech: "noun" },
+    ];
+    const chapter = { id: "diagnostics", title: "第一章", index: 0, text: "甲词，乙词，丙词。" };
+    const report = analyzeReplacementPipeline(chapter, testEntries, new Set(), 1, new Map(), "cet4", new Set(), approvedTestPolicy);
+
+    expect(report).toMatchObject({
+      eligibleCandidates: 3,
+      safeCandidates: 3,
+      maximalCandidates: 3,
+      selectedCandidates: 3,
+      omittedByChapterTermLimit: 0,
+      omittedByDensity: 0,
+      chapterTermLimit: 2,
+    });
   });
 
   it("does not let a correction introduce an unapproved candidate", () => {

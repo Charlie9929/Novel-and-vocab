@@ -96,7 +96,7 @@ export interface VocabularyCoverageStats {
   approvedStableEntryCount: number;
   approvedContextualEntryCount: number;
   nonCet4ApprovedEntryCount: number;
-  /** Exact CET4 overlap tuples waiting for target-pack review. */
+  /** Exact CET4 overlap tuples tracked as reuse evidence. */
   reusableCandidateCount: number;
   entryCoverage: number;
   lemmaCoverage: number;

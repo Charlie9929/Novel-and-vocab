@@ -24,6 +24,12 @@ import {
 import { replaceChapterTerms } from "../../src/core/replacer";
 import type { Cet4Entry } from "../../src/core/types";
 import {
+  CET6_CROSS_PACK_STABLE_OVERLAP_IDS,
+  IELTS_CROSS_PACK_STABLE_OVERLAP_IDS,
+  KAOYAN_CROSS_PACK_STABLE_OVERLAP_IDS,
+  TOEFL_CROSS_PACK_STABLE_OVERLAP_IDS,
+} from "../../src/data/cross-pack-stable-overlap";
+import {
   CET6_CET4_REUSABLE_IDS,
   CET6_CET4_REUSABLE_SINGLE_SENSE_IDS,
   IELTS_CET4_REUSABLE_IDS,
@@ -229,10 +235,26 @@ describe("vocabulary loading contract", () => {
 });
 
 describe("per-vocabulary candidate policy", () => {
-  it("keeps exact single-sense CET4 tuples as a target-pack review queue", async () => {
+  it("promotes only stable cross-pack overlap tuples for coverage", () => {
+    expect(CET6_CROSS_PACK_STABLE_OVERLAP_IDS.length).toBeGreaterThan(0);
+    expect(KAOYAN_CROSS_PACK_STABLE_OVERLAP_IDS).toHaveLength(0);
+    expect(IELTS_CROSS_PACK_STABLE_OVERLAP_IDS.length).toBeGreaterThan(0);
+    expect(TOEFL_CROSS_PACK_STABLE_OVERLAP_IDS.length).toBeGreaterThan(0);
+    for (const [vocabularyId, candidateIds] of [
+      ["cet6", CET6_CROSS_PACK_STABLE_OVERLAP_IDS],
+      ["ielts", IELTS_CROSS_PACK_STABLE_OVERLAP_IDS],
+      ["toefl", TOEFL_CROSS_PACK_STABLE_OVERLAP_IDS],
+    ] as const) {
+      for (const candidateId of candidateIds) {
+        expect(isCandidateApprovedForVocabulary(vocabularyId, candidateId), `${vocabularyId}:${candidateId}`).toBe(true);
+      }
+    }
+  });
+
+  it("promotes exact single-sense CET4 tuples into target-pack coverage", async () => {
     expect(CET6_CET4_REUSABLE_IDS).toHaveLength(375);
-    expect(IELTS_CET4_REUSABLE_IDS).toHaveLength(301);
-    expect(TOEFL_CET4_REUSABLE_IDS).toHaveLength(226);
+    expect(IELTS_CET4_REUSABLE_IDS).toHaveLength(305);
+    expect(TOEFL_CET4_REUSABLE_IDS).toHaveLength(230);
     for (const [vocabularyId, ids, singleSenseIds, sampleId] of [
       ["cet6", CET6_CET4_REUSABLE_IDS, CET6_CET4_REUSABLE_SINGLE_SENSE_IDS, "得分:score:noun"],
       ["ielts", IELTS_CET4_REUSABLE_IDS, IELTS_CET4_REUSABLE_SINGLE_SENSE_IDS, "得分:score:noun"],
@@ -242,7 +264,7 @@ describe("per-vocabulary candidate policy", () => {
       expect(ids).toContain("内容:content:noun");
       expect(singleSenseIds).toContain(sampleId);
       expect(isCandidateReusableFromCet4(vocabularyId, sampleId)).toBe(true);
-      expect(isCandidateApprovedForVocabulary(vocabularyId, sampleId)).toBe(false);
+      expect(isCandidateApprovedForVocabulary(vocabularyId, sampleId)).toBe(true);
       expect(isCandidateReusableFromCet4(vocabularyId, "内容:content:noun")).toBe(
         singleSenseIds.includes("内容:content:noun"),
       );
@@ -250,7 +272,7 @@ describe("per-vocabulary candidate policy", () => {
     // Same Chinese word with a different English sense is not reused.
     expect(isCandidateApprovedForVocabulary("toefl", "结婚:marry:verb")).toBe(false);
     expect(isCandidateReusableFromCet4("cet6", "得分:score:noun")).toBe(true);
-    expect(isCandidateApprovedForVocabulary("cet6", "得分:score:noun")).toBe(false);
+    expect(isCandidateApprovedForVocabulary("cet6", "得分:score:noun")).toBe(true);
     const cet6Entries = await loadVocabularyEntries("cet6");
     const reusableOnly = replaceChapterTerms(
       { id: "reusable-only", title: "测试", index: 0, text: "得分。" },
@@ -261,7 +283,7 @@ describe("per-vocabulary candidate policy", () => {
       "cet6",
     );
     expect(isCandidateReusableFromCet4("cet6", "得分:score:noun")).toBe(true);
-    expect(reusableOnly.replacements.map((item) => item.candidateId)).not.toContain("得分:score:noun");
+    expect(reusableOnly.replacements.map((item) => item.candidateId)).toContain("得分:score:noun");
     expect(isCandidateApprovedForVocabulary("ielts", "背诵:recite:verb")).toBe(false);
     expect(isCandidateApprovedForVocabulary("toefl", "背诵:recite:verb")).toBe(false);
   });

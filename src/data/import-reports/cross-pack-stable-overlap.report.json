@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "rule": "target has one sense; exact tuple is stable-approved in at least two other vocabulary packs; target mode is stable",
+  "sourcePolicy": "pinned vocabulary metadata only; no novel text or quality labels",
+  "generatedOverlaySource": "src/data/cross-pack-stable-overlap.ts",
+  "counts": {
+    "cet4": 0,
+    "cet6": 86,
+    "kaoyan": 0,
+    "ielts": 111,
+    "toefl": 86
+  }
+}

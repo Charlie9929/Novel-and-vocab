@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import entries from "../../src/data/cet4-map.json";
 import translationCases from "../fixtures/translation-cases.json";
-import { findTerms, splitChapters } from "../../src/core/tokenizer";
+import { countUnmappedCandidateLikeSegments, findTerms, splitChapters } from "../../src/core/tokenizer";
 import type { Cet4Entry } from "../../src/core/types";
 
 const dictionary = entries as Cet4Entry[];
@@ -82,6 +82,15 @@ describe("tokenizer", () => {
     expect(matches.length).toBeGreaterThan(0);
     expect(matches.some((item) => item.zh === "终于")).toBe(true);
     expect(matches.every((item) => item.phonetic)).toBe(true);
+  });
+
+  it("counts unmapped candidate-like segments without returning their text", () => {
+    const report = countUnmappedCandidateLikeSegments("系统和未收录片段正在出现。", dictionary);
+
+    expect(report.strategy).toBe("intl-segmenter");
+    expect(report.occurrenceCount).toBeGreaterThan(0);
+    expect(report.uniqueSegmentCount).toBeGreaterThan(0);
+    expect(report).not.toHaveProperty("segments");
   });
 
   it("keeps compound nouns intact and selects the grammatical word form", () => {

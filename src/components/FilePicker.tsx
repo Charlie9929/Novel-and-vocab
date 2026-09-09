@@ -4,6 +4,7 @@ import type { NovelReadProgress } from "../core/fileReader";
 import { pickNovelViaFsa, readFromHandle, supportsFsa } from "../core/fsa";
 import type { LocalNovel } from "../core/types";
 import type { ReadingProgressRecord } from "../core/db";
+import { HomeIntro } from "./HomeIntro";
 
 export interface ShelfEntry {
   progress: ReadingProgressRecord;
@@ -14,12 +15,13 @@ export interface ShelfEntry {
 
 interface FilePickerProps {
   shelf: ShelfEntry[];
+  vocabularyLabel: string;
   onLoaded: (novel: LocalNovel, handle: FileSystemFileHandle | null) => void | Promise<void>;
   onResumeMissing: (onProgress: (progress: NovelReadProgress) => void) => Promise<void> | void;
   onOpenAiNovels: () => void;
 }
 
-export function FilePicker({ shelf, onLoaded, onResumeMissing, onOpenAiNovels }: FilePickerProps) {
+export function FilePicker({ shelf, vocabularyLabel, onLoaded, onResumeMissing, onOpenAiNovels }: FilePickerProps) {
   const [error, setError] = useState("");
   const [isReading, setIsReading] = useState(false);
   const [readProgress, setReadProgress] = useState<NovelReadProgress | null>(null);
@@ -79,57 +81,70 @@ export function FilePicker({ shelf, onLoaded, onResumeMissing, onOpenAiNovels }:
 
   return (
     <section className="file-picker">
-      <div className="brand-mark">读</div>
-      <h1>沉浸式小说背单词</h1>
-      <p>选择 .txt 或 .pdf 小说，浏览器在你的设备上读取。</p>
+      <HomeIntro vocabularyLabel={vocabularyLabel} />
+
+      <div className="home-section-heading">
+        <div>
+          <h2>选一种读法</h2>
+        </div>
+      </div>
+
+      <div className="home-action-grid">
+        <button className="home-action-card home-action-story" type="button" onClick={onOpenAiNovels} disabled={isReading}>
+          <span className="home-action-icon" aria-hidden="true">阅</span>
+          <span className="home-action-copy">
+            <strong>进入词境故事</strong>
+            <span>四部故事已经标好单词，打开就能读。</span>
+          </span>
+          <span className="home-action-arrow" aria-hidden="true">↗</span>
+        </button>
+
+        <button className="home-action-card home-action-local" type="button" onClick={openNewBook} disabled={isReading}>
+          <span className="home-action-icon" aria-hidden="true">本</span>
+          <span className="home-action-copy">
+            <strong>{hasShelf ? "打开新的本地小说" : "导入我的小说"}</strong>
+            <span>选择 TXT 或 PDF，文件只在浏览器里读取。</span>
+          </span>
+          <span className="home-action-arrow" aria-hidden="true">＋</span>
+        </button>
+      </div>
 
       {hasShelf ? (
-        <div className="shelf-list">
-          {shelf.map((entry) => (
-            <button
-              key={entry.progress.fileFingerprint}
-              className="shelf-card"
-              type="button"
-              onClick={() => resumeBook(entry)}
-              disabled={isReading}
-            >
-              <div className="shelf-card-title">{entry.progress.fileName.replace(/\.(txt|pdf)$/i, "")}</div>
-              <div className="shelf-card-meta">
-                <span>
-                  第 {entry.progress.chapterIndex + 1} 章 · 进度 {entry.progress.scrollPercent}%
+        <section className="home-resume-section" aria-labelledby="home-resume-title">
+          <div className="home-section-heading home-resume-heading">
+            <div>
+              <h2 id="home-resume-title">继续上次的阅读</h2>
+            </div>
+            <span>{shelf.length} 本本地小说</span>
+          </div>
+          <div className="shelf-list">
+            {shelf.map((entry) => (
+              <button
+                key={entry.progress.fileFingerprint}
+                className="shelf-card"
+                type="button"
+                onClick={() => resumeBook(entry)}
+                disabled={isReading}
+              >
+                <span className="shelf-card-monogram" aria-hidden="true">{entry.progress.fileName.slice(0, 1)}</span>
+                <span className="shelf-card-content">
+                  <span className="shelf-card-title">{entry.progress.fileName.replace(/\.(txt|pdf)$/i, "")}</span>
+                  <span className="shelf-card-meta">
+                    <span>第 {entry.progress.chapterIndex + 1} 章 · 进度 {entry.progress.scrollPercent}%</span>
+                    <span className="shelf-card-time">{formatRelativeTime(entry.progress.updatedAt)}</span>
+                  </span>
+                  <span className="shelf-card-bar"><span style={{ width: `${entry.progress.scrollPercent}%` }} /></span>
                 </span>
-                <span className="shelf-card-time">{formatRelativeTime(entry.progress.updatedAt)}</span>
-              </div>
-              <div className="shelf-card-bar">
-                <span style={{ width: `${entry.progress.scrollPercent}%` }} />
-              </div>
-              {entry.sessionNovel || entry.hasHandle ? (
-                <span className="shelf-card-badge">一键恢复</span>
-              ) : (
-                <span className="shelf-card-badge shelf-card-badge-fallback">需重新选文件</span>
-              )}
-            </button>
-          ))}
-          <button className="secondary-button shelf-new-btn" type="button" onClick={openNewBook} disabled={isReading}>
-            + 打开新书
-          </button>
-        </div>
-      ) : (
-        <>
-          <button className="primary-button" type="button" onClick={openNewBook} disabled={isReading}>
-            {isReading ? "读取中..." : "选择 .txt / .pdf 小说"}
-          </button>
-        </>
-      )}
-
-      <button className="secondary-button ai-novel-entry-button" type="button" onClick={onOpenAiNovels} disabled={isReading}>
-        <span className="ai-novel-entry-icon" aria-hidden="true">阅</span>
-        <span className="ai-novel-entry-copy">
-          <strong>词境故事</strong>
-          <small>让词汇跟着情节被记住</small>
-        </span>
-        <span className="ai-novel-entry-arrow" aria-hidden="true">→</span>
-      </button>
+                {entry.sessionNovel || entry.hasHandle ? (
+                  <span className="shelf-card-badge">续读</span>
+                ) : (
+                  <span className="shelf-card-badge shelf-card-badge-fallback">重选文件</span>
+                )}
+              </button>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       {isReading && readProgress ? <ReadProgress progress={readProgress} /> : null}
 
@@ -138,6 +153,11 @@ export function FilePicker({ shelf, onLoaded, onResumeMissing, onOpenAiNovels }:
       ) : null}
 
       {error ? <p className="error-text">{error}</p> : null}
+
+      <div className="home-privacy-note">
+        <span aria-hidden="true">◇</span>
+        <p><strong>本地小说不会上传。</strong> 文件处理和学习记录都留在当前浏览器。</p>
+      </div>
     </section>
   );
 }

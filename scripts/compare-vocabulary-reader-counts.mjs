@@ -35,7 +35,7 @@ const qualityManifestArgument = args.get("--quality-manifest") ?? "tests/private
 const qualityManifestPath = resolve(qualityManifestArgument);
 const chaptersLimit = parseBoundedInteger(args.get("--chapters") ?? "5", "--chapters", 1, 10);
 const charsLimit = parseBoundedInteger(args.get("--chars") ?? "4500", "--chars", 1000, 20000);
-const density = parseDensity(args.get("--density") ?? "medium");
+const densityArgument = args.get("--density") ?? "medium";
 const requestedVocabulary = args.get("--vocabulary");
 const allVocabularyIds = [...READER_BENCHMARK_VOCABULARIES];
 if (requestedVocabulary && !allVocabularyIds.includes(requestedVocabulary)) {
@@ -55,8 +55,9 @@ const bundle = await build({
     contents: `
       import { splitChapters } from ${JSON.stringify(resolve(root, "src/core/tokenizer.ts"))};
       import { replaceChapterTerms } from ${JSON.stringify(resolve(root, "src/core/replacer.ts"))};
+      import { DENSITY_VALUES } from ${JSON.stringify(resolve(root, "src/core/density.ts"))};
       import { loadVocabularyEntries } from ${JSON.stringify(resolve(root, "src/data/vocabulary.ts"))};
-      export { splitChapters, replaceChapterTerms, loadVocabularyEntries };
+      export { splitChapters, replaceChapterTerms, DENSITY_VALUES, loadVocabularyEntries };
     `,
     resolveDir: root,
     sourcefile: "vocabulary-reader-counts-entry.ts",
@@ -74,6 +75,7 @@ const outputPath = join(tempDir, "entry.mjs");
 try {
   await writeFile(outputPath, bundle.outputFiles[0].text, "utf8");
   const module = await import(pathToFileURL(outputPath).href);
+  const density = parseDensity(densityArgument, module.DENSITY_VALUES);
   const ids = requestedVocabulary ? vocabularyIds : [...READER_BENCHMARK_VOCABULARIES];
   const entriesByVocabulary = new Map();
   // Load one pack at a time and reuse it across the five books.
@@ -213,8 +215,7 @@ function parseBoundedInteger(value, name, minimum, maximum) {
   return parsed;
 }
 
-function parseDensity(value) {
-  const labels = { low: 0.4, medium: 2 / 3, high: 1 };
+function parseDensity(value, labels = { low: 1 / 3, medium: 0.85, high: 1 }) {
   const parsed = labels[value] ?? Number(value);
   if (!Number.isFinite(parsed) || parsed < 0 || parsed > 1) {
     throw new Error("--density must be low, medium, high, or a number from 0 to 1");
