@@ -86,5 +86,92 @@
       "ielts": "/ai-novels/funeral-livestream/annotations.ielts.v3.json",
       "toefl": "/ai-novels/funeral-livestream/annotations.toefl.v3.json"
     }
+  },
+  {
+    "id": "wedding-cancelled-homestay",
+    "title": "婚礼取消以后，前任住进了我的民宿",
+    "description": "婚礼前夜，逃婚的新娘和穿礼服的前任一起住进乔南的民宿；三个人先把各自的生活过明白，再决定要不要回头。",
+    "genre": "urban-romance",
+    "genreLabel": "都市情感",
+    "lengthTier": "medium",
+    "chapterCount": 12,
+    "chineseCharacterCount": 38208,
+    "contentVersion": "v1",
+    "coverUrl": "/ai-novels/wedding-cancelled-homestay/cover.v1.webp",
+    "contentUrl": "/ai-novels/wedding-cancelled-homestay/content.v1.json",
+    "supportedVocabularyIds": ["cet4", "cet6", "kaoyan", "ielts", "toefl"],
+    "annotationUrls": {
+      "cet4": "/ai-novels/wedding-cancelled-homestay/annotations.cet4.v1.json",
+      "cet6": "/ai-novels/wedding-cancelled-homestay/annotations.cet6.v1.json",
+      "kaoyan": "/ai-novels/wedding-cancelled-homestay/annotations.kaoyan.v1.json",
+      "ielts": "/ai-novels/wedding-cancelled-homestay/annotations.ielts.v1.json",
+      "toefl": "/ai-novels/wedding-cancelled-homestay/annotations.toefl.v1.json"
+    }
+  },
+  {
+    "id": "father-forced-shen-zhiwei",
+    "title": "父亲逼沈知微认罪，她把父亲送上公堂",
+    "description": "重生回到父亲逼她按下供状的清晨，沈知微拒绝替家人背罪，也要让真正动过官粮的人付出代价。",
+    "genre": "historical-revenge",
+    "genreLabel": "古代重生",
+    "lengthTier": "medium",
+    "chapterCount": 12,
+    "chineseCharacterCount": 44209,
+    "minimumReplacementsPerChapter": 36,
+    "contentVersion": "v1",
+    "coverUrl": "/ai-novels/father-forced-shen-zhiwei/cover.v2.webp",
+    "contentUrl": "/ai-novels/father-forced-shen-zhiwei/content.v1.json",
+    "supportedVocabularyIds": ["cet4", "cet6", "kaoyan", "ielts", "toefl"],
+    "annotationUrls": {
+      "cet4": "/ai-novels/father-forced-shen-zhiwei/annotations.cet4.v1.json",
+      "cet6": "/ai-novels/father-forced-shen-zhiwei/annotations.cet6.v1.json",
+      "kaoyan": "/ai-novels/father-forced-shen-zhiwei/annotations.kaoyan.v1.json",
+      "ielts": "/ai-novels/father-forced-shen-zhiwei/annotations.ielts.v1.json",
+      "toefl": "/ai-novels/father-forced-shen-zhiwei/annotations.toefl.v1.json"
+    }
+  },
+  {
+    "id": "apology-company",
+    "title": "我去讨工资，讨回了一家道歉公司",
+    "description": "四个被拖欠工资的员工接手一家道歉公司，在一次次替人把话说清楚的委托里，把欠薪、账目和自己的新生活一起讨回来。",
+    "genre": "comedy",
+    "genreLabel": "职场喜剧",
+    "lengthTier": "medium",
+    "chapterCount": 12,
+    "chineseCharacterCount": 49892,
+    "minimumReplacementsPerChapter": 36,
+    "contentVersion": "v1",
+    "coverUrl": "/ai-novels/apology-company/cover.v1.webp",
+    "contentUrl": "/ai-novels/apology-company/content.v1.json",
+    "supportedVocabularyIds": ["cet4", "cet6", "kaoyan", "ielts", "toefl"],
+    "annotationUrls": {
+      "cet4": "/ai-novels/apology-company/annotations.cet4.v1.json",
+      "cet6": "/ai-novels/apology-company/annotations.cet6.v1.json",
+      "kaoyan": "/ai-novels/apology-company/annotations.kaoyan.v1.json",
+      "ielts": "/ai-novels/apology-company/annotations.ielts.v1.json",
+      "toefl": "/ai-novels/apology-company/annotations.toefl.v1.json"
+    }
+  },
+  {
+    "id": "hold-the-line-apocalypse",
+    "title": "末世里，我的异能只能按住不动",
+    "description": "灰雨后的第八年，陆见川靠着能短暂按住坍塌与失控之物的异能，带幸存者穿过黑潮、争取避难所名额，也寻找失联多年的姐姐。",
+    "genre": "science-fiction",
+    "genreLabel": "末世异能",
+    "lengthTier": "long",
+    "chapterCount": 30,
+    "chineseCharacterCount": 120847,
+    "minimumReplacementsPerChapter": 36,
+    "contentVersion": "v1",
+    "coverUrl": "/ai-novels/hold-the-line-apocalypse/cover.v1.webp",
+    "contentUrl": "/ai-novels/hold-the-line-apocalypse/content.v1.json",
+    "supportedVocabularyIds": ["cet4", "cet6", "kaoyan", "ielts", "toefl"],
+    "annotationUrls": {
+      "cet4": "/ai-novels/hold-the-line-apocalypse/annotations.cet4.v1.json",
+      "cet6": "/ai-novels/hold-the-line-apocalypse/annotations.cet6.v1.json",
+      "kaoyan": "/ai-novels/hold-the-line-apocalypse/annotations.kaoyan.v1.json",
+      "ielts": "/ai-novels/hold-the-line-apocalypse/annotations.ielts.v1.json",
+      "toefl": "/ai-novels/hold-the-line-apocalypse/annotations.toefl.v1.json"
+    }
   }
 ]
